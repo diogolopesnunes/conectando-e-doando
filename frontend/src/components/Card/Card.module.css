@@ -1,0 +1,21 @@
+
+
+.titulo{
+    text-align: center;
+    background-color: var(--roxo);
+    border-radius: 0.5em;
+    color: var(--branco);
+    height: 24%;
+    width: 80%;
+    position:absolute;
+    top: -1em;
+    left: -2em;
+}
+
+.cardc{
+    width: 32vh;
+    height: 42vh;
+    border: 0.3em solid var(--preto);
+    position: relative;
+    border-radius: 0.5em;
+}

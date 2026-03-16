@@ -1,0 +1,26 @@
+.img{
+    width: 55vh;
+    height: 35vh;
+    border-radius: 168px;
+    border: 5px solid black;
+}
+
+.Quem_Somos{
+    display: flex;
+    background-color: #EECCBB;
+    padding: 4vh;
+    text-align: start;
+}
+
+.Quem_Somos h1{
+    color: var(--branco);
+
+}
+
+.Baner2{
+    display: flex;
+    background-color: var(--vermelho);
+    color: var(--branco);
+    text-align: center;
+    justify-content: center;
+}

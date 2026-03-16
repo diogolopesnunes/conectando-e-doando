@@ -1,0 +1,6 @@
+.metade{
+    width: 45%;
+}
+.input {
+    border: 1px solid var(--cor-borda);
+}
