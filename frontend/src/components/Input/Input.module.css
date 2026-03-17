@@ -4,3 +4,6 @@
 .input {
     border: 1px solid var(--cor-borda);
 }
+textarea{
+    height: 100px;
+}

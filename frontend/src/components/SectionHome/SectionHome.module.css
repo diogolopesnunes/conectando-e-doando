@@ -1,26 +1,41 @@
-.img{
-    width: 55vh;
-    height: 35vh;
+.img {
+    width: 40%;
+    height: 90%;
     border-radius: 168px;
-    border: 5px solid black;
+    border: 2px solid var(--preto);
 }
 
-.Quem_Somos{
+.Quem_Somos {
     display: flex;
     background-color: #EECCBB;
     padding: 4vh;
-    text-align: start;
 }
 
-.Quem_Somos h1{
-    color: var(--branco);
-
-}
-
-.Baner2{
-    display: flex;
-    background-color: var(--vermelho);
-    color: var(--branco);
-    text-align: center;
+.Quem_Somos_text {
     justify-content: center;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.Quem_Somos_text h1 {
+    color: var(--laranja);
+}
+
+.Baner2 {
+    background-color: var(--vermelho);
+}
+
+.divImg {
+    width: 50%;
+}
+
+.tamanhoSection{
+    min-height: 350px;
+}
+
+@media (max-width: 426px) {
+    .img {
+        height: 40vh;
+    }
 }

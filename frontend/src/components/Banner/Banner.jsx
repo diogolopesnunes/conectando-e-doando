@@ -1,14 +1,17 @@
 import css from './Banner.module.css';
 import Titulo from "../Titulo/Titulo.jsx";
-import Button from "../Button/Button.jsx";
+import Buton from "../Buton/Buton.jsx";
 
-export default function Banner() {
+export default function Banner({titulo}) {
     return (
-        <div className={css.banner}>
-            <Titulo texto={'Conheça o Conectando & Doando, a plataforma que conecta você a ONGs confiáveis e transforma solidariedade em ação.'}/>
-            <div>
-                <Button background={'laranja'} texto={'Conheça as Ongs'}/>
-                <Button background={'roxo'} texto={'Fazer doação'}/>
+        <div className={'px-4 py-2 d-flex flex-wrap align-items-center ' + css.banner}>
+            <div className={'px-sm-4 text-sm-start text-center'}>
+                <Titulo texto={titulo} estilo={'banner'}/>
+            </div>
+            <div
+                className={'px-4 py-2 d-flex gap-3 gap-sm-5 flex-wrap justify-content-sm-start justify-content-center'}>
+                <Buton background={'laranja'} texto={'Conheça as Ongs'} tamanho={'medio'}/>
+                <Buton background={'roxo'} texto={'Fazer doação'} tamanho={'medio'}/>
             </div>
         </div>
     )

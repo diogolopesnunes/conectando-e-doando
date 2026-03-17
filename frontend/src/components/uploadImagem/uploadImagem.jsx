@@ -1,14 +1,14 @@
 import css from "./uploadImagem.module.css";
 
-export default function UploadImagem(textoUpload) {
+export default function UploadImagem({textoUpload}) {
     return (
         <div className={css.container}>
-            <button className={css.botao}>
-                <img src="../../../public/Upload.png" alt="Upload" className={css.iconeUpload}/>
+            <button className={'p-2 ' + css.botao}>
+                <img src="/public/upload.png" alt="Upload" className={css.iconeUpload}/>
                 <span className={css.texto}>{textoUpload}</span>
             </button>
 
-            <img src="../../../public/fotoPerfil.png" alt="Ícone perfil" className={css.icone}/>
+            <img src="/public/fotoPerfil.png" alt="Ícone perfil" className={css.icone}/>
         </div>
     );
 }

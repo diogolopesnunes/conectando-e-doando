@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
-:root{
+:root {
     --roxo: #730662;
     --rosa: #BD0D59;
     --vermelho: #E03E36;
@@ -12,36 +12,15 @@
     --cor-borda: #D9534F;
 }
 
+* {
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box;
+}
 
 /*BACKGROUNDS PREDEFINIDOS*/
 /*Usar principalmente em botões*/
 
-.roxo {
-    color: white;
-    background-color: var(--roxo);
-}
-
-.rosa {
-    color: white;
-    background-color: var(--rosa);
-}
-
-.vermelho {
-    color: var(--branco);
-    background-color: var(--vermelho);
-}
-
-.laranja {
-    color: var(--branco);
-    background-color: var(--laranja);
-}
-
-.branco {
-    color: var(--preto);
-    background-color: var(--branco);
-}
-
-.preto {
-    color: var(--branco);
-    background-color: var(--preto);
+.tamanhoTexto {
+    font-size: 25px;
 }

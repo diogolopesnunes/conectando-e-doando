@@ -1,26 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
-.header{
+.header {
     background: #ffffff;
     padding: 10px 40px;
     position: relative;
 }
 
-.container{
+.container {
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
-.logo img{
+.logo img {
     height: 70px;
 }
 
-.menu{
-    display:flex;
+.menu {
+    display: flex;
+    gap: 20px;
 }
 
-.menu a{
+.menu a {
     font-family: 'Inter', sans-serif;
     font-size: 16px;
     font-weight: bold;
@@ -30,62 +31,62 @@
 }
 
 
-.hamburger{
-    display:none;
-    flex-direction:column;
-    gap:6px;
-    cursor:pointer;
+.hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
 }
 
-.hamburger span{
-    width:35px;
-    height:5px;
+.hamburger span {
+    width: 35px;
+    height: 5px;
 
-    background:#000;
-    border-radius:20px; /* deixa redondinho */
-    display:block;
+    background: #000;
+    border-radius: 20px; /* deixa redondinho */
+    display: block;
 }
 
 
-@media (max-width:768px){
+@media (max-width: 768px) {
 
-    .header{
-        padding:10px 10px;
+    .header {
+        padding: 10px 10px;
     }
 
-    .logo img{
+    .logo img {
         height: 50px;
-        top:100%;
-        left:0;
+        top: 100%;
+        left: 0;
     }
 
-    .hamburger{
-        display:flex;
+    .hamburger {
+        display: flex;
     }
 
-    .menu{
+    .menu {
         transition: 1s;
-        position:absolute;
-        top:100%;
-        left:0;
-        width:100%;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
         background: #ffffff;
 
 
-        flex-direction:column;
-        align-items:center;
-        padding:20px 0;
-        gap:30px;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px 0;
+        gap: 30px;
 
-        display:none;
+        display: none;
     }
 
-    .menu a{
-        margin-left:0;
-        font-size:15px;
+    .menu a {
+        margin-left: 0;
+        font-size: 15px;
     }
 
-    .menuOpen{
-        display:flex;
+    .menuOpen {
+        display: flex;
     }
 }

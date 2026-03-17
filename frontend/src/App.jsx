@@ -9,14 +9,15 @@ export default function App() {
     return (
         <BrowserRouter>
             {/*<Link to={'/cadastro'}>cadastro</Link>*/}
-            <Header />
+            <Header/>
+
             <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/cadastro" element={<PaginaCadastro />} />
-                <Route path="/login" element={< PaginaLogin/>} />
+                <Route path="/" element={<Home/>}/>
+                <Route path="/cadastro" element={<PaginaCadastro/>}/>
+                <Route path="/login" element={< PaginaLogin/>}/>
 
             </Routes>
-            <Footer />
+            <Footer/>
         </BrowserRouter>
     )
 }

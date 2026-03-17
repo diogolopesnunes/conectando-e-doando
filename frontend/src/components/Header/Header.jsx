@@ -1,18 +1,21 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import {useState} from "react";
+import {Link, useLocation} from "react-router-dom";
 import css from "./Header.module.css";
 
 export default function Header() {
 
-    const [open,setOpen] = useState(false);
+    const [open, setOpen] = useState(false);
+    const pagina = useLocation().pathname;
 
     return (
-        <header className={css.header}>
+        <header className={'p-2 ' + css.header}>
             <div className={css.container}>
 
-                <div className={css.logo}>
-                    <img src="/logo.png" alt="logo"/>
-                </div>
+                <Link to="/">
+                    <div className={css.logo}>
+                        <img src="/logo.png" alt="logo"/>
+                    </div>
+                </Link>
 
                 <div className={css.hamburger} onClick={() => setOpen(!open)}>
                     <span></span>
