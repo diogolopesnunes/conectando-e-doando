@@ -4,7 +4,7 @@ SECRET_KEY = 'minhasenhasupersecretacomçe~´`^antihackeramericanoerusso'
 DEBUG = True
 
 DB_HOST = 'localhost'
-DB_NAME = r'C:\Users\Aluno\Documents\biblioteca_api-main\BANCOo\BANCO.fdb'
+DB_NAME = r'C:\Users\Aluno\Downloads\conectando-e-doando-main\conectando-e-doando-main\Conectando_Doando.FDB'
 
 DB_USER = 'sysdba'
 DB_PASSWORD = 'sysdba'

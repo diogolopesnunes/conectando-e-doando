@@ -25,27 +25,22 @@ def cadastro():
         cur = con.cursor()
         dados = request.get_json(silent=True)
 
-        usuario = dados.get('usuario');
+        nome = dados.get('nome')
         email = dados.get('email')
         senha = dados.get('senha')
-        tipo_usuario = dados.get('tipo_usuario')
-        cpf_cnpj = dados.get('cpf-cnpj')
-        descricao_causa = dados.get('descricao_causa')
+        tipo_de_usuario = dados.get('tipo_de_usuario')
+        cpf_cnpj = dados.get('cpf_cnpj')
+        situacao = dados.get('data_hora_registro')
         tipo_ong = dados.get('tipo_ong')
+        descricao_causa = dados.get('descricao_causa')
         banco_ong = dados.get('banco_ong')
         agencia_ong = dados.get('agencia_ong')
         conta_ong = dados.get('conta_ong')
-        cidade_ong = dados.get('descricao_causa')
+        cidade_ong = dados.get('cidade_ong')
         telefone = dados.get('telefone')
-        data_hora_registro = dados.get('data_hora_registro')
-        situacao = dados.get('data_hora_registro')
 
 
-
-        # if not dados:
-        #     return jsonify({'erro': 'Nenhum dado fornecido'}), 400
-
-        if not usuario or not senha or not email:
+        if not nome or not senha or not email:
             return jsonify({'erro': 'Insira Usuário, Email e Senha'}), 400
 
         mensagem_validacao = validar_senha(senha)
@@ -53,18 +48,20 @@ def cadastro():
             return jsonify({'erro': mensagem_validacao}), 400
         senha_cript = criptografar(senha)
 
-        cur.execute('select 1 from usuarios where usuario = ? or email = ?', (usuario, email,))
+        cur.execute('select 1 from usuario where nome = ? or email = ?', (nome, email,))
         if cur.fetchone():
             return jsonify({'erro': 'Usuário já cadastrado'}), 400
-        cur.execute("""insert into usuarios (usuario, email, senha, tipo_usuario, cpf_cnpj,
-        descricao_causa, tipo_ong)
-                        values (?, ?)""", (usuario, email, senha_cript))
+        cur.execute("""insert into usuario (nome, email, senha, tipo_de_usuario, cpf_cnpj, tipo_ong,
+        descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong, telefone )
+                        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (nome, email, senha_cript, tipo_de_usuario, cpf_cnpj,
+                                     tipo_ong, descricao_causa, banco_ong, agencia_ong,
+                                           conta_ong, cidade_ong, telefone ))
 
         con.commit()
-        return jsonify({'mensagem': 'Usuário cadastrado com suuuuceeeeeeeeeeeesso',
+        return jsonify({'mensagem': 'Usuário cadastrado com sucesso',
                         'usuario': {
-                            'usuario': usuario,
-                            'senha': senha
+                            'nome': nome,
+                            'senha': senha #Essa linha é apenas de debbug, remover na versão final
                         }
                         }), 201
 
@@ -79,14 +76,25 @@ def listar_usuarios():
     try:
         cur = con.cursor()
 
-        cur.execute('select id_usuario, usuario, senha from usuarios')
+        cur.execute('select id_usuario, nome, cpf_cnpj, email, telefone, tipo_de_usuario from usuario')
         usuarios = cur.fetchall()
         usuarios_lista = []
+
         for usuario in usuarios:
+            if usuario[5] == 0:
+                tipo = 'Doador'
+            elif usuario[5] == 1:
+                tipo = 'ONG'
+            elif usuario[5] == 2:
+                tipo = 'Administrador'
             usuarios_lista.append({
                 'id_usuario': usuario[0],
-                'usuario': usuario[1],
-                'senha': usuario[2]
+                'nome': usuario[1],
+                'cpf_cnpj': usuario[2],
+                'email': usuario[3],
+                'telefone': usuario[4],
+                'tipo_de_usuario': tipo,
+
             })
 
         return jsonify(mensagem='Lista de Usuários', usuarios=usuarios_lista)
@@ -96,6 +104,45 @@ def listar_usuarios():
     finally:
         cur.close()
 
+@app.route('/buscar_usuarios', methods=['GET'])
+def buscar_usuarios():
+    try:
+        cur = con.cursor()
+        dados = request.get_json()
+        nome = dados.get('nome')
+        cur.execute('select id_usuario, nome, cpf_cnpj, email, telefone, tipo_de_usuario from usuario where UPPER(nome) LIKE UPPER(?)',
+                    (f"{nome}%",))
+        usuarios = cur.fetchall()
+        usuarios_lista = []
+
+        for usuario in usuarios:
+            if usuario[5] == 0:
+                tipo = 'Doador'
+            elif usuario[5] == 1:
+                tipo = 'ONG'
+            elif usuario[5] == 2:
+                tipo = 'Administrador'
+            usuarios_lista.append({
+                'id_usuario': usuario[0],
+                'nome': usuario[1],
+                'cpf_cnpj': usuario[2],
+                'email': usuario[3],
+                'telefone': usuario[4],
+                'tipo_de_usuario': tipo,
+
+            })
+
+        if not usuarios_lista:
+                return jsonify({
+                    'mensagem': 'Nenhum usuário encontrado com esse nome.',
+                }), 404
+
+        return jsonify(mensagem='Usuario de Usuários', usuarios=usuarios_lista)
+
+    except Exception as e:
+        return jsonify({'message': f'Erro ao consultar banco de dados: {e}'}), 500
+    finally:
+        cur.close()
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -105,12 +152,20 @@ def login():
         senha = data.get('senha')
 
         cur = con.cursor()
-        cur.execute('SELECT 1 FROM USUARIOS WHERE EMAIL = ?', (email,))
+        cur.execute('SELECT 1 FROM USUARIO WHERE EMAIL = ?', (email,))
         if cur.fetchone():
-            cur.execute('SELECT SENHA, ID_USUARIO FROM USUARIOS WHERE EMAIL = ?', (email,))
+            cur.execute('SELECT SENHA, ID_USUARIO, SITUACAO  FROM USUARIO WHERE EMAIL = ?', (email,))
             infos = cur.fetchone()
+            if not infos:
+                return jsonify({'error': 'Erro ao buscar dados do usuário'}), 500
+
+
             senha_armazenada = infos[0]
             id_usuario = infos[1]
+            situacao = infos[2]
+            if situacao == 0 or situacao == 2 :
+                return jsonify({'message': 'Sua conta está inativa'}), 403
+
             if check_password_hash(senha_armazenada, senha):
                 token = gerar_token(id_usuario)
                 resp = make_response(jsonify({'message': 'Login bem-sucedido'}), 200)
@@ -122,12 +177,20 @@ def login():
                                 max_age=600)
                 return resp
             else:
-                cur.execute('SELECT TENTATIVAS FROM USUARIOS WHERE EMAIL = ?', (email,))
-                tentativas = cur.fetchone()[0]
+                cur.execute('SELECT TENTATIVAS FROM USUARIO WHERE EMAIL = ?', (email,))
+                resultado = cur.fetchone()
+                if not resultado:
+                    return jsonify({'error': 'Erro ao buscar tentativas'}), 500
+
+                tentativas = resultado[0]
+
                 if tentativas == 3:
+                    cur.execute('UPDATE USUARIO SET SITUACAO = 2,TENTATIVAS = 0')
                     return jsonify({'message': 'Sua conta está inativada'})
+
+
                 tentativas += 1
-                cur.execute('UPDATE USUARIOS SET TENTATIVAS = ? WHERE EMAIL = ?', (tentativas, email))
+                cur.execute('UPDATE USUARIO SET TENTATIVAS = ? WHERE EMAIL = ?  AND (TIPO_DE_USUARIO = 0 OR TIPO_DE_USUARIO= 1)', (tentativas, email))
                 con.commit()
                 return jsonify({'error': 'Senha ou email incorreto(s)'}), 401
         else:
@@ -136,6 +199,9 @@ def login():
         return jsonify({'message': f'Erro ao realizar o login {e}'}), 500
     finally:
         cur.close()
+
+
+@app.route('/logout', methods=['POST'])
 
 
 @app.route('/editar_usuario/<int:id_usuario>', methods=['PUT'])
@@ -157,13 +223,13 @@ def editar_usuario(id_usuario):
         return jsonify({'erro': 'Insira Usuário e Senha'}), 400
     senha_cript = criptografar(senha)
 
-    cur.execute(""" update usuarios set usuario = ?, senha = ?
+    cur.execute(""" update usuario set usuario = ?, senha = ?
                     where id_usuario = ?""", (usuario, senha_cript, id_usuario))
 
     con.commit()
     cur.close()
 
-    return jsonify({'mensagem': 'Usuário editado com suuuuceeeeeeeeeeeesso',
+    return jsonify({'mensagem': 'Usuário editado com sucesso',
                     'usuario': {
                         'id_usuario': id_usuario,
                         'usuario': usuario,
@@ -173,22 +239,26 @@ def editar_usuario(id_usuario):
 
 
 
-@app.route("/enviar_email", methods=['POST'])
-def enviar_email():
-    dados = request.json
-    assunto = dados.get('subject')
-    mensagem = dados.get('message')
-    destinatario = dados.get('to')
+@app.route('/deletar_usuario/<int:id>', methods=['DELETE'])
+def deletar_usuario(id):
+    cur = con.cursor()
 
-    thread = threading.Thread(target=enviando_email, args=(destinatario, assunto, mensagem))
+    cur.execute('select id_usuario from usuario where id_usuario= ?', (id,))
 
-    thread.start()
+    if not cur.fetchone():
+        cur.close()
+        return jsonify({"error": "Usuário não encontrado"}), 404
 
-    return jsonify({"mensagem": "Email enviado com suuuuceeeeeeeeeeeesso!"}), 200
+    cur.execute("delete from usuario where id_usuario = ?", (id,))
+    con.commit()
+    cur.close()
+
+    return jsonify({"message": "Usuário deletado com sucesso", 'id_usuario':id})
 
 
-@app.route('/esqueci_minha_senha', methods=['POST'])
-def esqueci_minha_senha():
+
+@app.route("/verificar_usuario", methods=['POST'])
+def verificar_usuario():
     data = request.get_json()
     destinatario = data.get('email')
     cur = con.cursor()
@@ -204,10 +274,35 @@ def esqueci_minha_senha():
     else:
         return jsonify({"mensagem": "Email informado não existente"})
 
+
+@app.route('/esqueci_minha_senha/', methods=['POST'])
+def esqueci_minha_senha():
+    cur = con.cursor()
+    data = request.get_json()
+    destinatario = data.get('email')
+
+    if cur.execute("""SELECT 1 FROM USUARIO WHERE email = ?""", (destinatario,)):
+        id_usuario = cur.execute("""SELECT id_usuario
+                                    FROM USUARIO
+                                    WHERE email = ?""", (destinatario,))
+        assunto = "Recuperação de senha"
+        codigo = random.randint(000000, 999999)
+        cur.execute("""UPDATE USUARIO SET codigo = ?""", (codigo,))
+
+        mensagem = f"Seu código recuperar sua senha é: {codigo}"
+
+        thread = threading.Thread(target=enviando_email, args=(destinatario, assunto, mensagem))
+
+        thread.start()
+        return jsonify({"mensagem": "Seu código foi enviado no email informado!"}), 200
+    else:
+        return jsonify({"mensagem": "Email informado não existente"})
+
 @app.route('/validar_codigo', methods=['POST'])
 def validar_codigo():
     data = request.get_json()
     codigoData = data.get('codigo')
+
     if codigoData == codigo:
         return jsonify({'mensagem': 'Código válido'})
     else:
@@ -221,3 +316,5 @@ def alterar_senha():
     if senha == confirmaSenha:
         criptografar(senha)
         cur = con.cursor()
+
+
