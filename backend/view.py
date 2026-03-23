@@ -237,7 +237,7 @@ def desbloquear_usuario(id_usuario):
 def editar_usuario(id_usuario):
     cur = con.cursor()
     cur.execute("""select 1
-                    from usuarios
+                    from usuario
                     where id_usuario = ?""", (id_usuario,))
     tem_user = cur.fetchone()
 
@@ -245,42 +245,91 @@ def editar_usuario(id_usuario):
         cur.close()
         return jsonify({'error': 'Usuário não encontrado'}), 404
 
-    nome = request.form.get('nome')
-    email = request.form.get('email')
-    senha = request.form.get('senha')
-    tipo_ong = request.form.get('tipo_ong')
-    descricao_causa = request.form.get('descricao_causa')
-    banco_ong = request.form.get('banco_ong')
-    agencia_ong = request.form.get('agencia_ong')
-    conta_ong = request.form.get('conta_ong')
-    cidade_ong = request.form.get('cidade_ong')
-    telefone = request.form.get('telefone')
-    imagem = request.files.get('imagem')
-
-
-    cur.execute("""select senha
+    cur.execute("""select tipo_de_usuario, nome, email, telefone, tipo_ong, descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong
                    from usuario
                    where id_usuario = ?""", (id_usuario,))
-    senha_criptografada = cur.fetchone()
-    cur.execute("""select senha_2, senha_3 
-                   from senhas_antigas
-                   where fk_usuario = ?""", (id_usuario,))
-    senhas = cur.fetchall()
+    infos = cur.fetchone()
 
-    if checar_senha(senha, senha_criptografada) or checar_senha(senha, senhas[0]) or checar_senha(senha, senhas[1]):
-        return jsonify({"mensagem": "Sua senha não pode ser uma das ultimas 3 senhas"})
+    nome = request.form.get('nome') or infos[1]
+    email = request.form.get('email') or infos[2]
+    senha = request.form.get('senha')
+    telefone = request.form.get('telefone') or infos[3]
+    imagem = request.files.get('imagem')
+    # if infos[0] == 1:
+    tipo_ong = request.form.get('tipo_ong') or infos[4]
+    descricao_causa = request.form.get('descricao_causa') or infos[5]
+    banco_ong = request.form.get('banco_ong') or infos[6]
+    agencia_ong = request.form.get('agencia_ong') or infos[7]
+    conta_ong = request.form.get('conta_ong') or infos[8]
+    cidade_ong = request.form.get('cidade_ong') or infos[9]
 
-    #
-    # con.commit()
-    # cur.close()
-    #
-    # return jsonify({'mensagem': 'Usuário editado com sucesso',
-    #                 'usuario': {
-    #                     'id_usuario': id_usuario,
-    #                     'usuario': usuario,
-    #                     'autor': senha
-    #                 }
-    #                 }), 201
+    if imagem and imagem.filename != "":
+        nome_imagem = f"{id_usuario}.jpg"
+        caminho_imagem_destino = os.path.join(app.config['UPLOAD_FOLDER'], "Usuários")
+        os.makedirs(caminho_imagem_destino, exist_ok=True)
+        caminho_imagem = os.path.join(caminho_imagem_destino, nome_imagem)
+        imagem.save(caminho_imagem)
+    if senha:
+        cur.execute("""select senha
+                       from usuario
+                       where id_usuario = ?""", (id_usuario,))
+        senha_criptografada = cur.fetchone()[0]
+        cur.execute("""select senha_2, senha_3 
+                       from senhas_antigas
+                       where fk_usuario = ?""", (id_usuario,))
+        senhasAnteriores = cur.fetchone()
+        # if senhasAnteriores[0]:
+        #     senha1 = senhasAnteriores[0]
+        # else:
+        #     senha1 = senha_criptografada
+        # if senhasAnteriores[1]:
+        #     senha2 = senhasAnteriores[1]
+        # else:
+        #     senha2 = senha_criptografada
+        senha2 = senhasAnteriores[0] if senhasAnteriores and senhasAnteriores[0] else None
+        senha3 = senhasAnteriores[1] if senhasAnteriores and senhasAnteriores[1] else None
+        if checar_senha(senha, senha_criptografada) or (senha2 and checar_senha(senha, senha2)) or (senha3 and checar_senha(senha, senha3)):
+            return jsonify({"mensagem": "Sua senha não pode ser uma das ultimas 3 senhas"})
+        else:
+            mensagem_validacao = validar_senha(senha)
+            if mensagem_validacao:
+                return jsonify({'erro': mensagem_validacao}), 400
+
+            senha = criptografar(senha)
+            cur.execute("""update usuario
+                           set nome            = ?,
+                               email           = ?,
+                               senha           = ?,
+                               telefone        = ?,
+                               tipo_ong        = ?,
+                               descricao_causa = ?,
+                               banco_ong       = ?,
+                               agencia_ong     = ?,
+                               conta_ong       = ?,
+                               cidade_ong      = ?
+                           where id_usuario = ?""",
+                        (nome, email, senha, telefone, tipo_ong, descricao_causa, banco_ong, agencia_ong, conta_ong,
+                         cidade_ong, id_usuario))
+            con.commit()
+            return jsonify({'mensagem': 'Usuário atualizado com sucesso'}), 201
+    cur.execute("""update usuario
+                   set nome            = ?,
+                       email           = ?,
+                       telefone        = ?,
+                       tipo_ong        = ?,
+                       descricao_causa = ?,
+                       banco_ong       = ?,
+                       agencia_ong     = ?,
+                       conta_ong       = ?,
+                       cidade_ong      = ?
+                   where id_usuario = ?""",
+                (nome, email, telefone, tipo_ong, descricao_causa, banco_ong, agencia_ong, conta_ong,
+                 cidade_ong, id_usuario))
+    con.commit()
+    cur.close()
+    return jsonify({'mensagem': 'Usuário atualizado com sucesso'}), 201
+
+
 
 @app.route('/deletar_usuario/<int:id>', methods=['DELETE'])
 def deletar_usuario(id):
@@ -313,31 +362,96 @@ def verificar_usuario():
     return jsonify({'mensagem': email})
 
 
-# @app.route('/esqueci_minha_senha/', methods=['POST'])
-#     def esqueci_minha_senha():
-#         data = request.get_json()
-#
-#         destinatario = data.get('email')
-#         assunto = "Recuperação de senha"
-#         mensagem = f"Seu código para recuperar sua senha é"
-#
-#         email = email_verificacao(destinatario, assunto, mensagem)
-#
-#         return jsonify({'mensagem': email})
+@app.route('/esqueci_minha_senha/', methods=['POST'])
+def esqueci_minha_senha():
+    data = request.get_json()
+
+    destinatario = data.get('email')
+    assunto = "Recuperação de senha"
+    mensagem = f"Seu código para recuperar sua senha é"
+
+    email = email_verificacao(destinatario, assunto, mensagem)
+
+    return jsonify({'mensagem': email})
 
 
 @app.route('/alterar_senha', methods=['POST'])
 def alterar_senha():
     cur = con.cursor()
 
-    data = request.get_json()
-    senhaAtualData = data.get('senhaAtual')
-    senhaData = data.get('senhaNova')
-    confirmaSenhaData = data.get('confirmaSenha')
+    # 🔐 1. Verifica código usando SUA função
+    sucesso, mensagem = verificar_codigo( codigo)
 
-    # senhaAtual = cur.execute('select 1 from usuario where email = ?', (email,))
+    if not sucesso:
+        return jsonify({"message": mensagem}), 400
 
-    # if senhaAtualData == senhaAtual
+    # 🔍 2. Busca usuário
+    cur.execute("""
+                SELECT ID_USUARIO, SENHA
+                FROM USUARIO
+                WHERE EMAIL = ?
+                """, (email,))
+    usuario = cur.fetchone()
+
+    if not usuario:
+        return jsonify({"message": "Usuário não encontrado"}), 404
+
+    id_usuario = usuario[0]
+    senha_atual = usuario[1]
+
+    # 🚫 3. Não pode ser igual à senha atual
+    if bcrypt.checkpw(nova_senha.encode('utf-8'), senha_atual.encode('utf-8')):
+        return jsonify({"message": "A nova senha não pode ser igual à senha atual"}), 400
+
+    # 🔍 4. Busca histórico
+    cur.execute("""
+                SELECT SENHA_2, SENHA_3
+                FROM SENHAS_ANTIGAS
+                WHERE FK_USUARIO = ?
+                """, (id_usuario,))
+    historico = cur.fetchone()
+
+    if historico:
+        senha_2 = historico[0]
+        senha_3 = historico[1]
+
+        if senha_2 and bcrypt.checkpw(nova_senha.encode('utf-8'), senha_2.encode('utf-8')):
+            return jsonify({"message": "Não pode usar a última senha"}), 400
+
+        if senha_3 and bcrypt.checkpw(nova_senha.encode('utf-8'), senha_3.encode('utf-8')):
+            return jsonify({"message": "Não pode usar a penúltima senha"}), 400
+
+    # 🔐 5. Gera hash
+    nova_senha_hash = bcrypt.hashpw(
+        nova_senha.encode('utf-8'),
+        bcrypt.gensalt()
+    ).decode('utf-8')
+
+    # 🔁 6. Atualiza histórico
+    if historico:
+        cur.execute("""
+                    UPDATE SENHAS_ANTIGAS
+                    SET SENHA_3 = SENHA_2,
+                        SENHA_2 = ?
+                    WHERE FK_USUARIO = ?
+                    """, (senha_atual, id_usuario))
+    else:
+        cur.execute("""
+                    INSERT INTO SENHAS_ANTIGAS (FK_USUARIO, SENHA_2, SENHA_3)
+                    VALUES (?, ?, ?)
+                    """, (id_usuario, senha_atual, None))
+
+    # 💾 7. Atualiza senha e limpa código
+    cur.execute("""
+                UPDATE USUARIO
+                SET SENHA  = ?,
+                    CODIGO = NULL
+                WHERE ID_USUARIO = ?
+                """, (nova_senha_hash, id_usuario))
+
+    con.commit()
+
+    return jsonify({"message": "Senha alterada com sucesso"}), 200
 
 @app.route('/logout', methods=['POST'])
 def logout():
