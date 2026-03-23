@@ -81,7 +81,7 @@ def email_verificacao(destinatario, assunto, mensagem):
     if usuario:
         id_usuario = usuario[0]
         assunto_email = f"{assunto}"
-        codigo = random.randint(000000, 999999).zfill(6)
+        codigo = random.randint(000000, 999999)
         cur.execute("""UPDATE USUARIO SET codigo = ? WHERE id_usuario = ?""", (codigo, id_usuario))
         con.commit()
 

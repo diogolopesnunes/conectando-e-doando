@@ -313,17 +313,17 @@ def verificar_usuario():
     return jsonify({'mensagem': email})
 
 
-@app.route('/esqueci_minha_senha/', methods=['POST'])
-    def esqueci_minha_senha():
-        data = request.get_json()
-
-        destinatario = data.get('email')
-        assunto = "Recuperação de senha"
-        mensagem = f"Seu código para recuperar sua senha é"
-
-        email = email_verificacao(destinatario, assunto, mensagem)
-
-        return jsonify({'mensagem': email})
+# @app.route('/esqueci_minha_senha/', methods=['POST'])
+#     def esqueci_minha_senha():
+#         data = request.get_json()
+#
+#         destinatario = data.get('email')
+#         assunto = "Recuperação de senha"
+#         mensagem = f"Seu código para recuperar sua senha é"
+#
+#         email = email_verificacao(destinatario, assunto, mensagem)
+#
+#         return jsonify({'mensagem': email})
 
 
 @app.route('/alterar_senha', methods=['POST'])
