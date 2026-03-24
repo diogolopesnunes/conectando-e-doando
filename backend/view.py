@@ -303,7 +303,6 @@ def editar_usuario(id_usuario):
         senha = request.form.get('senha')
         telefone = request.form.get('telefone') or infos[3]
         imagem = request.files.get('imagem')
-        # if infos[0] == 1:
         tipo_ong = request.form.get('tipo_ong') or infos[4]
         descricao_causa = request.form.get('descricao_causa') or infos[5]
         banco_ong = request.form.get('banco_ong') or infos[6]
@@ -322,48 +321,11 @@ def editar_usuario(id_usuario):
             caminho_imagem = os.path.join(caminho_imagem_destino, nome_imagem)
             imagem.save(caminho_imagem)
         if senha:
-            # cur.execute("""select senha
-            #                from usuario
-            #                where id_usuario = ?""", (id_usuario,))
-            # senha_criptografada = cur.fetchone()[0]
-            # cur.execute("""select senha_2, senha_3
-            #                from senhas_antigas
-            #                where fk_usuario = ?""", (id_usuario,))
-            # senhasAnteriores = cur.fetchone()
-            #
-            # if senhasAnteriores and senhasAnteriores[0]:
-            #     senha2 = senhasAnteriores[0]
-            # else:
-            #     senha2 = None
-            #
-            # if senhasAnteriores and senhasAnteriores[1]:
-            #     senha3 = senhasAnteriores[1]
-            # else:
-            #     senha3 = None
-            #
-            # senha_atual_repetida = checar_senha(senha, senha_criptografada)
-            #
-            # senha2_repetida = False
-            # if senha2 != None:
-            #     senha2_repetida = checar_senha(senha, senha2)
-            #
-            # senha3_repetida = False
-            # if senha3 != None:
-            #     senha3_repetida = checar_senha(senha, senha3)
-
-
             mensagem, senha_criptografada = valida_nova_senha(senha, id_usuario, cur)
 
             if mensagem:
                 return jsonify({'erro': mensagem}), 400
 
-
-            # if senha_atual_repetida or senha2_repetida or senha3_repetida:
-            #     return jsonify({"mensagem": "Sua senha não pode ser uma das ultimas 3 senhas"})
-            # senha2 = senhasAnteriores[0] if senhasAnteriores and senhasAnteriores[0] else None
-            # senha3 = senhasAnteriores[1] if senhasAnteriores and senhasAnteriores[1] else None
-            # if checar_senha(senha, senha_criptografada) or (senha2 and checar_senha(senha, senha2)) or (senha3 and checar_senha(senha, senha3)):
-            #     return jsonify({"mensagem": "Sua senha não pode ser uma das ultimas 3 senhas"})
             mensagem_validacao = validar_senha(senha)
             if mensagem_validacao:
                 return jsonify({'erro': mensagem_validacao}), 400
@@ -479,6 +441,7 @@ def esqueci_minha_senha():
 
 @app.route('/alterar_senha', methods=['POST'])
 def alterar_senha():
+    cur = con.cursor()
     try:
         dados = request.get_json()
 
@@ -489,7 +452,9 @@ def alterar_senha():
         if not email or not codigo or not nova_senha:
             return jsonify({"message": "Email, código e nova senha são obrigatórios"}), 400
 
-        cur = con.cursor()
+        cur.execute("""select 1 from usuario where email = ?""", (email,))
+        if not cur.fetchone():
+            return jsonify({"erro": "Email não encontrado"}), 404
 
         # 1. Verifica código
         sucesso, mensagem = verificar_codigo(email, codigo)
@@ -573,7 +538,8 @@ def alterar_senha():
         if con:
             con.rollback()
         return jsonify({"message": f"Erro ao alterar senha: {e}"}), 500
-
+    finally:
+        cur.close()
 
 
 @app.route('/logout/<int:id_usuario>', methods=['POST'])
@@ -610,16 +576,17 @@ def logout(id_usuario):
 
 @app.route('/gerar_validar_conta', methods=['POST'])
 def gerar_validar_conta():
-    data = request.get_json()
+    try:
+        data = request.get_json()
+    
+        destinatario = data.get('email')
+        assunto = "Ativação de conta"
+        mensagem = f"Seu código para ativar usa conta é"
 
-    destinatario = data.get('email')
-    assunto = "Ativação de conta"
-    mensagem = f"Seu código para ativar usa conta é"
-
-    email = email_verificacao(destinatario, assunto, mensagem)
-
-    return jsonify({'mensagem': email})
-
+        email = email_verificacao(destinatario, assunto, mensagem)
+        return jsonify({'mensagem': email})
+    except Exception as e:
+        return jsonify({'erro': f'Erro ao gerar código de validação {e}'}), 500
 
 @app.route('/validar_conta', methods=['POST'])
 def validar_conta():
@@ -632,8 +599,7 @@ def validar_conta():
 
         cur.execute("""select 1, situacao from usuario where email = ? """,(email, ))
         infos = cur.fetchone()
-        print(infos)
-
+        
         if not infos:
             return jsonify({"erro": "Email não encontrado"}), 404
         elif infos[1] == 0:
