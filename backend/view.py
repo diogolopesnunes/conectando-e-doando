@@ -4,14 +4,11 @@ import datetime
 import random
 
 import os.path
-from asyncio.windows_events import NULL
-
 from flask import Flask, jsonify, request, send_file, Response, make_response
 import jwt
 from flask_bcrypt import check_password_hash, bcrypt
 
-from funcoes import validar_senha, criptografar, checar_senha, enviando_email, gerar_token, verificar_codigo, \
-    email_verificacao, valida_nova_senha
+from backend.funcoes import validar_senha, criptografar, checar_senha, enviando_email, gerar_token, verificar_codigo, email_verificacao, valida_nova_senha
 from main import app, con
 
 senha_secreta = app.config['SECRET_KEY']
@@ -25,7 +22,6 @@ codigo = 0
 def cadastro():
     try:
         cur = con.cursor()
-
         nome = request.form.get('nome')
         email = request.form.get('email')
         senha = request.form.get('senha')
@@ -39,6 +35,10 @@ def cadastro():
         cidade_ong = request.form.get('cidade_ong')
         telefone = request.form.get('telefone')
         imagem = request.files.get('imagem')
+
+        if tipo_de_usuario == 1:
+            if not tipo_ong and not descricao_causa and not banco_ong and not agencia_ong and not conta_ong and not cidade_ong:
+                return jsonify({'erro': 'A ong deve ter tipo, descrição, banco, agencia, conta e cidade'})
 
 
         if not nome or not senha or not email:
@@ -59,14 +59,16 @@ def cadastro():
                                            conta_ong, cidade_ong, telefone ))
         cur.execute("""insert into senhas_antigas (fk_usuario) values (?)""", (cur.fetchone()[0],))
 
-        codigo_usuario = cur.fetchone()[0]
         con.commit()
+
+        cur.execute("""select id_usuario from usuario where email = ?""", (email,))
+        codigo_usuario = cur.fetchone()[0]
 
         caminho_imagem = None
 
         if imagem:
             nome_imagem = f"{codigo_usuario}.jpg"
-            caminho_imagem_destino = os.path.join(app.config['UPLOAD_FOLDER'], "Usuários")
+            caminho_imagem_destino = os.path.join(app.config['UPLOAD_FOLDER'], "Usuarios")
             os.makedirs(caminho_imagem_destino, exist_ok=True)
             caminho_imagem = os.path.join(caminho_imagem_destino, nome_imagem)
             imagem.save(caminho_imagem)
@@ -183,7 +185,7 @@ def login():
             senha_armazenada = infos[0]
             id_usuario = infos[1]
             situacao = infos[2]
-            if situacao == 0 or situacao == 2 :
+            if situacao != 1 :
                 return jsonify({'message': 'Sua conta está inativa'}), 403
 
             if check_password_hash(senha_armazenada, senha):
@@ -195,6 +197,8 @@ def login():
                                 samesite='Lax',
                                 path="/",
                                 max_age=600)
+                cur.execute('UPDATE USUARIO SET TENTATIVAS = 0 WHERE email = ?', (email,))
+                con.commit()
                 return resp
             else:
                 cur.execute('SELECT TENTATIVAS FROM USUARIO WHERE EMAIL = ?', (email,))
@@ -204,14 +208,14 @@ def login():
 
                 tentativas = resultado[0]
 
-                if tentativas == 3:
-                    cur.execute('UPDATE USUARIO SET SITUACAO = 2,TENTATIVAS = 0')
-                    return jsonify({'message': 'Sua conta está inativada'})
-
-
                 tentativas += 1
-                cur.execute('UPDATE USUARIO SET TENTATIVAS = ? WHERE EMAIL = ?  AND (TIPO_DE_USUARIO = 0 OR TIPO_DE_USUARIO= 1)', (tentativas, email))
+                cur.execute('UPDATE USUARIO SET TENTATIVAS = ? WHERE EMAIL = ? AND TIPO_DE_USUARIO != 2', (tentativas, email))
                 con.commit()
+
+                if tentativas >= 3:
+                    cur.execute('UPDATE USUARIO SET SITUACAO = 2, TENTATIVAS = 0 WHERE EMAIL = ?', (email,))
+                    con.commit()
+                    return jsonify({'message': 'Sua conta está inativada'})
                 return jsonify({'error': 'Senha ou email incorreto(s)'}), 401
         else:
             return jsonify({'error': 'Usuário não encontrado'}), 404
@@ -229,13 +233,13 @@ def desbloquear_usuario(id_usuario):
 
     try:
         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
-        id_usuario = dados['id_usuario']
+        id_token = dados['id_usuario']
         cur = con.cursor()
-        cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_usuario,))
+        cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
         tipo_usuario = cur.fetchone()[0]
         if tipo_usuario != 2:
             cur.close()
-            return jsonify({'error': 'Apenas administradores podem deletar usuários'}), 403
+            return jsonify({'error': 'Apenas administradores podem desbloquear usuários'}), 403
     except Exception as e:
         return jsonify({'message': f'Erro ao verificar token {e}'}), 500
 
@@ -246,12 +250,13 @@ def desbloquear_usuario(id_usuario):
         if not infos:
             return jsonify({'error': 'Erro ao buscar dados do usuário'}), 500
         situacao = infos[0]
-        if situacao == 2:
+        if situacao == 2 or situacao == 3:
             cur.execute("update usuario set situacao = 1 where id_usuario = ?",(id_usuario,))
             con.commit()
             cur.close()
             return jsonify({'message': 'Usuario desbloqueado'})
     except Exception as e:
+        return jsonify({'message': f'Erro ao desbloquear usuário {e}'}), 500
         return jsonify({'message': f'Erro ao desbloquear usuário {e}'}), 500
     finally:
         cur.close()
@@ -305,6 +310,10 @@ def editar_usuario(id_usuario):
         agencia_ong = request.form.get('agencia_ong') or infos[7]
         conta_ong = request.form.get('conta_ong') or infos[8]
         cidade_ong = request.form.get('cidade_ong') or infos[9]
+
+        cur.execute('select 1 from usuario where email = ? and id_usuario != ?', (email, id_usuario,))
+        if cur.fetchone():
+            return jsonify({'erro': 'Usuário já cadastrado'}), 400
 
         if imagem and imagem.filename != "":
             nome_imagem = f"{id_usuario}.jpg"
@@ -403,8 +412,8 @@ def editar_usuario(id_usuario):
         cur.close()
 
 
-@app.route('/deletar_usuario/<int:id>', methods=['DELETE'])
-def deletar_usuario(id):
+@app.route('/desativar_usuario/<int:id_usuario>', methods=['PUT'])
+def desativar_usuario(id_usuario):
     token = request.cookies.get('access_token')
     if not token:
         return jsonify({'mensagem': 'Token de autenticação necessário'}), 401
@@ -417,59 +426,56 @@ def deletar_usuario(id):
         tipo_usuario = cur.fetchone()[0]
         if tipo_usuario != 2:
             cur.close()
-            return jsonify({'error': 'Apenas administradores podem deletar usuários'}), 403
-
-
-
-
+            return jsonify({'error': 'Apenas administradores podem desativar usuários'}), 403
     except Exception as e:
         return jsonify({'message': f'Erro ao verificar token {e}'}), 500
+    finally:
+        cur.close()
 
     try:
         cur = con.cursor()
 
-        cur.execute('select id_usuario from usuario where id_usuario= ?', (id,))
+        cur.execute('select id_usuario from usuario where id_usuario= ?', (id_usuario,))
 
         if not cur.fetchone():
-            cur.close()
             return jsonify({"error": "Usuário não encontrado"}), 404
 
-        cur.execute("delete from usuario where id_usuario = ?", (id,))
+        cur.execute("""update usuario set situacao = 3 where id_usuario = ?""", (id_usuario,))
         con.commit()
-        cur.close()
 
-        return jsonify({"message": "Usuário deletado com sucesso", 'id_usuario':id})
+        return jsonify({"message": "Usuário desativado com sucesso", 'id_usuario':id_usuario})
     except Exception as e:
-        return jsonify({'message': f'Erro ao deletar usuário {e}'}), 500
+        return jsonify({'message': f'Erro ao desativar usuário {e}'}), 500
     finally:
         cur.close()
 
-
-@app.route("/verificar_usuario", methods=['POST'])
-def verificar_usuario():
-    data = request.get_json()
-
-    destinatario = data.get('email')
-    assunto = "Ativação de usuário"
-    mensagem = "Seu código para ativar sua conta é"
-
-    email = email_verificacao(destinatario, assunto, mensagem)
-
-    return jsonify({'mensagem': email})
+# @app.route("/verificar_usuario", methods=['POST'])
+# def verificar_usuario():
+#     data = request.get_json()
+#
+#     destinatario = data.get('email')
+#     assunto = "Ativação de usuário"
+#     mensagem = "Seu código para ativar sua conta é"
+#
+#     email = email_verificacao(destinatario, assunto, mensagem)
+#
+#     return jsonify({'mensagem': email})
 
 
 @app.route('/esqueci_minha_senha', methods=['POST'])
 def esqueci_minha_senha():
-    data = request.get_json()
+    try:
+        data = request.get_json()
 
-    destinatario = data.get('email')
-    assunto = "Recuperação de senha"
-    mensagem = f"Seu código para recuperar sua senha é"
+        destinatario = data.get('email')
+        assunto = "Recuperação de senha"
+        mensagem = f"Seu código para recuperar sua senha é"
 
-    email = email_verificacao(destinatario, assunto, mensagem)
+        email = email_verificacao(destinatario, assunto, mensagem)
 
-    return jsonify({'mensagem': email})
-
+        return jsonify({'mensagem': email})
+    except Exception as e:
+        return jsonify({'erro': 'Erro ao enviar email'})
 
 @app.route('/alterar_senha', methods=['POST'])
 def alterar_senha():
@@ -570,12 +576,22 @@ def alterar_senha():
 
 
 
-@app.route('/logout', methods=['POST'])
-def logout():
+@app.route('/logout/<int:id_usuario>', methods=['POST'])
+def logout(id_usuario):
     token = request.cookies.get('access_token')
-
     if not token:
-        return jsonify({'error': 'Usuário não está logado'}), 401
+        return jsonify({'mensagem': 'Token de autenticação necessário'}), 401
+
+    try:
+        dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+        id_token = dados['id_usuario']
+        cur = con.cursor()
+
+        if id_token != id_usuario:
+            cur.close()
+            return jsonify({'error': 'Não é possível fazer logout sem estar logado na conta'}), 403
+    except Exception as e:
+        return jsonify({'message': f'Erro ao verificar token {e}'}), 500
 
     resp = make_response(jsonify({'message': 'Logout realizado com sucesso'}))
 
@@ -597,46 +613,40 @@ def gerar_validar_conta():
     data = request.get_json()
 
     destinatario = data.get('email')
-    assunto = "Recuperação de senha"
-    mensagem = f"Seu código para recuperar sua senha é"
+    assunto = "Ativação de conta"
+    mensagem = f"Seu código para ativar usa conta é"
 
     email = email_verificacao(destinatario, assunto, mensagem)
 
     return jsonify({'mensagem': email})
 
 
-@app.route('/validar_conta/<int:id_usuario>', methods=['POST'])
-def validar_conta(id_usuario):
-    token = request.cookies.get('access_token')
-    if not token:
-        return jsonify({'mensagem': 'Token de autenticação necessário'}), 401
-
-    try:
-        dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
-        id_token = dados['id_usuario']
-        cur = con.cursor()
-
-
-        if id_token != id_usuario:
-            cur.close()
-            return jsonify({'error': 'Não é possível fazer logout sem estar logado na conta'}), 403
-    except Exception as e:
-        return jsonify({'message': f'Erro ao verificar token {e}'}), 500
+@app.route('/validar_conta', methods=['POST'])
+def validar_conta():
+    cur = con.cursor()
     try:
         data = request.get_json()
 
         email = data.get('email')
         codigo = data.get('codigo')
 
-        sucesso, mensagem = verificar_codigo(email, codigo)
+        cur.execute("""select 1, situacao from usuario where email = ? """,(email, ))
+        infos = cur.fetchone()
+        print(infos)
 
-        if sucesso:
-            cur = con.cursor()
-            cur.execute("""update usuario set situacao = 1 where email = ?""", (email,))
-            con.commit()
-            return jsonify({"message": "Conta validada com sucesso"})
+        if not infos:
+            return jsonify({"erro": "Email não encontrado"}), 404
+        elif infos[1] == 0:
+                sucesso, mensagem = verificar_codigo(email, codigo)
+                if sucesso:
+                    cur.execute("""UPDATE usuario SET situacao = 1 WHERE email = ? AND situacao != 1 """, (email,))
+                    con.commit()
+                    return jsonify({"message": "Conta validada com sucesso"})
+                else:
+                    return jsonify({"message": mensagem}), 400
         else:
-            return jsonify({"message": mensagem}), 400
+                return jsonify({"mensagem": "Conta já validada"})
+
     except Exception as e:
         return jsonify({"message": f"Erro ao validar conta: {e}"}), 500
     finally:

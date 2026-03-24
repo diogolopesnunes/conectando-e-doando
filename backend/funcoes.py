@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from flask_bcrypt import generate_password_hash, check_password_hash
 import smtplib
 from email.mime.text import MIMEText
@@ -30,76 +30,28 @@ def checar_senha(senha, senha_criptografada):
     return check_password_hash(senha_criptografada, senha)
 
 
-def enviando_email(destinatario, assunto, mensagem, codigo):
+def enviando_email(destinatario, assunto, mensagem, codigo, nome):
 
     user = "nikola11tech@gmail.com"
     senha = "ucqs orwa wmdu zgse"
 
-    html = f"""
-        <html>
-            <body style="font-family: Arial; background-color: #f4f4f4; padding: 20px;">
-                <div style="
-                    max-width: 600px;
-                    margin: auto;
-                    background: white;
-                    padding: 30px;
-                    border-radius: 10px;
-                    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-                ">
-                    <h2 style="color: #F1731F; text-align: center;">
-                        Sistema Nikola Tech
-                    </h2>
+    with app.app_context():
+        html = render_template("email.html", mensagem=mensagem, codigo=codigo, nome=nome)
 
-                    <p style="font-size: 16px; color: #333; text-align: center;">Olá, <b>{mensagem}</b> 👋</p>
-                    <div>
-                        <p style="margin: auto; font-size: 30px; text-align: center; font-weight: bold; background-color: #BD0D59; padding: 3px; border-radius: 5px; color: white;">{codigo}</p>
-                    </div>
+    msg = MIMEText(html, "html", "utf-8")
+    msg["Subject"] = assunto
+    msg["From"] = user
+    msg["To"] = destinatario
 
-                    
 
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="https://seusite.com"
-                           style="
-                               background-color: #730662;
-                               color: white;
-                               padding: 12px 20px;
-                               text-decoration: none;
-                               border-radius: 8px;
-                               font-weight: bold;
-                               font-size: 20px;
-                           ">
-                            Acessar sistema
-                        </a>
-                    </div>
-
-                    <p style="font-size: 15px; color: #555;">
-                        Recebemos sua solicitação com sucesso.
-                    </p>
-
-                    <p style="font-size: 13px; color: #999;">
-                        Se você não reconhece essa ação, ignore este email.
-                    </p>
-
-                    <hr>
-
-                    <p style="font-size: 12px; color: #aaa; text-align: center;">
-                        © 2026 Nikola Tech
-                    </p>
-                </div>
-            </body>
-        </html>
-        """
-
-    msg = MIMEText(html, "html")
-    msg['Subject'] = assunto
-    msg['From'] = user
-    msg['To'] = destinatario
-
-    server = smtplib.SMTP('smtp.gmail.com', 587)
-    server.starttls()
-    server.login(user, senha)
-    server.send_message(msg)
-    server.quit()
+    try:
+        server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+        server.login(user, senha)
+        server.send_message(msg)
+        server.quit()
+        print("Email enviado com sucesso!")
+    except Exception as e:
+        print("Erro ao enviar email:", e)
 
 
 def gerar_token_temporario(id_usuario):
@@ -128,13 +80,14 @@ def gerar_token(id_usuario):
 def email_verificacao(destinatario, assunto, mensagem):
     cur = con.cursor()
 
-    cur.execute("""SELECT id_usuario
+    cur.execute("""SELECT id_usuario, nome
                    FROM USUARIO
                    WHERE email = ?""", (destinatario,))
     usuario = cur.fetchone()
 
     if usuario:
         id_usuario = usuario[0]
+        nome = usuario[1]
         assunto_email = f"{assunto}"
         codigo = random.randint(000000, 999999)
         cur.execute("""UPDATE USUARIO SET codigo = ? WHERE id_usuario = ?""", (codigo, id_usuario))
@@ -142,7 +95,7 @@ def email_verificacao(destinatario, assunto, mensagem):
 
         mensagem_email = f"{mensagem}:"
 
-        thread = threading.Thread(target=enviando_email, args=(destinatario, assunto_email, mensagem_email, codigo))
+        thread = threading.Thread(target=enviando_email, args=(destinatario, assunto_email, mensagem_email, codigo, nome))
 
         thread.start()
         return "Seu código foi enviado no email informado!"
