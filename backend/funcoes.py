@@ -71,6 +71,7 @@ def gerar_token_temporario(id_usuario):
 def gerar_token(id_usuario):
     payload = {
         'id_usuario': id_usuario,
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
         'timestamp': datetime.datetime.utcnow().isoformat()
     }
 
