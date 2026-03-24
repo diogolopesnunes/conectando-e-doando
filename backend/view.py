@@ -23,6 +23,9 @@ def cadastro():
     try:
         cur = con.cursor()
         nome = request.form.get('nome')
+        nome = nome.strip()
+        if len(nome) <= 0:
+            return jsonify({'erro': 'O nome não pode ser vazio'}), 400
         email = request.form.get('email')
         senha = request.form.get('senha')
         tipo_de_usuario = request.form.get('tipo_de_usuario')
@@ -256,7 +259,6 @@ def desbloquear_usuario(id_usuario):
             cur.close()
             return jsonify({'message': 'Usuario desbloqueado'})
     except Exception as e:
-        return jsonify({'message': f'Erro ao desbloquear usuário {e}'}), 500
         return jsonify({'message': f'Erro ao desbloquear usuário {e}'}), 500
     finally:
         cur.close()
@@ -493,11 +495,8 @@ def alterar_senha():
             senha_2 = historico[0]
             senha_3 = historico[1]
 
-            if senha_2 and bcrypt.checkpw(nova_senha.encode('utf-8'), senha_2.encode('utf-8')):
-                return jsonify({"message": "Não pode usar a última senha"}), 400
-
-            if senha_3 and bcrypt.checkpw(nova_senha.encode('utf-8'), senha_3.encode('utf-8')):
-                return jsonify({"message": "Não pode usar a penúltima senha"}), 400
+            if (senha_2 and bcrypt.checkpw(nova_senha.encode('utf-8'), senha_2.encode('utf-8'))) or (senha_3 and bcrypt.checkpw(nova_senha.encode('utf-8'), senha_3.encode('utf-8'))):
+                return jsonify({"message": "A senha não pode ser igual as 3 ultimas"}), 400
 
         nova_senha_verificada = validar_senha(nova_senha)
 

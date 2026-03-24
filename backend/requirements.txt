@@ -2,4 +2,4 @@ flask
 pyjwt
 fdb
 flask-bcrypt
-flask-cors
+flask-co                                                                                             rs
