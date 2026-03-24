@@ -477,6 +477,7 @@ def alterar_senha():
         senha_atual = usuario[1]
 
         # Nova senha não pode ser igual à atual
+        # Transforma as duas senhas em bits e compara
         if bcrypt.checkpw(nova_senha.encode('utf-8'), senha_atual.encode('utf-8')):
             return jsonify({"message": "A nova senha não pode ser igual à senha atual"}), 400
 

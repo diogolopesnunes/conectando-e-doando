@@ -46,6 +46,9 @@ def enviando_email(destinatario, assunto, mensagem, codigo, nome):
 
     try:
         server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+        # para trocar a porta para 587 que é uma existente deve adicionar essa linha a mais, é uma porta que começa sem criptografia
+        # server = smtplib.SMTP("smtp.gmail.com", 587)
+        # server.starttls()
         server.login(user, senha)
         server.send_message(msg)
         server.quit()
