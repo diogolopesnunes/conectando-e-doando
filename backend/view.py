@@ -8,7 +8,7 @@ from flask import Flask, jsonify, request, send_file, Response, make_response
 import jwt
 from flask_bcrypt import check_password_hash, bcrypt
 
-from backend.funcoes import validar_senha, criptografar, checar_senha, enviando_email, gerar_token, verificar_codigo, email_verificacao, valida_nova_senha
+from funcoes import validar_senha, criptografar, checar_senha, enviando_email, gerar_token, verificar_codigo, email_verificacao, valida_nova_senha
 from main import app, con
 
 senha_secreta = app.config['SECRET_KEY']
@@ -56,11 +56,10 @@ def cadastro():
         if cur.fetchone():
             return jsonify({'erro': 'Usuário já cadastrado'}), 400
         cur.execute("""insert into usuario (nome, email, senha, tipo_de_usuario, cpf_cnpj, tipo_ong,
-        descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong, telefone ) 
-                        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id_usuario """, (nome, email, senha_cript, tipo_de_usuario, cpf_cnpj,
+        descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong, telefone, senha_antiga_2, senha_antiga_3) 
+                        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, null, null) RETURNING id_usuario """, (nome, email, senha_cript, tipo_de_usuario, cpf_cnpj,
                                      tipo_ong, descricao_causa, banco_ong, agencia_ong,
                                            conta_ong, cidade_ong, telefone ))
-        cur.execute("""insert into senhas_antigas (fk_usuario) values (?)""", (cur.fetchone()[0],))
 
         con.commit()
 
@@ -75,13 +74,24 @@ def cadastro():
             os.makedirs(caminho_imagem_destino, exist_ok=True)
             caminho_imagem = os.path.join(caminho_imagem_destino, nome_imagem)
             imagem.save(caminho_imagem)
+        try:
+            destinatario = email
+            assunto = "Ativação de conta"
+            mensagem = f"Seu código para ativar usa conta é"
+
+            email = email_verificacao(destinatario, assunto, mensagem)
+
+        except Exception as e:
+            return jsonify({'erro': f'Erro ao gerar código de validação {e}'}), 500
 
         return jsonify({'mensagem': 'Usuário cadastrado com sucesso',
                         'usuario': {
                             'nome': nome,
                             'senha': senha, #Essa linha é apenas de debbug, remover na versão final,
-                            'imagem': caminho_imagem
-                        }
+                            'imagem': caminho_imagem,
+
+                        },
+                        'mensagem_email': email
                         }), 201
 
     except Exception as e:
@@ -343,16 +353,13 @@ def editar_usuario(id_usuario):
                                banco_ong       = ?,
                                agencia_ong     = ?,
                                conta_ong       = ?,
-                               cidade_ong      = ?
+                               cidade_ong      = ?,
+                               senha_antiga_2 = ?,
+                               senha_antiga_3 = senha_antiga_2
                            where id_usuario = ?""",
                         (nome, email, nova_senha, telefone, tipo_ong, descricao_causa, banco_ong, agencia_ong, conta_ong,
-                         cidade_ong, id_usuario))
-            cur.execute("""
-                        update senhas_antigas
-                        set senha_3 = senha_2,
-                            senha_2 = ?
-                        where fk_usuario = ?
-                        """, (senha_criptografada, id_usuario))
+                         cidade_ong, senha_criptografada, id_usuario))
+
             con.commit()
             return jsonify({'mensagem': 'Usuário atualizado com sucesso'}), 201
         cur.execute("""update usuario
@@ -475,69 +482,32 @@ def alterar_senha():
         if not usuario:
             return jsonify({"message": "Usuário não encontrado"}), 404
 
-        id_usuario = usuario[0]
-        senha_atual = usuario[1]
+        mensagem, senha_criptografada = valida_nova_senha(nova_senha, usuario[0], cur)
+        if mensagem:
+            return jsonify({'erro': mensagem}), 400
 
-        # Nova senha não pode ser igual à atual
-        # Transforma as duas senhas em bits e compara
-        if bcrypt.checkpw(nova_senha.encode('utf-8'), senha_atual.encode('utf-8')):
-            return jsonify({"message": "A nova senha não pode ser igual à senha atual"}), 400
+        mensagem_validacao = validar_senha(nova_senha)
+        if mensagem_validacao:
+            return jsonify({'erro': mensagem_validacao}), 400
 
-        # Busca histórico
-        cur.execute("""
-            SELECT SENHA_2, SENHA_3
-            FROM SENHAS_ANTIGAS
-            WHERE FK_USUARIO = ?
-        """, (id_usuario,))
-        historico = cur.fetchone()
-
-        if historico:
-            senha_2 = historico[0]
-            senha_3 = historico[1]
-
-            if (senha_2 and bcrypt.checkpw(nova_senha.encode('utf-8'), senha_2.encode('utf-8'))) or (senha_3 and bcrypt.checkpw(nova_senha.encode('utf-8'), senha_3.encode('utf-8'))):
-                return jsonify({"message": "A senha não pode ser igual as 3 ultimas"}), 400
-
-        nova_senha_verificada = validar_senha(nova_senha)
-
-        if nova_senha_verificada:
-            return jsonify({'erro': nova_senha_verificada}), 400
-
-        # 5. Gera hash da nova senha
-        nova_senha_verificada_hash = criptografar(nova_senha)
-
-        # Atualiza histórico
-        if historico:
-            cur.execute("""
-                UPDATE SENHAS_ANTIGAS
-                SET SENHA_3 = SENHA_2,
-                    SENHA_2 = ?
-                WHERE FK_USUARIO = ?
-            """, (senha_atual, id_usuario))
-        else:
-            cur.execute("""
-                INSERT INTO SENHAS_ANTIGAS (FK_USUARIO, SENHA_2, SENHA_3)
-                VALUES (?, ?, ?)
-            """, (id_usuario, senha_atual, None))
-
-
-
+        senha = criptografar(nova_senha)
         # Atualiza senha e limpa código
         cur.execute("""
             UPDATE USUARIO
             SET SENHA = ?,
+                SENHA_ANTIGA_3 = SENHA_ANTIGA_2,
+                SENHA_ANTIGA_2 = ?,
                 CODIGO = NULL
             WHERE ID_USUARIO = ?
-        """, (nova_senha_verificada_hash, id_usuario))
-
+        """, (senha, senha_criptografada, usuario[0]))
         con.commit()
 
-        return jsonify({"message": "Senha alterada com sucesso"}), 200
+        return jsonify({"messagem": "Senha alterada com sucesso"}), 200
 
     except Exception as e:
         if con:
             con.rollback()
-        return jsonify({"message": f"Erro ao alterar senha: {e}"}), 500
+        return jsonify({"messagem": f"Erro ao alterar senha: {e}"}), 500
     finally:
         cur.close()
 
@@ -573,21 +543,6 @@ def logout(id_usuario):
 
     return resp, 200
 
-
-@app.route('/gerar_validar_conta', methods=['POST'])
-def gerar_validar_conta():
-    try:
-        data = request.get_json()
-    
-        destinatario = data.get('email')
-        assunto = "Ativação de conta"
-        mensagem = f"Seu código para ativar usa conta é"
-
-        email = email_verificacao(destinatario, assunto, mensagem)
-        return jsonify({'mensagem': email})
-    except Exception as e:
-        return jsonify({'erro': f'Erro ao gerar código de validação {e}'}), 500
-
 @app.route('/validar_conta', methods=['POST'])
 def validar_conta():
     cur = con.cursor()
@@ -605,7 +560,7 @@ def validar_conta():
         elif infos[1] == 0:
                 sucesso, mensagem = verificar_codigo(email, codigo)
                 if sucesso:
-                    cur.execute("""UPDATE usuario SET situacao = 1 WHERE email = ? AND situacao != 1 """, (email,))
+                    cur.execute("""UPDATE usuario SET situacao = 1, codigo = NULL WHERE email = ? AND situacao != 1 """, (email,))
                     con.commit()
                     return jsonify({"message": "Conta validada com sucesso"})
                 else:

@@ -93,7 +93,7 @@ def email_verificacao(destinatario, assunto, mensagem):
         id_usuario = usuario[0]
         nome = usuario[1]
         assunto_email = f"{assunto}"
-        codigo = random.randint(000000, 999999)
+        codigo = random.randint(100000, 999999)
         cur.execute("""UPDATE USUARIO SET codigo = ? WHERE id_usuario = ?""", (codigo, id_usuario))
         con.commit()
 
@@ -102,9 +102,9 @@ def email_verificacao(destinatario, assunto, mensagem):
         thread = threading.Thread(target=enviando_email, args=(destinatario, assunto_email, mensagem_email, codigo, nome))
 
         thread.start()
-        return "Seu código foi enviado no email informado!"
+        return "Seu código para validação do email foi enviado, por favor verifique sua caixa de entrada."
     else:
-        return "Email informado não existente"
+        return "Email informado não encontrado."
 
 
 
@@ -117,29 +117,26 @@ def verificar_codigo(email, codigo):
     if not codigo_real:
         return jsonify({'mensagem': 'Usuário não encontrado'}), 404
 
-    if str(codigo_real[0]) == str(codigo):
+    if str(codigo_real[0]) == str(codigo) and codigo != "None":
         return True, "Código válido"
     else:
         return False, "Código inválido"
 
 
 def valida_nova_senha(senha, id_usuario, cur):
-    cur.execute("""select senha
+    cur.execute("""select senha, senha_antiga_2, senha_antiga_3
                    from usuario
                    where id_usuario = ?""", (id_usuario,))
-    senha_criptografada = cur.fetchone()[0]
-    cur.execute("""select senha_2, senha_3
-                   from senhas_antigas
-                   where fk_usuario = ?""", (id_usuario,))
-    senhasAnteriores = cur.fetchone()
+    senhas = cur.fetchone()
+    senha_criptografada = senhas[0]
 
-    if senhasAnteriores and senhasAnteriores[0]:
-        senha2 = senhasAnteriores[0]
+    if senhas and senhas[1]:
+        senha2 = senhas[1]
     else:
         senha2 = None
 
-    if senhasAnteriores and senhasAnteriores[1]:
-        senha3 = senhasAnteriores[1]
+    if senhas and senhas[2]:
+        senha3 = senhas[2]
     else:
         senha3 = None
 
