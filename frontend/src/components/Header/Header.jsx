@@ -2,7 +2,7 @@ import {useState} from "react";
 import {Link, useLocation} from "react-router-dom";
 import css from "./Header.module.css";
 
-export default function Header() {
+export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs}) {
 
     const [open, setOpen] = useState(false);
     const pagina = useLocation().pathname;
@@ -24,10 +24,10 @@ export default function Header() {
                 </div>
 
                 <nav className={`${css.menu} ${open ? css.menuOpen : ""}`}>
-                    <Link to="/">Quem somos</Link>
-                    <Link to="#">Doações</Link>
-                    <Link to="#">Depoimentos</Link>
-                    <Link to="#">ONGs</Link>
+                    <Link to="/" onClick={scrollQuemSomos}>Quem somos</Link>
+                    <Link to="/" onClick={scrollDoacoes}>Doações</Link>
+                    {/*<Link to="/" onClick={scrollOngs}>Depoimentos</Link>*/}
+                    <Link to="/" onClick={scrollOngs}>ONGs</Link>
                     <Link to="/cadastro">Cadastro</Link>
                     <Link to="/login">Login</Link>
                 </nav>

@@ -3,7 +3,7 @@ import css from "./Footer.module.css";
 
 export default function Footer() {
     return (
-        <footer className={css.footer}>
+        <footer className={"w-100 " + css.footer}>
             <div className={css.container}>
 
                 <div className={css.logoArea}>

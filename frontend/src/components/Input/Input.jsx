@@ -13,7 +13,7 @@ export default function Input({tipoInp, label, htmlFor, placeholder, classe = ''
         return (
             <div className={"d-inline-block my-2 " + css.metade}>
                 <label htmlFor={htmlFor}>{label}</label>
-                <input type={tipoInp} placeholder={placeholder} id={htmlFor} name={htmlFor} className={"d-block w-100 rounded px-2 py-1 " + css.input} required/>
+                <input type={tipoInp} placeholder={placeholder} id={htmlFor} name={htmlFor} className={"d-block w-100 rounded px-2 py-1 " + css.input} value={value} onChange={funcao} required/>
             </div>
         )
     } else if (tipoInp == 'select') {
@@ -40,14 +40,11 @@ export default function Input({tipoInp, label, htmlFor, placeholder, classe = ''
         )
     }
 
-    console.log(tipoInp)
-
-
     return (
         <div className={"w-75 m-auto my-2"}>
             <label htmlFor={htmlFor}>{label} </label>
             <input type={tipoInp} placeholder={placeholder} id={htmlFor} name={htmlFor}
-                   className={"w-100 d-block rounded px-2 py-1 " + css.input} required/>
+                   className={"w-100 d-block rounded px-2 py-1 " + css.input} value={value} onChange={funcao} required/>
         </div>
     )
 }

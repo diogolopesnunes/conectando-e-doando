@@ -12,7 +12,8 @@
 .card {
     width: 45vh;
     height: 60vh;
-    border: 0.3em solid var(--preto);
+    /*border: 0.3em solid var(--preto);*/
     position: relative;
     border-radius: 38px;
+    border: none;
 }

@@ -4,7 +4,7 @@
 }
 
 .container {
-    max-width: 1200px;
+    /*max-width: 1200px;*/
     margin: auto;
     display: flex;
     align-items: center;
@@ -57,9 +57,9 @@
 }
 
 .linhaFinal {
-    margin: 25px auto 15px;
+    margin: 25px auto;
     border-top: 1px solid black;
-    width: 90%;
+    width: 100%;
 }
 
 .copy {

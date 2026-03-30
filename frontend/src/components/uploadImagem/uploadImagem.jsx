@@ -4,7 +4,7 @@ export default function UploadImagem({textoUpload}) {
     return (
         <div className={css.container}>
             <button className={'p-2 ' + css.botao}>
-                <img src="/public/upload.png" alt="Upload" className={css.iconeUpload}/>
+                <img src="/public/uploadIcon.png" alt="Upload" className={css.iconeUpload}/>
                 <span className={css.texto}>{textoUpload}</span>
             </button>
 
