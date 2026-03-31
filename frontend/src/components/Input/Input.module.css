@@ -1,0 +1,15 @@
+.metade{
+    width: 45%;
+}
+.input {
+    border: 1px solid var(--cor-borda);
+}
+textarea{
+    height: 100px;
+}
+
+@media(max-width:769px){
+    .metade{
+        width: 100%;
+    }
+}
