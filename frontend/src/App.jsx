@@ -7,6 +7,9 @@ import Home from "./pages/Home/Home.jsx"
 import {useRef} from "react";
 import PaginaEsqueciMinhaSenha from "./pages/PaginaEsqueciMinhaSenha/PaginaEsqueciMinhaSenha.jsx";
 import Erro from "./pages/Erro/Erro.jsx"
+import PaginaValidarEmail from "./pages/PaginaValidarEmail/PaginaValidarEmail.jsx";
+import PaginaAlterarSenha from "./pages/PaginaAlterarSenha/PaginaAlterarSenha.jsx";
+import PaginaInformeEmailConta from "./pages/PaginaInformeEmailConta/PaginaInformeEmailConta.jsx"
 
 export default function App() {
     const quemSomos = useRef(null);
@@ -31,6 +34,9 @@ export default function App() {
                 <Route path="/cadastro" element={<PaginaCadastro/>}/>
                 <Route path="/login" element={< PaginaLogin/>}/>
                 <Route path="/esqueciminhasenha" element={<PaginaEsqueciMinhaSenha/>}/>
+                <Route path={"/validar"} element={<PaginaValidarEmail/>}/>
+                <Route path={"/alterar_senha"} element={<PaginaAlterarSenha/>} />
+                <Route path={"/enviar_validar"} element={<PaginaInformeEmailConta/>}/>
                 <Route path="*" element={<Erro/>}/>
             </Routes>
             <Footer/>

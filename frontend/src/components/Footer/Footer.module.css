@@ -53,12 +53,12 @@
 
 .linha{
     height: 9vh;
-    border-left: 1px solid black;
+    border-left: 1px solid #bdbdbd;
 }
 
 .linhaFinal {
     margin: 25px auto;
-    border-top: 1px solid black;
+    border-top: 1px solid #bdbdbd;
     width: 100%;
 }
 
@@ -106,7 +106,11 @@
         height: 65px;
     }
 
+    .linha {
+        display: none;
+    }
+
     .linhaFinal {
-        width: 90%;
+        width: 100%;
     }
 }

@@ -7,7 +7,7 @@
     padding: 20px;
 }
 
-.botao {
+.botao::file-selector-button {
     font-family: 'Inter', sans-serif;
     background-color: #BD0D59;
     color: white;
@@ -34,32 +34,25 @@
 
 @media (max-width: 768px) {
     .container {
-        gap: 60px;
+        gap: 20px;
+        flex-direction: column;
     }
 
     .botao {
-        background-color: white;
-        border: 1px solid #BD0D59;
-        border-radius: 25px;
-        width: 70px;
+        width: 90%;
         height: 35px;
-        padding: 0;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
     }
 
-    .texto {
-        display: none;
-    }
+    /*.texto {*/
+    /*    display: none;*/
+    /*}*/
 
-    .iconeUpload {
-        width: 25px;
-        height: 25px;
-        display: block;
+    /*.iconeUpload {*/
+    /*    width: 25px;*/
+    /*    height: 25px;*/
+    /*    display: block;*/
 
-    }
+    /*}*/
 
     .icone {
         width: 55px;

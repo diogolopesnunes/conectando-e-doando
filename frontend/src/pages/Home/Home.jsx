@@ -28,7 +28,7 @@ export default function Home({quemSomos, ongs, doacoes}) {
                     <div className="w-100 d-flex justify-content-around flex-wrap gap-sm-0 gap-3">
                         <Card texto={'Meio Ambiente'} img={'/public/ongAmbiente.png'}/>
                         <Card texto={'Educação'} img={'/public/ongCrianca.png'}/>
-                        <Card texto={'Pessoa com Deficiência'} img={'/public/ongDeficiencia.png'}/>
+                        <Card texto={'Pessoas com Deficiência'} img={'/public/ongDeficiencia.png'}/>
                     </div>
                 </div>
             </div>

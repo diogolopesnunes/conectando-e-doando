@@ -6,3 +6,9 @@
     background-attachment: fixed;
     min-height: 350px;
 }
+
+@media (max-width: 426px) {
+    .banner{
+        background-position: right center;
+    }
+}

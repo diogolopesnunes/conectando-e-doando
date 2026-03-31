@@ -46,5 +46,8 @@
     border-radius: 20px;
 }
 
-
+.laranja {
+    color: var(--branco);
+    background-color: var(--laranja);
+}
 

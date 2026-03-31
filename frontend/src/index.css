@@ -16,6 +16,7 @@
     margin: 0 !important;
     padding: 0 !important;
     box-sizing: border-box;
+    text-decoration: none;
 }
 
 /*BACKGROUNDS PREDEFINIDOS*/
@@ -23,4 +24,8 @@
 
 .tamanhoTexto {
     font-size: 25px;
+}
+
+.formataAltura{
+    min-height: calc(100vh - 180px);
 }
