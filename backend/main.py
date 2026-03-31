@@ -5,7 +5,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
 
-CORS(app, origins='*')
+CORS(app, supports_credentials=True, origins=["http://localhost:5173", "http://10.92.3.230:5173"])
 
 host = app.config['DB_HOST']
 data_base = app.config['DB_NAME']

@@ -11,13 +11,15 @@ from main import app, con
 
 senha_secreta = app.config['SECRET_KEY']
 
-def validar_senha(senha):
+def validar_senha(senha, confirmar_senha):
     if len(senha) <8:
         return 'Senha fraca: deve conter pelo menos uma letra maiúscula, uma letra minúscula, um número, um caractere especial e pelo menos 8 caracteres'
     elif not any(char.isdigit() for char in senha) or not any(char.isalnum() for char in senha):
         return 'Senha fraca: deve conter pelo menos uma letra maiúscula, uma letra minúscula, um número, um caractere especial e pelo menos 8 caracteres'
     elif not any(char.isupper() for char in senha) or not any(char.islower() for char in senha):
         return 'Senha fraca: deve conter pelo menos uma letra maiúscula, uma letra minúscula, um número, um caractere especial e pelo menos 8 caracteres'
+    elif senha != confirmar_senha:
+        return 'As senhas não coincidem'
     else:
         return None
 

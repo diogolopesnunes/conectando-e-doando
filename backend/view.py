@@ -28,6 +28,7 @@ def cadastro():
             return jsonify({'erro': 'O nome não pode ser vazio'}), 400
         email = request.form.get('email')
         senha = request.form.get('senha')
+        confirmar_senha = request.form.get('confirmar_senha')
         tipo_de_usuario = request.form.get('tipo_de_usuario')
         cpf_cnpj = request.form.get('cpf_cnpj')
         tipo_ong = request.form.get('tipo_ong')
@@ -47,7 +48,7 @@ def cadastro():
         if not nome or not senha or not email:
             return jsonify({'erro': 'Insira Nome, Email e Senha'}), 400
 
-        mensagem_validacao = validar_senha(senha)
+        mensagem_validacao = validar_senha(senha, confirmar_senha)
         if mensagem_validacao:
             return jsonify({'erro': mensagem_validacao}), 400
         senha_cript = criptografar(senha)
@@ -87,9 +88,8 @@ def cadastro():
         return jsonify({'mensagem': 'Usuário cadastrado com sucesso',
                         'usuario': {
                             'nome': nome,
-                            'senha': senha, #Essa linha é apenas de debbug, remover na versão final,
                             'imagem': caminho_imagem,
-
+                            'email': email_usuario
                         },
                         'mensagem_email': email
                         }), 201
@@ -203,8 +203,14 @@ def login():
 
             if check_password_hash(senha_armazenada, senha):
                 token = gerar_token(id_usuario)
-                resp = make_response(jsonify({'message': 'Login bem-sucedido', 'token':token}), 200)
-                resp.set_cookie('access_token', token,
+                cur.execute("""select nome from usuario where id_usuario = ?""", (id_usuario,))
+                nome = cur.fetchone()[0]
+                resp = make_response(jsonify({'message': 'Login bem-sucedido', 'usuario': {
+                    'id': id_usuario,
+                    'nome': nome,
+                    'email': email
+                }}), 200)
+                resp.set_cookie('access_token',
                                 httponly=True,
                                 secure=False,
                                 samesite='Lax',
@@ -420,17 +426,28 @@ def desativar_usuario(id_usuario):
     finally:
         cur.close()
 
-# @app.route("/verificar_usuario", methods=['POST'])
-# def verificar_usuario():
-#     data = request.get_json()
-#
-#     destinatario = data.get('email')
-#     assunto = "Ativação de usuário"
-#     mensagem = "Seu código para ativar sua conta é"
-#
-#     email = email_verificacao(destinatario, assunto, mensagem)
-#
-#     return jsonify({'mensagem': email})
+@app.route("/verificar_usuario", methods=['POST'])
+def verificar_usuario():
+    cur = con.cursor()
+
+    cur.execute("SELECT SITUACAO FROM USUARIO WHERE EMAIL = ?" , (email,))
+
+    usuario = cur.fetchone()
+
+    if usuario == 0:
+
+        data = request.get_json()
+
+        destinatario = data.get('email')
+        assunto = "Ativação de usuário"
+        mensagem = "Seu código para ativar sua conta é"
+
+        email = email_verificacao(destinatario, assunto, mensagem)
+
+        return jsonify({'mensagem': email})
+
+    else:
+        return jsonify({'mensagem':'Conta já ativa apenas logue'})
 
 
 @app.route('/esqueci_minha_senha', methods=['POST'])
@@ -558,15 +575,15 @@ def validar_conta():
         if not infos:
             return jsonify({"erro": "Email não encontrado"}), 404
         elif infos[1] == 0:
-                sucesso, mensagem = verificar_codigo(email, codigo)
-                if sucesso:
-                    cur.execute("""UPDATE usuario SET situacao = 1, codigo = NULL WHERE email = ? AND situacao != 1 """, (email,))
-                    con.commit()
-                    return jsonify({"message": "Conta validada com sucesso"})
-                else:
-                    return jsonify({"message": mensagem}), 400
+            sucesso, mensagem = verificar_codigo(email, codigo)
+            if sucesso:
+                cur.execute("""UPDATE usuario SET situacao = 1, codigo = NULL WHERE email = ? AND situacao != 1 """, (email,))
+                con.commit()
+                return jsonify({"message": "Conta validada com sucesso"})
+            else:
+                return jsonify({"message": mensagem}), 400
         else:
-                return jsonify({"mensagem": "Conta já validada"})
+            return jsonify({"mensagem": "Conta já validada"})
 
     except Exception as e:
         return jsonify({"message": f"Erro ao validar conta: {e}"}), 500
