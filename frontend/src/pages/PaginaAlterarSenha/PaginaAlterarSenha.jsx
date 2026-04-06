@@ -2,6 +2,7 @@ import Form from "../../components/Form/Form.jsx";
 import Input from "../../components/Input/Input.jsx";
 import Buton from "../../components/Buton/Buton.jsx";
 import {useEffect, useState} from "react";
+import { useNavigate } from "react-router-dom";
 import Alerts from "../../components/Alerts/Alerts.jsx";
 
 export default function PaginaAlterarSenha() {
@@ -11,6 +12,7 @@ export default function PaginaAlterarSenha() {
     const [confirmarSenha, setConfirmarSenha] = useState("");
     const [email, setEmail] = useState("");
     const [mensagem, setMensagem] = useState("");
+    const navigate = useNavigate();
     const [tipoMensagem, setTipoMensagem] = useState('');
 
     useEffect(() => {
@@ -41,7 +43,7 @@ export default function PaginaAlterarSenha() {
             return;
         }
 
-        let response = await fetch(`http://10.92.3.150:5000/alterar_senha`, {
+        let response = await fetch(`http://10.92.3.118:5000/alterar_senha`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -55,17 +57,24 @@ export default function PaginaAlterarSenha() {
             })
         });
 
-        if (!response.ok) {
-            console.log("Erro HTTP:", response.status);
-            return;
-        }
+        // if (!response.ok) {
+        //     console.log("Erro HTTP:", response.status);
+        //     return;
+        // }
 
         let retorno = await response.json();
         console.log(retorno);
 
+
+
         if (retorno.mensagem){
             setMensagem(retorno.mensagem.descricao)
             setTipoMensagem(retorno.mensagem.tipo)
+            if (tipoMensagem != 'erro') {
+                setTimeout(() => {
+                    navigate("/login");
+                }, 1500);
+            }
         }
     }
 
@@ -73,12 +82,8 @@ export default function PaginaAlterarSenha() {
         <div className="container m-auto">
             <div className="row">
                 <div className="col-12">
-                    {mensagem && <Alerts tipo={tipoMensagem} imagem={tipoMensagem} duracao={'2000'} descricao={mensagem} />}
+                    {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={'8000'} descricao={mensagem} />}
                     <Form largura={'maior'} titulo={'Alterar senha'} onSubmit={alterarSenha}>
-
-                        {mensagem &&
-                            <Alerts tipo={'erro'} descricao={mensagem} duracao={'3000'} imagem={'alerta_erro.png'} />
-                        }
 
                         <Input
                             placeholder={'Digite o email'}
@@ -93,7 +98,7 @@ export default function PaginaAlterarSenha() {
                             type={"text"}
                             value={codigo}
                             funcao={(e) => setCodigo(e.target.value)}
-                            label={'Codigo:'}
+                            label={'Código:'}
                         />
 
                         <Input

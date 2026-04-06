@@ -26,7 +26,7 @@ export default function PaginaEsqueciMinhaSenha(){
         e.preventDefault();
 
         try {
-            let response = await fetch(`http://10.92.3.150:5000/esqueci_minha_senha`, {
+            let response = await fetch(`http://10.92.3.118:5000/esqueci_minha_senha`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -37,30 +37,27 @@ export default function PaginaEsqueciMinhaSenha(){
                 })
             });
 
-            if (!response.ok) {
-                console.log("Erro HTTP:", response.status);
-                return;
-            }
+            // if (!response.ok) {
+            //     console.log("Erro HTTP:", response.status);
+            //     return;
+            // }
 
             let retorno = await response.json();
             console.log(retorno);
 
             if (retorno.mensagem){
-                setMensagem(retorno.mensagem);
-
-
+                setMensagem(retorno.mensagem.descricao);
+                setTipoMensagem(retorno.mensagem.tipo);
 
                 localStorage.setItem("email", email);
 
-                setTimeout(() => {
-                    navigate("/alterar_senha");
-                }, 1500);
-            }
-            if (retorno.mensagem){
-                setMensagem(retorno.mensagem.descricao)
-                setTipoMensagem(retorno.mensagem.tipo)
-            }
+                 if (tipoMensagem != 'erro') {
+                    setTimeout(() => {
+                        navigate("/alterar_senha");
+                    }, 1500);
+                }
 
+            }
         } catch (erro) {
             console.log("Erro na requisição:", erro);
         }
@@ -70,7 +67,7 @@ export default function PaginaEsqueciMinhaSenha(){
         <div className="container m-auto">
             <div className="row formataAltura d-flex justify-content-center align-items-center">
                 <div className="col">
-                    {mensagem && <Alerts tipo={tipoMensagem} imagem={tipoMensagem} duracao={'2000'} descricao={mensagem} />}
+                    {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={'8000'} descricao={mensagem} />}
                     <Form largura={'maior'} titulo={'Esqueci minha senha'} onSubmit={esqueciMinhaSenha} >
 
                         <Input

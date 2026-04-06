@@ -6,16 +6,14 @@ export default function SectionHome({Titulo, Texto, imagem, alt, estilo, estilo2
 
     if (imagem) {
         return (
-            <div className={'d-flex justify-content-around flex-column flex-sm-row px-5 py-5 py-sm-2 ' + css[estilo]}>
+            <div className={'d-flex justify-content-around flex-column flex-sm-row px-5 py-5 py-sm-2' + " "+ css.sectionHome + " " + css[estilo]}>
                 <div className={'w-100 w-sm-50 d-flex align-items-sm-start ' + css[estilo2]}>
                     <h1 className="mb-5 ">{Titulo}</h1>
                     <div>
                         <p className={'tamanhoTexto text-center text-sm-start pb-2 pb-sm-0'}>{Texto}</p>
                     </div>
                 </div>
-                <div className={'w-100 w-sm-50 d-flex align-items-center ' + css.divImg}>
-                    <img className={'w-100 ' + css.img} src={imagem} alt={alt}/>
-                </div>
+                <img className={'w-100 ' + css.img} src={imagem} alt={alt}/>
             </div>
         )
     }

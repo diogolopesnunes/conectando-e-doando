@@ -1,11 +1,95 @@
-import {useState} from "react";
-import {Link, useLocation} from "react-router-dom";
+import {useState, useEffect} from "react";
+import {Link, useLocation, useNavigate} from "react-router-dom";
 import css from "./Header.module.css";
+import Buton from "../Buton/Buton.jsx";
 
-export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs}) {
+export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, logado, setLogado, setMensagem, setTipoMensagem}) {
 
     const [open, setOpen] = useState(false);
     const pagina = useLocation().pathname;
+
+    const [email, setEmail] = useState("");
+    const [nome, setNome] = useState("");
+    const navegate = useNavigate();
+    // const [logado, setLogado] = useState("");
+    // const [id, setId] = useState("");
+    // const [mensagem, setMensagem] = useState()
+    // const [tipoMensagem ,setTipoMensagem] = useState()
+    // const navegate = useNavigate();
+
+    // useEffect(() => {
+    //     if (!localStorage.getItem("email") || !localStorage.getItem("email") || !localStorage.getItem("id_usuario")) {
+    //         setLogado(false);
+    //         // } else{
+    //         setLogado(true);
+    //         setId(localStorage.getItem('id_usuario'))
+    //     }
+    // }, [logado])
+
+    // async function logout(e) {
+    //     e.preventDefault();
+    //     let retorno = await fetch(`http://10.92.3.118:5000/logout`, {
+    //         method: "POST",
+    //         headers: {
+    //             "Content-Type": "application/json"
+    //         },
+    //         credentials: "include",
+    //         body: JSON.stringify({
+    //
+    //         })
+    //     })
+    //
+    //     setLogado(false)
+    //
+    //     retorno = await retorno.json()
+    //     console.log(retorno)
+    //     if(!retorno){
+    //         console.log("Erro do servidor:", retorno);
+    //         return;
+    //     }
+    //     if (retorno.mensagem){
+    //         setMensagem(retorno.mensagem.descricao)
+    //         setTipoMensagem(retorno.mensagem.tipo)
+    //         console.log(mensagem)
+    //         console.log(tipoMensagem)
+    //         if(retorno.mensagem.tipo === 'sucesso'){
+    //             localStorage.clear()
+    //         }
+    //     }
+    //     // navegate('/')
+    // }
+
+    async function logout(e) {
+        e.preventDefault();
+        let retorno = await fetch(`http://10.92.3.118:5000/logout`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({
+
+            })
+        })
+
+        setLogado(false)
+
+        retorno = await retorno.json()
+        console.log(retorno)
+        if(!retorno){
+            console.log("Erro do servidor:", retorno);
+            return;
+        }
+        if (retorno.mensagem){
+            setMensagem(retorno.mensagem.descricao)
+            setTipoMensagem(retorno.mensagem.tipo)
+            if(retorno.mensagem.tipo === 'sucesso'){
+                localStorage.clear()
+            }
+        }
+        navegate('/')
+    }
+
 
     return (
         <header className={'p-2 ' + css.header}>
@@ -24,12 +108,23 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs}) {
                 </div>
 
                 <nav className={`${css.menu} ${open ? css.menuOpen : ""}`}>
-                    <Link to="/" onClick={scrollQuemSomos}>Quem somos</Link>
-                    <Link to="/" onClick={scrollDoacoes}>Doações</Link>
-                    {/*<Link to="/" onClick={scrollOngs}>Depoimentos</Link>*/}
-                    <Link to="/" onClick={scrollOngs}>ONGs</Link>
-                    <Link to="/cadastro">Cadastro</Link>
-                    <Link to="/login">Login</Link>
+                    {!logado ? (
+                        <>
+                            <Link to="/" onClick={scrollQuemSomos}>Quem somos</Link>
+                            <Link to="/" onClick={scrollDoacoes}>Doações</Link>
+                            {/*<Link to="/" onClick={scrollOngs}>Depoimentos</Link>*/}
+                            <Link to="/" onClick={scrollOngs}>ONGs</Link>
+                            <Link to="/cadastro">Cadastro</Link>
+                            <Link to="/login">Login</Link>
+                        </>
+                    ) : (
+                        <>
+                            <Buton onClick={logout} background="rosa" tamanho="pequeno" texto="Sair" />
+                            <Link to={"/dashboard"}>
+                                Dashboard
+                            </Link>
+                        </>
+                    )}
                 </nav>
 
             </div>

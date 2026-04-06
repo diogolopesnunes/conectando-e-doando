@@ -1,10 +1,10 @@
-import {BrowserRouter, Routes, Route, Link} from "react-router-dom";
+import {BrowserRouter, Routes, Route, Link, useNavigate} from "react-router-dom";
 import PaginaCadastro from "./pages/PaginaCadastro/PaginaCadastro.jsx";
 import PaginaLogin from "./pages/PaginaLogin/PaginaLogin.jsx"
 import Footer from "./components/Footer/Footer.jsx";
 import Header from "./components/Header/Header.jsx";
 import Home from "./pages/Home/Home.jsx"
-import {useRef} from "react";
+import {useEffect, useRef, useState} from "react";
 import PaginaEsqueciMinhaSenha from "./pages/PaginaEsqueciMinhaSenha/PaginaEsqueciMinhaSenha.jsx";
 import Erro from "./pages/Erro/Erro.jsx"
 import PaginaValidarEmail from "./pages/PaginaValidarEmail/PaginaValidarEmail.jsx";
@@ -16,6 +16,7 @@ export default function App() {
     const doacoes = useRef(null);
     const ongs = useRef(null);
 
+
     const scrollQuemSomos = () =>{
         quemSomos.current.scrollIntoView({ behavior: "smooth" });
     };
@@ -25,14 +26,31 @@ export default function App() {
     const scrollOngs = () =>{
         ongs.current.scrollIntoView({ behavior: "smooth" });
     };
+
+    const [logado, setLogado] = useState("");
+    const [id, setId] = useState("");
+    const [mensagem, setMensagem] = useState()
+    const [tipoMensagem ,setTipoMensagem] = useState()
+
+    useEffect(() => {
+        if (!localStorage.getItem("email") || !localStorage.getItem("email") || !localStorage.getItem("id_usuario")) {
+            setLogado(false);
+        } else{
+            setLogado(true);
+            setId(localStorage.getItem('id_usuario'))
+        }
+    }, [logado])
+
+
+
     return (
         <BrowserRouter>
-            <Header scrollQuemSomos={scrollQuemSomos} scrollDoacoes={scrollDoacoes} scrollOngs={scrollOngs}/>
+            <Header scrollQuemSomos={scrollQuemSomos} scrollDoacoes={scrollDoacoes} scrollOngs={scrollOngs} logado={logado} setLogado={setLogado} setMensagem={setMensagem} setTipoMensagem={setTipoMensagem}/>
 
             <Routes>
                 <Route path="/" element={<Home quemSomos={quemSomos} doacoes={doacoes} ongs={ongs}/>}/>
                 <Route path="/cadastro" element={<PaginaCadastro/>}/>
-                <Route path="/login" element={< PaginaLogin/>}/>
+                <Route path="/login" element={< PaginaLogin logado={logado} setLogado={setLogado} />}/>
                 <Route path="/esqueciminhasenha" element={<PaginaEsqueciMinhaSenha/>}/>
                 <Route path={"/validar"} element={<PaginaValidarEmail/>}/>
                 <Route path={"/alterar_senha"} element={<PaginaAlterarSenha/>} />

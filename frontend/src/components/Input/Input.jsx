@@ -1,6 +1,6 @@
 import css from './Input.module.css'
 
-export default function Input({tipoInp, label, htmlFor, placeholder, classe = '', value, funcao, checado, opcoeslabel, opcoes}) {
+export default function Input({tipoInp, label, htmlFor, placeholder, classe = '', value, funcao, maxlength, checado, opcoeslabel, opcoes}) {
 
 if (classe == 'metade') {
         if (tipoInp == 'radio') {

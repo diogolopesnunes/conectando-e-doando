@@ -27,7 +27,7 @@ export default function PaginaValidarEmail() {
     async function validarEmail(e){
         e.preventDefault();
 
-        let response = await fetch(`http://10.92.3.150:5000/validar_conta`, {
+        let response = await fetch(`http://10.92.3.118:5000/validar_conta`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -39,14 +39,17 @@ export default function PaginaValidarEmail() {
             })
         });
 
-        if (!response.ok) {
-            console.log("Erro HTTP:", response.status);
-            return;
-        }
+        // if (!response.ok) {
+        //     console.log("Erro HTTP:", response.status);
+        //     return;
+        // }
+
 
         let retorno = await response.json();
         console.log(retorno);
-        navegate('/login')
+        setTimeout(function () {
+            navegate('/login')
+        }, 2000)
 
         if (retorno.mensagem){
             setMensagem(retorno.mensagem.descricao)
@@ -58,7 +61,7 @@ export default function PaginaValidarEmail() {
         <div className="container m-auto">
             <div className="row">
                 <div className="col-12">
-                    {mensagem && <Alerts tipo={tipoMensagem} imagem={tipoMensagem} duracao={'2000'} descricao={mensagem} />}
+                    {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={'8000'} descricao={mensagem} />}
                     <Form largura={'maior'} titulo={'Validar email'} onSubmit={validarEmail}>
                         <Input type={'email'} label={'Email:'} value={email} funcao={(e) => setEmail(e.target.value)} placeholder={"Digite seu email"} />
                         <Input

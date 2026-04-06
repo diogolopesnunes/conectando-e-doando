@@ -47,12 +47,12 @@
 }
 
 .roxo {
-    color: white;
+    color: var(--branco);
     background-color: var(--roxo);
 }
 
 .rosa {
-    color: white;
+    color: var(--branco);
     background-color: var(--rosa);
 }
 

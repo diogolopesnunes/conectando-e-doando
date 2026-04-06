@@ -2,14 +2,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
 
 .alert {
+    position: absolute;
+    right: 20px;
+    top: 100px;
     display: flex;
+    justify-content: space-around;
     align-items: center;
-    padding: 6px 10px;
     border-radius: 8px;
-    width: 350px;
-    gap: 8px;
-    justify-self: end;
+    min-width: 350px;
     min-height: 50px;
+    margin-bottom: 10px;
 }
 
 h4 {
@@ -38,12 +40,12 @@ p {
 }
 
 .sucesso {
-    background-color: #5CB85C;
+    background-color: #B9FFB9;
     color: #000000;
 }
 
 .sucesso button {
-    color: #ffffff;
+    color: #5CB85C;
 }
 
 /* imagem menor */
@@ -77,9 +79,22 @@ p {
     color: black;
 }
 
-@media(max-width: 426px) {
+@media (max-width: 480px) {
     .alert {
-        width: 90%;
-        justify-self: center;
+        position: fixed;
+        right: 10px;
+        left: 10px;
+        min-width: auto;
+        width: calc(100% - 20px);
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    h4 {
+        font-size: 16px;
+    }
+
+    p {
+        font-size: 13px;
     }
 }

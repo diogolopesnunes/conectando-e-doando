@@ -7,7 +7,7 @@ import Form from "../../components/Form/Form.jsx";
 import {useEffect, useState} from "react";
 import Alerts from "../../components/Alerts/Alerts.jsx";
 
-export default function Login(){
+export default function Login({ logado, setLogado }){
     const [email, setEmail] = useState('')
     const [senha, setSenha] = useState('')
     const [mensagem, setMensagem] = useState('')
@@ -19,7 +19,7 @@ export default function Login(){
         if (mensagem) {
             const timer = setTimeout(() => {
                 setMensagem('');
-            }, 2000);
+            }, 8000);
 
             return () => clearTimeout(timer);
         }
@@ -27,15 +27,14 @@ export default function Login(){
 
     async function login(e) {
         e.preventDefault();
-        let retorno = await fetch(`http://10.92.3.150:5000/login`, {
+        let retorno = await fetch(`http://10.92.3.118:5000/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             credentials: "include",
             body: JSON.stringify({
-                email: email,
-                senha: senha
+                email, senha
             })
         })
         retorno = await retorno.json()
@@ -47,6 +46,7 @@ export default function Login(){
         if (retorno.mensagem){
             setMensagem(retorno.mensagem.descricao)
             setTipoMensagem(retorno.mensagem.tipo)
+            setLogado(true)
             if (retorno.mensagem.descricao == 'Sua conta está inativa'){
                 localStorage.setItem("email", email)
                 navegate('/validar')
@@ -58,14 +58,15 @@ export default function Login(){
             localStorage.setItem('id_usuario', retorno.usuario.id);
             setTimeout(function () {
                 navegate('/dashboard')
-            }, 500)
+            }, 1000)
         }
     }
     return(
         <div className="container m-auto formataAltura">
             <div className={'row'}>
                 <div className="col align-self-center">
-                    {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={'2000'} descricao={mensagem} />}
+
+                    {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={'8000'} descricao={mensagem} />}
                     <Form largura="maior" onSubmit={login} titulo={'Login'}>
 
                         <Input tipoInp={"email"} label={"Email:"} htmlFor={"email"} placeholder={"Digite seu email"} value={email} funcao={(e) => setEmail(e.target.value)}/>

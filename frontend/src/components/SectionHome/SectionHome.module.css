@@ -1,25 +1,30 @@
+.sectionHome {
+    min-height: 450px;
+    align-items: center;
+}
+
 .img {
-    width: 40%;
-    height: 90%;
+    width: 50% !important;
+    height: 400px;
     border-radius: 168px;
-    border: 2px solid var(--preto);
+    border: 2px solid var(--branco);
 }
 
 .Quem_Somos {
     display: flex;
-    background-color: #EECCBB;
     padding: 4vh;
 }
 
 .Quem_Somos_text {
-    justify-content: center;
     align-items: center;
     display: flex;
+    gap: 50px;
     flex-direction: column;
 }
 
 .Quem_Somos_text h1 {
     color: var(--laranja);
+    font-size: 60px;
 }
 
 .Baner2 {
@@ -35,7 +40,13 @@
 }
 
 @media (max-width: 426px) {
+
+    .sectionHome h1 {
+        font-size: 40px;
+    }
+
     .img {
         height: 40vh;
+        width: 100% !important;
     }
 }

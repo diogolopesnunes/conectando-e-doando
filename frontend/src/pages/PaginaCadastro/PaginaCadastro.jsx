@@ -56,6 +56,12 @@ export default function PaginaCadastro() {
 
     const navegate = useNavigate();
 
+    async function digitarCpfCnpj(e) {
+        if (e.target.value.length <= 11) {
+            setCpfCnpj(e.target.value);
+        }
+    }
+
     async function cadastro(f) {
         f.preventDefault();
         
@@ -78,7 +84,7 @@ export default function PaginaCadastro() {
             form.append("imagem", imagem)
         }
 
-        let retorno = await fetch(`http://10.92.3.150:5000/cadastro`, {
+        let retorno = await fetch(`http://10.92.3.118:5000/cadastro`, {
             method: "POST",
             credentials: "include",
             body: form
@@ -92,21 +98,23 @@ export default function PaginaCadastro() {
         }
         if (retorno.usuario){
             localStorage.setItem('email', retorno.usuario.email);
-            setTimeout(function () {
-                navegate('/validar')
-            }, 500)
+            setTimeout(function (){navegate('/validar')}, 2000)
+
         }
         if (retorno.mensagem){
             setMensagem(retorno.mensagem.descricao)
             setTipoMensagem(retorno.mensagem.tipo)
         }
+
     }
 
     return (
         <div className="container m-auto">
             <div className="row">
                 <div className="col">
-                    {mensagem && <Alerts tipo={tipoMensagem} imagem={tipoMensagem} duracao={'2000'} descricao={mensagem} />}
+                    {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={'8000'} descricao={mensagem} />}
+
+
                     <Form largura="maior" titulo={"Cadastro"} onSubmit={cadastro}>
                         <Input htmlFor={'nome'} label={'Nome'} tipoInp={'text'} placeholder={'Digite seu nome'} value={nome} funcao={(f)=> setNome(f.target.value)}/>
                         <Input htmlFor={'email'} label={'Email'} tipoInp={'email'} placeholder={'Digite seu email'} value={email} funcao={(f)=> setEmail(f.target.value)}/>
@@ -126,7 +134,7 @@ export default function PaginaCadastro() {
 
                         {selecionado == "0" ? (
                             <>
-                                <Input htmlFor={'cpf'} label={'CPF'} tipoInp={'text'} placeholder={'Digite seu CPF'} value={cpfCnpj} funcao={(f) => setCpfCnpj(f.target.value)} />
+                                <Input htmlFor={'cpf'} label={'CPF'} tipoInp={'text'} placeholder={'Digite seu CPF'} value={cpfCnpj} funcao={digitarCpfCnpj} />
 
                                 <div className="w-100 d-flex justify-content-center align-items-center mb-3">
                                     <input type="file" onChange={(f) => setImagem(f.target.files[0])} className={' ' + css.botao}/>
@@ -135,7 +143,7 @@ export default function PaginaCadastro() {
                         ) : (
                             <>
                                 <Input htmlFor={'cnpj'} label={'CNPJ'} tipoInp={'text'}
-                                       placeholder={'Digite seu CNPJ'} value={cpfCnpj} funcao={(f) => setCpfCnpj(f.target.value)}/>
+                                       placeholder={'Digite seu CNPJ'} value={cpfCnpj} funcao={digitarCpfCnpj}/>
                                 <Input htmlFor={'tipoOng'} label={'Selecione o tipo de ONG'} tipoInp={'select'} value={tipoOng} opcoeslabel="Selecione o tipo da ONG" opcoes={["uno", "does", "treis"]} funcao={(f) => setTipoOng(f.target.value)}/>
                                 <Input htmlFor={'causaOng'} label={'Causa da ONG'} tipoInp={'textarea'}
                                        placeholder={'Digite a causa da ONG'} value={descricaoCausa} funcao={(f) => setDescricaoCausa(f.target.value)}/>
