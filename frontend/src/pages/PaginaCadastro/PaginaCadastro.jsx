@@ -134,7 +134,7 @@ export default function PaginaCadastro() {
 
                         {selecionado == "0" ? (
                             <>
-                                <Input htmlFor={'cpf'} label={'CPF'} tipoInp={'text'} placeholder={'Digite seu CPF'} value={cpfCnpj} funcao={digitarCpfCnpj} />
+                                <Input htmlFor={'cpf'} label={'CPF'} tipoInp={'number'} placeholder={'Digite seu CPF'} value={cpfCnpj} funcao={digitarCpfCnpj} />
 
                                 <div className="w-100 d-flex justify-content-center align-items-center mb-3">
                                     <input type="file" onChange={(f) => setImagem(f.target.files[0])} className={' ' + css.botao}/>
@@ -142,7 +142,7 @@ export default function PaginaCadastro() {
                             </>
                         ) : (
                             <>
-                                <Input htmlFor={'cnpj'} label={'CNPJ'} tipoInp={'text'}
+                                <Input htmlFor={'cnpj'} label={'CNPJ'} tipoInp={'number'}
                                        placeholder={'Digite seu CNPJ'} value={cpfCnpj} funcao={digitarCpfCnpj}/>
                                 <Input htmlFor={'tipoOng'} label={'Selecione o tipo de ONG'} tipoInp={'select'} value={tipoOng} opcoeslabel="Selecione o tipo da ONG" opcoes={["uno", "does", "treis"]} funcao={(f) => setTipoOng(f.target.value)}/>
                                 <Input htmlFor={'causaOng'} label={'Causa da ONG'} tipoInp={'textarea'}
