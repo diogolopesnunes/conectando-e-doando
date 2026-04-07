@@ -175,7 +175,7 @@ export default function PaginaCadastro({api}) {
                             <>
                                 <Input htmlFor={'cnpj'} label={'CNPJ'} tipoInp={'text'}
                                        placeholder={'Digite seu CNPJ'} value={cpfCnpj} funcao={(e) => setCpfCnpj(e.target.value.replace(/\D/g, "").slice(0, 14))} inputMode="numeric" maxLength={18} minLength={18} mask={"cnpj"}/>
-                                <Input htmlFor={'tipoOng'} label={'Selecione o tipo de ONG'} tipoInp={'select'} value={tipoOng} opcoeslabel="Selecione o tipo da ONG" opcoes={["uno", "does", "treis"]} funcao={(f) => setTipoOng(f.target.value)}/>
+                                <Input htmlFor={'tipoOng'} label={'Selecione o tipo de ONG'} tipoInp={'select'} value={tipoOng} opcoeslabel="Selecione o tipo da ONG" opcoes={["Meio ambiente", "Educação", "Saúde"]} funcao={(f) => setTipoOng(f.target.value)}/>
                                 <Input htmlFor={'causaOng'} label={'Causa da ONG'} tipoInp={'textarea'}
                                        placeholder={'Digite a causa da ONG'} value={descricaoCausa} funcao={(f) => setDescricaoCausa(f.target.value)}/>
                                 <div className={"d-flex justify-content-center"}>

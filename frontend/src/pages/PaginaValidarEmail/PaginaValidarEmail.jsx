@@ -64,7 +64,7 @@ export default function PaginaValidarEmail({api}) {
     }
 
     return (
-        <div className="container m-auto">
+        <div className="container m-auto formataAltura">
             <div className="row">
                 <div className="col-12">
                     {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={'10000'} descricao={mensagem} />}
@@ -75,7 +75,7 @@ export default function PaginaValidarEmail({api}) {
                             placeholder={"Digite o Código"}
                             type={"text"}
                             value={codigo}
-                            funcao={(e) => setCodigo(e.target.value)}
+                            funcao={(e) => setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6))}
                         />
 
                         <Buton texto={"Validar"} tamanho={"medio"} background={"laranja"} tipo={'submit'}/>
