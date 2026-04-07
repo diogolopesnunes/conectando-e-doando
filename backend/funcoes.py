@@ -104,9 +104,9 @@ def email_verificacao(destinatario, assunto, mensagem):
         thread = threading.Thread(target=enviando_email, args=(destinatario, assunto_email, mensagem_email, codigo, nome))
 
         thread.start()
-        return "Seu código para validação do email foi enviado, por favor verifique sua caixa de entrada."
+        return "Seu código foi enviado para o email informado, por favor verifique sua caixa de entrada.", 'sucesso'
     else:
-        return "Email informado não encontrado."
+        return "Email informado não encontrado.", 'erro'
 
 
 
