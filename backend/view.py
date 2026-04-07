@@ -42,6 +42,7 @@ def cadastro():
         cidade_ong = request.form.get('cidade_ong') or None
         telefone = request.form.get('telefone')
         imagem = request.files.get('imagem')
+        bannerOng = request.files.get('bannerOng')
         email_usuario = email
         if tipo_de_usuario == 1:
             if not tipo_ong and not descricao_causa and not banco_ong and not agencia_ong and not conta_ong and not cidade_ong:
@@ -65,17 +66,29 @@ def cadastro():
             }}), 400
         senha_cript = criptografar(senha)
 
-        cur.execute('select 1 from usuario where email = ?', (email,))
-        if cur.fetchone():
+        cur.execute('select situacao from usuario where email = ?', (email,))
+        resultado = cur.fetchone()
+
+        if resultado and resultado[0] != 5:
             return jsonify({'mensagem': {
                 'tipo': 'erro',
                 'descricao': 'Usuário já cadastrado'
             }}), 400
-        cur.execute("""insert into usuario (nome, email, senha, tipo_de_usuario, cpf_cnpj, tipo_ong,
-        descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong, telefone, senha_antiga_2, senha_antiga_3) 
-                        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, null, null) RETURNING id_usuario """, (nome, email, senha_cript, tipo_de_usuario, cpf_cnpj,
-                                     tipo_ong, descricao_causa, banco_ong, agencia_ong,
-                                           conta_ong, cidade_ong, telefone ))
+        if resultado[0] == 5:
+            cur.execute("""DELETE FROM usuario WHERE email = ?""", (email,))
+            cur.execute("""insert into usuario (nome, email, senha, tipo_de_usuario, cpf_cnpj, tipo_ong,
+                                                descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong,
+                                                telefone, senha_antiga_2, senha_antiga_3)
+                           values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, null, null) RETURNING id_usuario """,
+                        (nome, email, senha_cript, tipo_de_usuario, cpf_cnpj,
+                         tipo_ong, descricao_causa, banco_ong, agencia_ong,
+                         conta_ong, cidade_ong, telefone))
+        else:
+            cur.execute("""insert into usuario (nome, email, senha, tipo_de_usuario, cpf_cnpj, tipo_ong,
+            descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong, telefone, senha_antiga_2, senha_antiga_3) 
+                            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, null, null) RETURNING id_usuario """, (nome, email, senha_cript, tipo_de_usuario, cpf_cnpj,
+                                         tipo_ong, descricao_causa, banco_ong, agencia_ong,
+                                               conta_ong, cidade_ong, telefone ))
 
         con.commit()
 
@@ -90,6 +103,14 @@ def cadastro():
             os.makedirs(caminho_imagem_destino, exist_ok=True)
             caminho_imagem = os.path.join(caminho_imagem_destino, nome_imagem)
             imagem.save(caminho_imagem)
+
+        if tipo_de_usuario == 1:
+            if bannerOng:
+                nome_imagem = f"{codigo_usuario}_banner.jpg"
+                caminho_imagem_destino = os.path.join(app.config['UPLOAD_FOLDER'], "BannerOng")
+                os.makedirs(caminho_imagem_destino, exist_ok=True)
+                caminho_imagem = os.path.join(caminho_imagem_destino, nome_imagem)
+                imagem.save(caminho_imagem)
         try:
             destinatario = email
             assunto = "Ativação de conta"
@@ -820,8 +841,50 @@ def validar_conta():
         cur.close()
 
 
-# @app.route('/listar_ong_adm', methods=['GET'])
-# def listar_ong_adm():
+@app.route('/listar_ong_adm', methods=['GET'])
+def listar_ong_adm():
+    token = request.cookies.get('access_token')
+    if not token:
+        return jsonify({'mensagem': 'Token de autenticação necessário'}), 401
+    try:
+        dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+        id_token = dados['id_usuario']
+        cur = con.cursor()
+        cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
+        tipo_usuario = cur.fetchone()[0]
+        if tipo_usuario != 2:
+            cur.close()
+            return jsonify({'error': 'Apenas administradores podem acessar esta pagina'}), 403
+    except Exception as e:
+        return jsonify({'message': f'Erro ao verificar token {e}'}), 500
+    finally:
+        cur.close()
+
+    try:
+        cur = con.cursor()
+
+        cur.execute("""select id_usuario, nome, descricao_causa, situacao from usuario where tipo_de_usuario = 1""")
+        ongs = cur.fetchall()
+        ongs_lista = []
+
+        for ong in ongs:
+            ongs_lista.append({
+                'id_usuario': ong[0],
+                'nome': ong[1],
+                'descricao_causa': ong[2],
+                'situacao': ong[3],
+            })
+
+        return jsonify(mensagem='Lista de Ongs', ongs=ongs_lista)
+
+    except Exception as e:
+        return jsonify({'message': f'Erro ao consultar banco de dados: {e}'}), 500
+    finally:
+        cur.close()
+
+
+# @app.route('/cadastrar_projeto/<id>', methods=["POST"])
+# def cadastrar_projeto(id):
 #     token = request.cookies.get('access_token')
 #     if not token:
 #         return jsonify({'mensagem': 'Token de autenticação necessário'}), 401
@@ -831,32 +894,12 @@ def validar_conta():
 #         cur = con.cursor()
 #         cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
 #         tipo_usuario = cur.fetchone()[0]
-#         if tipo_usuario != 2:
+#         if tipo_usuario != 1:
 #             cur.close()
 #             return jsonify({'error': 'Apenas administradores podem acessar esta pagina'}), 403
 #     except Exception as e:
 #         return jsonify({'message': f'Erro ao verificar token {e}'}), 500
 #     finally:
 #         cur.close()
-#
-#     try:
-#         cur = con.cursor()
-#
-#         cur.execute("""select id_usuario, nome, descricao_causa, situacao from usuario where tipo_de_usuario = 1""")
-#         ongs = cur.fetchall()
-#         ongs_lista = []
-#
-#         for ong in ongs:
-#             ongs_lista.append({
-#                 'id_usuario': ong[0],
-#                 'nome': ong[1],
-#                 'descricao_causa': ong[2],
-#                 'situacao': ong[3],
-#             })
-#
-#         return jsonify(mensagem='Lista de Ongs', ongs=ongs_lista)
-#
-#     except Exception as e:
-#         return jsonify({'message': f'Erro ao consultar banco de dados: {e}'}), 500
-#     finally:
-#         cur.close()
+
+
