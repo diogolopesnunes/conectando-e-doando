@@ -16,7 +16,7 @@ export default function OngCausa() {
                 <p className={css.descricao}>
                     Conheça nossas causas, faça uma doação para alguma das ONGs cadastradas e colabore!
                 </p>
-                <Buton background={'laranja'} texto={'Quero fazer uma doação'} tamanho={'medio'} />
+                <Buton rota={"/login"} background={'laranja'} texto={'Quero fazer uma doação'} tamanho={'medio'} />
 
                 <div className={css.containerImagem}>
                     <img src="public/imagem_crianca_feliz.png" alt="Criança sorrindo" />
@@ -28,7 +28,7 @@ export default function OngCausa() {
                     Ajude a mudar vidas, ajude uma ONG!
                 </h2>
 
-                <p className={css.descricao} style={{ maxWidth: '100%' }}>
+                <p className={'px-3 ' + css.descricao} style={{ maxWidth: '100%' }}>
                     Ajude a salvar vidas, e a mudar o futuro dessas pessoas
                 </p>
 

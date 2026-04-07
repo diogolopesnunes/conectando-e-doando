@@ -3,7 +3,7 @@ import {Link, useLocation, useNavigate} from "react-router-dom";
 import css from "./Header.module.css";
 import Buton from "../Buton/Buton.jsx";
 
-export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, logado, setLogado, setMensagem, setTipoMensagem}) {
+export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, logado, setLogado, setMensagem, setTipoMensagem, api}) {
 
     const [open, setOpen] = useState(false);
     const pagina = useLocation().pathname;
@@ -61,7 +61,7 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
 
     async function logout(e) {
         e.preventDefault();
-        let retorno = await fetch(`http://10.92.3.141:5000/logout`, {
+        let retorno = await fetch(`${api}/logout`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -111,12 +111,14 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
                 <nav className={`${css.menu} ${open ? css.menuOpen : ""}`}>
                     {!logado ? (
                         <>
+                            <span></span>
                             <Link to="/" onClick={scrollQuemSomos}>Quem somos</Link>
                             <Link to="/" onClick={scrollDoacoes}>Doações</Link>
                             {/*<Link to="/" onClick={scrollOngs}>Depoimentos</Link>*/}
                             <Link to="/" onClick={scrollOngs}>ONGs</Link>
                             <Link to="/cadastro">Cadastro</Link>
                             <Link to="/login">Login</Link>
+                            <span></span>
                         </>
                     ) : (
                         <>

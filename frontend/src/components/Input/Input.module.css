@@ -12,7 +12,7 @@ input:disabled{
     background-color: lightgray;
 }
 
-@media(max-width:769px){
+@media(max-width:993px){
     .metade{
         width: 100%;
     }

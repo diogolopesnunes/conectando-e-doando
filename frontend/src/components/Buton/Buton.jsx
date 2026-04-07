@@ -13,9 +13,11 @@ export default function Buton({rota, background, tamanho, texto, efeito, classe,
         )
     }
     return (
-        <button
-            type={tipo} className={css.botao + " " + css[background] + " " + css[tamanho] + " " + css[efeito] + " " + css[classe]} onClick={onClick}>
-            {texto}
-        </button>
+        <div className={css.botao}>
+            <button
+                type={tipo} className={css.botao + " " + css[background] + " " + css[tamanho] + " " + css[efeito] + " " + css[classe]} onClick={onClick}>
+                {texto}
+            </button>
+        </div>
     )
 }

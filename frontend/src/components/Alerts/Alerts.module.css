@@ -2,16 +2,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
 
 .alert {
-    position: absolute;
+    position: fixed;
     right: 20px;
     top: 100px;
     display: flex;
-    justify-content: space-around;
     align-items: center;
     border-radius: 8px;
     min-width: 350px;
     min-height: 50px;
-    margin-bottom: 10px;
+    margin-bottom: 100px;
+    gap: 20px;
+    justify-content: space-around;
 }
 
 h4 {
@@ -21,11 +22,14 @@ h4 {
     margin: 0;
 }
 
-p {
+.alert p {
     font-family: 'Roboto Condensed', sans-serif;
     font-size: 14px;
     font-weight: 500;
     margin: 0;
+    max-width: 400px;
+    flex-wrap: wrap;
+    text-align: justify;
 }
 
 /* cores */
@@ -35,7 +39,7 @@ p {
 }
 
 .redirecionamento {
-    background-color: #B1B1B1;
+    background-color: #dcdcdc;
     color: #000000;
 }
 
