@@ -1,6 +1,6 @@
 import css from './Input.module.css'
 
-export default function Input({tipoInp, label, htmlFor, placeholder, classe = '', value, funcao, maxlength, checado, opcoeslabel, opcoes, disabled=false}) {
+export default function Input({tipoInp, label, htmlFor, placeholder, classe = '', value, funcao, maxlength, checado, opcoeslabel, opcoes, disabled=false, minLength}) {
 
 if (classe == 'metade') {
         if (tipoInp == 'radio') {
@@ -35,7 +35,7 @@ if (classe == 'metade') {
                 </select>
             </div>
         )
-        
+
     } else if (tipoInp == 'textarea') {
         return (
             <div className={"w-75 m-auto my-3"} >
@@ -49,7 +49,7 @@ if (classe == 'metade') {
         <div className={"w-75 m-auto my-3"} >
             <label htmlFor={htmlFor}>{label} </label>
             <input type={tipoInp} placeholder={placeholder} id={htmlFor} name={htmlFor}
-                   className={"w-100 d-block rounded px-2 py-1 " + css.input} value={value} onChange={funcao} required disabled={disabled}/>
+                   className={"w-100 d-block rounded px-2 py-1 " + css.input} value={value} onChange={funcao} maxLength={maxlength} minLength={minLength} required disabled={disabled}/>
         </div>
     )
 }
