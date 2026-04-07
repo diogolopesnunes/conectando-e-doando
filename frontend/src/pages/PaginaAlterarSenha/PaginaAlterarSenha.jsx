@@ -24,7 +24,7 @@ export default function PaginaAlterarSenha({api}) {
         if (mensagem) {
             const timer = setTimeout(() => {
                 setMensagem('');
-            }, 2000);
+            }, 10000);
 
             return () => clearTimeout(timer);
         }
@@ -88,16 +88,15 @@ export default function PaginaAlterarSenha({api}) {
         <div className="container m-auto">
             <div className="row">
                 <div className="col-12">
-                    {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={'8000'} descricao={mensagem} />}
+                    {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={'10000'} descricao={mensagem} />}
                     <Form largura={'maior'} titulo={'Alterar senha'} onSubmit={alterarSenha}>
-
                         <Input
                             placeholder={'Digite o email'}
                             type={"email"}
                             value={email}
                             funcao={(e) => setEmail(e.target.value)}
                             label={'Email:'}
-                             // se sucessos foi igual a 0 o disabled vai ser true senão vai ser false
+                            // se sucessos foi igual a 0 o disabled vai ser true senão vai ser false
                             disabled={sucessos == 1 ? true : false}
                         />
 
@@ -105,9 +104,9 @@ export default function PaginaAlterarSenha({api}) {
                             placeholder={"Digite o Código"}
                             type={"text"}
                             value={codigo}
-                            funcao={(e) => setCodigo(e.target.value)}
+                            funcao={(e) => setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6))}
                             label={'Código:'}
-                             // se sucessos foi igual a 0 o disabled vai ser true senão vai ser false
+                            // se sucessos foi igual a 0 o disabled vai ser true senão vai ser false
                             disabled={sucessos == 1 ? true : false}
                         />
 
@@ -132,13 +131,22 @@ export default function PaginaAlterarSenha({api}) {
                              // se sucessos foi igual a 0 o disabled vai ser true senão vai ser false
                             disabled={sucessos == 0 ? true : false}
                         />
+                        {sucessos == 1 ? (
+                            <Buton
+                                texto={"Alterar senha"}
+                                tamanho={"medio"}
+                                background={"laranja"}
+                                tipo={'submit'}
+                            />
+                        ) : (
+                            <Buton
+                                texto={"Validar código"}
+                                tamanho={"medio"}
+                                background={"laranja"}
+                                tipo={'submit'}
+                            />
+                        )}
 
-                        <Buton
-                            texto={"Alterar senha"}
-                            tamanho={"medio"}
-                            background={"laranja"}
-                            tipo={'submit'}
-                        />
 
                     </Form>
                 </div>

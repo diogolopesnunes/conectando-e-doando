@@ -15,7 +15,7 @@
     height: 200px;
 }
 
-@media (max-width: 769px){
+@media (max-width: 992px){
     .senha{
         display: flex;
         flex-direction: column;

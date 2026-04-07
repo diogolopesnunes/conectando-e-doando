@@ -16,7 +16,7 @@ export default function PaginaEsqueciMinhaSenha({api}){
         if (mensagem) {
             const timer = setTimeout(() => {
                 setMensagem('');
-            }, 2000);
+            }, 10000);
 
             return () => clearTimeout(timer);
         }
@@ -71,7 +71,7 @@ export default function PaginaEsqueciMinhaSenha({api}){
         <div className="container m-auto">
             <div className="row formataAltura d-flex justify-content-center align-items-center">
                 <div className="col">
-                    {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={'8000'} descricao={mensagem} />}
+                    {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={'10000'} descricao={mensagem} />}
                     <Form largura={'maior'} titulo={'Esqueci minha senha'} onSubmit={esqueciMinhaSenha} >
 
                         <Input

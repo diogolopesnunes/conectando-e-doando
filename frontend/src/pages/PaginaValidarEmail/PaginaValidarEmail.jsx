@@ -18,7 +18,7 @@ export default function PaginaValidarEmail({api}) {
         if (mensagem) {
             const timer = setTimeout(() => {
                 setMensagem('');
-            }, 2000);
+            }, 10000);
 
             return () => clearTimeout(timer);
         }
@@ -27,7 +27,7 @@ export default function PaginaValidarEmail({api}) {
     async function validarEmail(e){
         e.preventDefault();
 
-        let response = await fetch(`http://10.92.3.141:5000/validar_conta`, {
+        let response = await fetch(`${api}/validar_conta`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -53,7 +53,7 @@ export default function PaginaValidarEmail({api}) {
             setMensagem(retorno.mensagem.descricao)
             setTipoMensagem(retorno.mensagem.tipo)
 
-            if(tipoMensagem!='erro'){
+            if(retorno.mensagem.tipo !='erro'){
                 setTimeout(function () {
                     navegate('/login')
                 }, 2000)
@@ -67,7 +67,7 @@ export default function PaginaValidarEmail({api}) {
         <div className="container m-auto">
             <div className="row">
                 <div className="col-12">
-                    {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={'8000'} descricao={mensagem} />}
+                    {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={'10000'} descricao={mensagem} />}
                     <Form largura={'maior'} titulo={'Validar email'} onSubmit={validarEmail}>
                         <Input type={'email'} label={'Email:'} value={email} funcao={(e) => setEmail(e.target.value)} placeholder={"Digite seu email"} />
                         <Input

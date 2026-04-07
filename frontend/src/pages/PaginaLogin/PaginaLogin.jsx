@@ -7,7 +7,7 @@ import Form from "../../components/Form/Form.jsx";
 import {useEffect, useState} from "react";
 import Alerts from "../../components/Alerts/Alerts.jsx";
 
-export default function Login({ logado, setLogado, api }){
+export default function Login({setLogado, api }){
     const [email, setEmail] = useState('')
     const [senha, setSenha] = useState('')
     const [mensagem, setMensagem] = useState('')
@@ -19,7 +19,7 @@ export default function Login({ logado, setLogado, api }){
         if (mensagem) {
             const timer = setTimeout(() => {
                 setMensagem('');
-            }, 8000);
+            }, 10000);
 
             return () => clearTimeout(timer);
         }
@@ -58,7 +58,7 @@ export default function Login({ logado, setLogado, api }){
             localStorage.setItem('id_usuario', retorno.usuario.id);
             setTimeout(function () {
                 navegate('/dashboard')
-            }, 1000)
+            }, 1500)
         }
     }
     return(
@@ -66,7 +66,7 @@ export default function Login({ logado, setLogado, api }){
             <div className={'row'}>
                 <div className="col align-self-center">
 
-                    {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={'8000'} descricao={mensagem} />}
+                    {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={"10000"} descricao={mensagem} />}
                     <Form largura="maior" onSubmit={login} titulo={'Login'}>
 
                         <Input tipoInp={"email"} label={"Email:"} htmlFor={"email"} placeholder={"Digite seu email"} value={email} funcao={(e) => setEmail(e.target.value)}/>
