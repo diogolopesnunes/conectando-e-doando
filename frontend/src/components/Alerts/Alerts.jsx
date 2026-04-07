@@ -14,8 +14,6 @@ export default function Alerts({ titulo, descricao, imagem, tipo, duracao}) {
 
     return (
         <div className={`${css.alert} ${css[tipo]}`}>
-            <span></span>
-
             <img src={imagem} alt="icone alerta" />
 
             <div className={css.conteudo}>
@@ -28,8 +26,6 @@ export default function Alerts({ titulo, descricao, imagem, tipo, duracao}) {
                 onClick={() => setVisivel(false)}>
                 ✕
             </button>
-
-            <span></span>
         </div>
     );
 }

@@ -8,6 +8,7 @@ import css from "./PaginaCadastro.module.css"
 import {useNavigate} from "react-router-dom";
 import Alerts from "../../components/Alerts/Alerts.jsx";
 
+
 export default function PaginaCadastro({api}) {
 
     const [selecionado, setSelecionado] = useState('0')
@@ -15,7 +16,8 @@ export default function PaginaCadastro({api}) {
     const [checado2, setChecado2] = useState(false)
     const [mensagem, setMensagem] = useState('')
     const [tipoMensagem, setTipoMensagem] = useState('')
-    const inputRef = useRef();
+    const inputImagemRef = useRef();
+    const inputBannerRef = useRef();
 
     useEffect(()=>{
         if (mensagem) {
@@ -56,7 +58,25 @@ export default function PaginaCadastro({api}) {
     const [cidadeOng, setCidadeOng] = useState('')
     const [telefone, setTelefone] = useState('')
     const [imagem, setImagem] = useState(false)
-    // const [preview, setPreview] = useState(null);
+    const [imagemBanner, setImagemBanner] = useState(false)
+    const [preview, setPreview] = useState(null);
+    const [previewBanner, setPreviewBanner] = useState(null);
+
+    function colocarImagem(e) {
+        const imagem = e.target.files[0];
+        if (imagem) {
+            setImagem(imagem);
+            setPreview(URL.createObjectURL(imagem));
+        }
+    }
+
+    function colocarImagemBanner(e) {
+        const imagem = e.target.files[0];
+        if (imagem) {
+            setImagemBanner(imagem);
+            setPreviewBanner(URL.createObjectURL(imagem));
+        }
+    }
 
     const navegate = useNavigate();
 
@@ -83,11 +103,14 @@ export default function PaginaCadastro({api}) {
         form.append("conta_ong", contaOng)
         form.append("cidade_ong",cidadeOng)
         form.append("telefone", telefone)
+        form.append("bannerOng", imagemBanner)
 
         if (imagem) {
             form.append("imagem", imagem)
-            const url = URL.createObjectURL(imagem);
-            setPreview(url);
+        }
+
+        if (imagemBanner) {
+            form.append("imagem_banner", imagemBanner)
         }
 
         let retorno = await fetch(`${api}/cadastro`, {
@@ -146,30 +169,21 @@ export default function PaginaCadastro({api}) {
                             <div>
                                 <Input htmlFor={'cpf'} label={'CPF'} tipoInp={'text'} placeholder={'Digite seu CPF'} value={cpfCnpj} funcao={(e) => setCpfCnpj(e.target.value.replace(/\D/g, "").slice(0, 11))} inputMode="numeric" maxLength={14} minLength={14} mask={"cpf"}/>
 
-                                <div className="w-100 d-flex justify-content-center align-items-center mb-3">
-                                    <input type="file" onChange={(f) => setImagem(f.target.files[0])} className={' ' + css.botao}/>
-                                </div>
 
-                                {/*<div className="w-100 flex-column d-flex justify-content-center align-items-center mb-3">*/}
-                                {/*    <label className={"mb-3"}>Imagem de perfil</label>*/}
-                                {/*    <input ref={inputRef} type="file" onChange={(f) => {*/}
-                                {/*        const imagem = f.target.files[0];*/}
-                                {/*        if (imagem) {*/}
-                                {/*            setImagem(imagem);*/}
-                                {/*            setPreview(URL.createObjectURL(imagem));*/}
-                                {/*        }*/}
-                                {/*    }*/}
-                                {/*    } className={' ' + css.botao}/>*/}
-                                {/*    {preview && (*/}
-                                {/*        <>*/}
-                                {/*            <img className={'mt-3 ' + css.preview}*/}
-                                {/*                 src={preview}*/}
-                                {/*                 alt="Preview"*/}
-                                {/*            />*/}
-                                {/*            <Buton tipo={"button"} onClick={() => {setPreview(null); setImagem(null)}} texto={"Remover"} />*/}
-                                {/*        </>*/}
-                                {/*    )}*/}
-                                {/*</div>*/}
+
+                                <div className="w-100 flex-column d-flex justify-content-center align-items-center mb-3">
+                                    <label className={"mb-3"}>Imagem de perfil</label>
+                                    <input ref={inputImagemRef} type="file" onChange={colocarImagem} className={' ' + css.botao}/>
+                                    {preview && (
+                                        <>
+                                            <img className={'mt-3 ' + css.preview + ' ' + css.circulo}
+                                                 src={preview}
+                                                 alt="Preview"
+                                            />
+                                            <Buton tipo={"button"} onClick={() => { inputImagemRef.current.value = null;setPreview(null); setImagem(null)}} texto={"Remover"} />
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         ) : (
                             <>
@@ -188,35 +202,34 @@ export default function PaginaCadastro({api}) {
                                 <Input htmlFor={'agencia'} label={'Agencia:'} tipoInp={'text'} placeholder={'Informe a agencia bancária'} value={agenciaOng} funcao={(f) => setAgenciaOng(f.target.value)}/>
                                 <Input htmlFor={'conta'} label={'Conta:'} tipoInp={'text'} placeholder={'Informe a conta bancária'} value={contaOng} funcao={(f) => setContaOng(f.target.value)}/>
 
-                                <div className="w-100 d-flex justify-content-center align-items-center mb-3">
-                                    <input type="file" onChange={(f) => setImagem(f.target.files[0])} className={' ' + css.botao}/>
+
+                                <div className={"w-100 flex-column d-flex justify-content-center align-items-center mb-3" + ' ' + css.divImagem }>
+                                    <label className={"mb-3"}>Ícone da ONG</label>
+                                    <input ref={inputImagemRef} type="file" onChange={colocarImagem} className={' ' + css.botao}/>
+                                    {preview && (
+                                        <>
+                                            <img className={'mt-3 ' + css.preview}
+                                                 src={preview}
+                                                 alt="Preview"
+                                            />
+                                            <Buton tipo={"button"} onClick={() => {inputImagemRef.current.value = null; setPreview(null); setImagem(null);}} texto={"Remover"} />
+                                        </>
+                                    )}
                                 </div>
 
-                                {/*<div className="w-100 flex-column d-flex justify-content-center align-items-center mb-3">*/}
-                                {/*    <input ref={inputRef} type="file" onChange={(f) => setImagem(f.target.files[0])} className={' ' + css.botao}/>*/}
-                                {/*    {preview && (*/}
-                                {/*        <>*/}
-                                {/*            <img className={'mt-3 ' + css.preview}*/}
-                                {/*                 src={preview}*/}
-                                {/*                 alt="Preview"*/}
-                                {/*            />*/}
-                                {/*            <Buton tipo={"button"} onClick={() => {inputRef.current.value = null; setPreview(null); setImagem(null);}} texto={"Remover"} />*/}
-                                {/*        </>*/}
-                                {/*    )}*/}
-                                {/*</div>*/}
-
-                                {/*<div className="w-100 flex-column d-flex justify-content-center align-items-center mb-3">*/}
-                                {/*    <input ref={inputRef} type="file" onChange={(f) => setImagem(f.target.files[0])} className={' ' + css.botao}/>*/}
-                                {/*    {preview && (*/}
-                                {/*        <>*/}
-                                {/*            <img className={'mt-3 ' + css.preview}*/}
-                                {/*                 src={preview}*/}
-                                {/*                 alt="Preview"*/}
-                                {/*            />*/}
-                                {/*            <Buton tipo={"button"} onClick={() => {inputRef.current.value = null; setPreview(null); setImagem(null);}} texto={"Remover"} />*/}
-                                {/*        </>*/}
-                                {/*    )}*/}
-                                {/*</div>*/}
+                                <div className="w-100 flex-column d-flex justify-content-center align-items-center mb-3">
+                                    <label className={"mb-3"}>Imagem do Banner</label>
+                                    <input ref={inputBannerRef} type="file" onChange={colocarImagemBanner} className={' ' + css.botao}/>
+                                    {previewBanner && (
+                                        <>
+                                            <img className={'mt-3 ' + css.preview}
+                                                 src={previewBanner}
+                                                 alt="Preview"
+                                            />
+                                            <Buton tipo={"button"} onClick={() => {inputBannerRef.current.value = null; setPreviewBanner(null); setImagemBanner(null);}} texto={"Remover"} />
+                                        </>
+                                    )}
+                                </div>
 
                             </>
                         )}

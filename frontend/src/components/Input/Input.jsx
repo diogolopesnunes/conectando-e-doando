@@ -1,4 +1,5 @@
 import css from './Input.module.css'
+import {IMaskInput} from "react-imask";
 
 // 1. Dicionário de máscaras (fora da função para performance)
 const MASKS = {
@@ -18,6 +19,7 @@ const MASKS = {
         return `${n.slice(0, 2)}.${n.slice(2, 5)}.${n.slice(5, 8)}/${n.slice(8, 12)}-${n.slice(12, 14)}`;
     },
     telefone: (v) => {
+
         const n = v.replace(/\D/g, "");
         if (n.length <= 2) return n.length > 0 ? `(${n}` : n;
         if (n.length <= 7) return `(${n.slice(0, 2)}) ${n.slice(2)}`;
@@ -69,14 +71,26 @@ export default function Input({tipoInp, label, htmlFor, placeholder, classe = ''
     return (
         <div className={"w-75 m-auto my-3"} >
             <label htmlFor={htmlFor}>{label} </label>
-            <input type={tipoInp} placeholder={placeholder} id={htmlFor} name={htmlFor}
-                   className={"w-100 d-block rounded px-2 py-1 " + css.input}
-                   value={valorParaExibir} // Usa o valor formatado aqui
-                   onChange={funcao}
-                   maxLength={maxlength}
-                   minLength={minLength}
-                   required
-                   disabled={disabled}/>
+
+            {mask === "cnpj" ? (
+                <IMaskInput
+                    mask={"000.000.000-00"}
+                    placeholder={"Digite o CNPJ"}
+                />
+            ) : (
+                <input type={tipoInp} placeholder={placeholder} id={htmlFor} name={htmlFor}
+                       className={"w-100 d-block rounded px-2 py-1 " + css.input}
+                       value={value} // Usa o valor formatado aqui
+                       onChange={funcao}
+                       maxLength={maxlength}
+                       minLength={minLength}
+                       required
+                       disabled={disabled}/>
+            )}
+
+
+
+
         </div>
     )
 }

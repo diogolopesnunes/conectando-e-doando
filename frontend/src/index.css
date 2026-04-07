@@ -19,11 +19,13 @@
     text-decoration: none;
 }
 
+
 /*BACKGROUNDS PREDEFINIDOS*/
 /*Usar principalmente em botões*/
 
 .tamanhoTexto {
     font-size: 25px;
+    max-width: 100% !important;
 }
 
 .formataAltura{

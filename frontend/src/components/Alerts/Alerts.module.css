@@ -15,6 +15,10 @@
     justify-content: space-around;
 }
 
+.conteudo {
+    padding: 20px;
+}
+
 h4 {
     font-weight: bold;
     font-family: Inter;
@@ -28,7 +32,6 @@ h4 {
     font-weight: 500;
     margin: 0;
     max-width: 400px;
-    flex-wrap: wrap;
     text-align: justify;
 }
 
