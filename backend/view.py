@@ -545,36 +545,36 @@ def esqueci_minha_senha():
         data = request.get_json()
         destinatario = data.get('email')
 
-        cur.execute("""select situacao
-                       from usuario
-                       where email = ?""", (destinatario,))
-        situacao = cur.fetchone()
-        if not situacao:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Usuário não encontrado'
-            }})
-        if situacao[0] == 0:
-            try:
-                assunto = "Ativação de conta"
-                mensagem = f"Seu código para ativar usa conta é"
-
-                email, tipo = email_verificacao(destinatario, assunto, mensagem)
-                if tipo == 'erro':
-                    return jsonify({'mensagem': {
-                        'tipo': 'erro',
-                        'descricao': email
-                    }}), 403
-                else:
-                    return jsonify({'mensagem': {
-                        'tipo': 'redirecionamento',
-                        'descricao': f'Conta inativada, {email}'
-                    }})
-            except Exception as e:
-                return jsonify({'mensagem': {
-                    'tipo': 'erro',
-                    'descricao': f'Erro ao gerar código de validação {e}'
-                }}), 500
+        # cur.execute("""select situacao
+        #                from usuario
+        #                where email = ?""", (destinatario,))
+        # situacao = cur.fetchone()
+        # if not situacao:
+        #     return jsonify({'mensagem': {
+        #         'tipo': 'erro',
+        #         'descricao': 'Usuário não encontrado'
+        #     }})
+        # if situacao[0] == 0:
+        #     try:
+        #         assunto = "Ativação de conta"
+        #         mensagem = f"Seu código para ativar usa conta é"
+        #
+        #         email, tipo = email_verificacao(destinatario, assunto, mensagem)
+        #         if tipo == 'erro':
+        #             return jsonify({'mensagem': {
+        #                 'tipo': 'erro',
+        #                 'descricao': email
+        #             }}), 403
+        #         else:
+        #             return jsonify({'mensagem': {
+        #                 'tipo': 'redirecionamento',
+        #                 'descricao': f'Conta inativada, {email}'
+        #             }})
+        #     except Exception as e:
+        #         return jsonify({'mensagem': {
+        #             'tipo': 'erro',
+        #             'descricao': f'Erro ao gerar código de validação {e}'
+        #         }}), 500
 
         assunto = "Recuperação de senha"
         mensagem = f"Seu código para recuperar sua senha é"
@@ -602,32 +602,38 @@ def alterar_senha():
         nova_senha = dados.get('nova_senha')
         confirmar_nova_senha = dados.get('confirmar_nova_senha')
 
-        cur.execute("""select situacao
-                       from usuario
-                       where email = ?""", (email,))
-        situacao = cur.fetchone()[0]
-        if situacao and situacao == 0:
-            try:
-                destinatario = email
-                assunto = "Ativação de conta"
-                mensagem = f"Seu código para ativar usa conta é"
-
-                email, tipo = email_verificacao(destinatario, assunto, mensagem)
-                if tipo == 'erro':
-                    return jsonify({'mensagem': {
-                        'tipo': 'erro',
-                        'descricao': email
-                    }}), 403
-                else:
-                    return jsonify({'mensagem': {
-                        'tipo': 'redirecionamento',
-                        'descricao': f'Conta inativada, {email}'
-                    }})
-            except Exception as e:
-                return jsonify({'mensagem': {
-                    'tipo': 'erro',
-                    'descricao': f'Erro ao gerar código de validação {e}'
-                }}), 500
+        # cur.execute("""select situacao
+        #                from usuario
+        #                where email = ?""", (email,))
+        # situacao = cur.fetchone()[0]
+        # print(situacao)
+        # if not situacao:
+        #     return jsonify({'mensagem': {
+        #         'tipo': 'erro',
+        #         'descricao': 'Usuário não encontrado'
+        #     }})
+        # if situacao == 0:
+        #     try:
+        #         destinatario = email
+        #         assunto = "Ativação de conta"
+        #         mensagem = f"Seu código para ativar usa conta é"
+        #
+        #         email, tipo = email_verificacao(destinatario, assunto, mensagem)
+        #         if tipo == 'erro':
+        #             return jsonify({'mensagem': {
+        #                 'tipo': 'erro',
+        #                 'descricao': email
+        #             }}), 403
+        #         else:
+        #             return jsonify({'mensagem': {
+        #                 'tipo': 'redirecionamento',
+        #                 'descricao': f'Conta inativada, {email}'
+        #             }})
+        #     except Exception as e:
+        #         return jsonify({'mensagem': {
+        #             'tipo': 'erro',
+        #             'descricao': f'Erro ao gerar código de validação {e}'
+        #         }}), 500
 
         cur.execute("""select 1
                        from usuario
@@ -662,6 +668,28 @@ def alterar_senha():
                     'tipo': 'erro',
                     'descricao': "Email, código e nova senha são obrigatórios"
                 }}), 400
+
+            cur.execute("""select 1
+                           from usuario
+                           where email = ?""", (email,))
+            if not cur.fetchone():
+                return jsonify({"mensagem": {
+                    'tipo': 'erro',
+                    'descricao': "Email não encontrado"
+                }}), 404
+
+            sucesso, mensagem = verificar_codigo(email, codigo)
+            if sucesso:
+                tipo = 'sucesso'
+            else:
+                tipo = 'erro'
+
+            if not sucesso:
+                return jsonify({"mensagem": {
+                    'tipo': 'erro',
+                    'descricao': mensagem
+                }}), 400
+
 
             # Busca usuário
             cur.execute("""
@@ -790,3 +818,45 @@ def validar_conta():
         }}), 500
     finally:
         cur.close()
+
+
+# @app.route('/listar_ong_adm', methods=['GET'])
+# def listar_ong_adm():
+#     token = request.cookies.get('access_token')
+#     if not token:
+#         return jsonify({'mensagem': 'Token de autenticação necessário'}), 401
+#     try:
+#         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+#         id_token = dados['id_usuario']
+#         cur = con.cursor()
+#         cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
+#         tipo_usuario = cur.fetchone()[0]
+#         if tipo_usuario != 2:
+#             cur.close()
+#             return jsonify({'error': 'Apenas administradores podem acessar esta pagina'}), 403
+#     except Exception as e:
+#         return jsonify({'message': f'Erro ao verificar token {e}'}), 500
+#     finally:
+#         cur.close()
+#
+#     try:
+#         cur = con.cursor()
+#
+#         cur.execute("""select id_usuario, nome, descricao_causa, situacao from usuario where tipo_de_usuario = 1""")
+#         ongs = cur.fetchall()
+#         ongs_lista = []
+#
+#         for ong in ongs:
+#             ongs_lista.append({
+#                 'id_usuario': ong[0],
+#                 'nome': ong[1],
+#                 'descricao_causa': ong[2],
+#                 'situacao': ong[3],
+#             })
+#
+#         return jsonify(mensagem='Lista de Ongs', ongs=ongs_lista)
+#
+#     except Exception as e:
+#         return jsonify({'message': f'Erro ao consultar banco de dados: {e}'}), 500
+#     finally:
+#         cur.close()
