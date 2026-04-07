@@ -61,7 +61,7 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
 
     async function logout(e) {
         e.preventDefault();
-        let retorno = await fetch(`http://10.92.3.118:5000/logout`, {
+        let retorno = await fetch(`http://10.92.3.141:5000/logout`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -83,9 +83,10 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
         if (retorno.mensagem){
             setMensagem(retorno.mensagem.descricao)
             setTipoMensagem(retorno.mensagem.tipo)
-            if(retorno.mensagem.tipo === 'sucesso'){
-                localStorage.clear()
-            }
+            localStorage.clear()
+            // if(retorno.mensagem.tipo == 'sucesso'){
+            //     localStorage.clear()
+            // }
         }
         navegate('/')
     }

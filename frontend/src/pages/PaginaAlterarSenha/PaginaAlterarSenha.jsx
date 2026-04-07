@@ -5,15 +5,16 @@ import {useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
 import Alerts from "../../components/Alerts/Alerts.jsx";
 
-export default function PaginaAlterarSenha() {
+export default function PaginaAlterarSenha({api}) {
 
     const [codigo, setCodigo] = useState("");
-    const [novaSenha, setNovaSenha] = useState("");
-    const [confirmarSenha, setConfirmarSenha] = useState("");
+    const [novaSenha, setNovaSenha] = useState();
+    const [confirmarSenha, setConfirmarSenha] = useState();
     const [email, setEmail] = useState("");
     const [mensagem, setMensagem] = useState("");
     const navigate = useNavigate();
     const [tipoMensagem, setTipoMensagem] = useState('');
+    const [sucessos, setSucessos] = useState(0);
 
     useEffect(() => {
         setEmail(localStorage.getItem("email"));
@@ -38,12 +39,12 @@ export default function PaginaAlterarSenha() {
             return;
         }
 
-        if (novaSenha !== confirmarSenha) {
-            console.log("As senhas não coincidem");
-            return;
-        }
+        // if (novaSenha !== confirmarSenha) {
+        //     console.log("As senhas não coincidem");
+        //     return;
+        // }
 
-        let response = await fetch(`http://10.92.3.118:5000/alterar_senha`, {
+        let response = await fetch(`${api}/alterar_senha`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -56,7 +57,6 @@ export default function PaginaAlterarSenha() {
                 confirmar_nova_senha: confirmarSenha
             })
         });
-
         // if (!response.ok) {
         //     console.log("Erro HTTP:", response.status);
         //     return;
@@ -65,12 +65,18 @@ export default function PaginaAlterarSenha() {
         let retorno = await response.json();
         console.log(retorno);
 
-
-
         if (retorno.mensagem){
             setMensagem(retorno.mensagem.descricao)
             setTipoMensagem(retorno.mensagem.tipo)
-            if (tipoMensagem != 'erro') {
+            if (retorno.mensagem.tipo == 'redirecionamento'){
+                setTimeout(() => {
+                    navigate("/validar");
+                }, 1500);
+            }
+            else if (retorno.mensagem.tipo != 'erro' && sucessos == 0){
+                setSucessos(1)
+            }
+            else if (retorno.mensagem.tipo != 'erro' && sucessos == 1) {
                 setTimeout(() => {
                     navigate("/login");
                 }, 1500);
@@ -91,6 +97,8 @@ export default function PaginaAlterarSenha() {
                             value={email}
                             funcao={(e) => setEmail(e.target.value)}
                             label={'Email:'}
+                             // se sucessos foi igual a 0 o disabled vai ser true senão vai ser false
+                            disabled={sucessos == 1 ? true : false}
                         />
 
                         <Input
@@ -99,6 +107,8 @@ export default function PaginaAlterarSenha() {
                             value={codigo}
                             funcao={(e) => setCodigo(e.target.value)}
                             label={'Código:'}
+                             // se sucessos foi igual a 0 o disabled vai ser true senão vai ser false
+                            disabled={sucessos == 1 ? true : false}
                         />
 
                         <Input
@@ -108,6 +118,8 @@ export default function PaginaAlterarSenha() {
                             value={novaSenha}
                             funcao={(e) => setNovaSenha(e.target.value)}
                             label={'Nova senha:'}
+                             // se sucessos foi igual a 0 o disabled vai ser true senão vai ser false
+                            disabled={sucessos == 0 ? true : false}
                         />
 
                         <Input
@@ -117,6 +129,8 @@ export default function PaginaAlterarSenha() {
                             value={confirmarSenha}
                             funcao={(e) => setConfirmarSenha(e.target.value)}
                             label={'Confirmar nova senha:'}
+                             // se sucessos foi igual a 0 o disabled vai ser true senão vai ser false
+                            disabled={sucessos == 0 ? true : false}
                         />
 
                         <Buton

@@ -12,6 +12,9 @@ import PaginaAlterarSenha from "./pages/PaginaAlterarSenha/PaginaAlterarSenha.js
 import AreaRestrita from "./pages/AreaRestrita/AreaRestrita.jsx";
 
 export default function App() {
+
+    const api = 'http://10.92.3.141:5000'
+
     const quemSomos = useRef(null);
     const doacoes = useRef(null);
     const ongs = useRef(null);
@@ -49,12 +52,12 @@ export default function App() {
 
             <Routes>
                 <Route path="/" element={<Home quemSomos={quemSomos} doacoes={doacoes} ongs={ongs}/>}/>
-                <Route path="/cadastro" element={<PaginaCadastro/>}/>
-                <Route path="/login" element={< PaginaLogin logado={logado} setLogado={setLogado} />}/>
-                <Route path="/esqueciminhasenha" element={<PaginaEsqueciMinhaSenha/>}/>
-                <Route path={"/validar"} element={<PaginaValidarEmail/>}/>
-                <Route path={"/alterar_senha"} element={<PaginaAlterarSenha/>} />
-                <Route path={"/dashboard"} element={<AreaRestrita/>} />
+                <Route path="/cadastro" element={<PaginaCadastro api={api}/>}/>
+                <Route path="/login" element={< PaginaLogin logado={logado} setLogado={setLogado} api={api} />}/>
+                <Route path="/esqueciminhasenha" element={<PaginaEsqueciMinhaSenha api={api} />}/>
+                <Route path={"/validar"} element={<PaginaValidarEmail api={api} />}/>
+                <Route path={"/alterar_senha"} element={<PaginaAlterarSenha api={api} />} />
+                <Route path={"/dashboard"} element={<AreaRestrita />} />
                 <Route path="*" element={<Erro/>}/>
             </Routes>
             <Footer/>

@@ -50,3 +50,8 @@
         width: 100% !important;
     }
 }
+@media (max-width: 321px) {
+    .sectionHome h1 {
+        text-align: center;
+    }
+}

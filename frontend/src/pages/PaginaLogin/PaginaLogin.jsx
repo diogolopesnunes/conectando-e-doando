@@ -7,7 +7,7 @@ import Form from "../../components/Form/Form.jsx";
 import {useEffect, useState} from "react";
 import Alerts from "../../components/Alerts/Alerts.jsx";
 
-export default function Login({ logado, setLogado }){
+export default function Login({ logado, setLogado, api }){
     const [email, setEmail] = useState('')
     const [senha, setSenha] = useState('')
     const [mensagem, setMensagem] = useState('')
@@ -27,7 +27,7 @@ export default function Login({ logado, setLogado }){
 
     async function login(e) {
         e.preventDefault();
-        let retorno = await fetch(`http://10.92.3.118:5000/login`, {
+        let retorno = await fetch(`${api}/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

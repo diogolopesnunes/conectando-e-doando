@@ -5,7 +5,7 @@ import Buton from "../../components/Buton/Buton.jsx";
 import {useNavigate} from "react-router-dom";
 import Alerts from "../../components/Alerts/Alerts.jsx";
 
-export default function PaginaValidarEmail() {
+export default function PaginaValidarEmail({api}) {
 
     const [email, setEmail] = useState(localStorage.getItem("email"));
     const [codigo, setCodigo] = useState("");
@@ -27,7 +27,7 @@ export default function PaginaValidarEmail() {
     async function validarEmail(e){
         e.preventDefault();
 
-        let response = await fetch(`http://10.92.3.118:5000/validar_conta`, {
+        let response = await fetch(`http://10.92.3.141:5000/validar_conta`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -47,13 +47,19 @@ export default function PaginaValidarEmail() {
 
         let retorno = await response.json();
         console.log(retorno);
-        setTimeout(function () {
-            navegate('/login')
-        }, 2000)
+
 
         if (retorno.mensagem){
             setMensagem(retorno.mensagem.descricao)
             setTipoMensagem(retorno.mensagem.tipo)
+
+            if(tipoMensagem!='erro'){
+                setTimeout(function () {
+                    navegate('/login')
+                }, 2000)
+            }
+        }else{
+            console.log('wer');
         }
     }
 

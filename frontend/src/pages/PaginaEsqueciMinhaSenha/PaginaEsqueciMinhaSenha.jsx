@@ -5,7 +5,7 @@ import {useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
 import Alerts from "../../components/Alerts/Alerts.jsx";
 
-export default function PaginaEsqueciMinhaSenha(){
+export default function PaginaEsqueciMinhaSenha({api}){
 
     const [email, setEmail] = useState('');
     const [mensagem, setMensagem] = useState('');
@@ -26,7 +26,7 @@ export default function PaginaEsqueciMinhaSenha(){
         e.preventDefault();
 
         try {
-            let response = await fetch(`http://10.92.3.118:5000/esqueci_minha_senha`, {
+            let response = await fetch(`${api}/esqueci_minha_senha`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -50,8 +50,12 @@ export default function PaginaEsqueciMinhaSenha(){
                 setTipoMensagem(retorno.mensagem.tipo);
 
                 localStorage.setItem("email", email);
-
-                 if (tipoMensagem != 'erro') {
+                if (retorno.mensagem.tipo == 'redirecionamento'){
+                    setTimeout(() => {
+                        navigate("/validar");
+                    }, 1500);
+                }
+                else if (retorno.mensagem.tipo != 'erro') {
                     setTimeout(() => {
                         navigate("/alterar_senha");
                     }, 1500);

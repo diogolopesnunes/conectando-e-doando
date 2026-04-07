@@ -8,6 +8,10 @@ textarea{
     height: 100px;
 }
 
+input:disabled{
+    background-color: lightgray;
+}
+
 @media(max-width:769px){
     .metade{
         width: 100%;

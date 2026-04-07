@@ -8,7 +8,7 @@ import css from "./PaginaCadastro.module.css"
 import {useNavigate} from "react-router-dom";
 import Alerts from "../../components/Alerts/Alerts.jsx";
 
-export default function PaginaCadastro() {
+export default function PaginaCadastro({api}) {
 
     const [selecionado, setSelecionado] = useState('0')
     const [checado1, setChecado1] = useState(true)
@@ -53,6 +53,7 @@ export default function PaginaCadastro() {
     const [cidadeOng, setCidadeOng] = useState('')
     const [telefone, setTelefone] = useState('')
     const [imagem, setImagem] = useState(false)
+    const [preview, setPreview] = useState(null);
 
     const navegate = useNavigate();
 
@@ -82,9 +83,11 @@ export default function PaginaCadastro() {
 
         if (imagem) {
             form.append("imagem", imagem)
+            const url = URL.createObjectURL(imagem);
+            setPreview(url);
         }
 
-        let retorno = await fetch(`http://10.92.3.118:5000/cadastro`, {
+        let retorno = await fetch(`${api}/cadastro`, {
             method: "POST",
             credentials: "include",
             body: form
@@ -133,16 +136,29 @@ export default function PaginaCadastro() {
                         </div>
 
                         {selecionado == "0" ? (
-                            <>
-                                <Input htmlFor={'cpf'} label={'CPF'} tipoInp={'number'} placeholder={'Digite seu CPF'} value={cpfCnpj} funcao={digitarCpfCnpj} />
+                            <div>
+                                <Input htmlFor={'cpf'} label={'CPF'} tipoInp={'text'} placeholder={'Digite seu CPF'} value={cpfCnpj} funcao={digitarCpfCnpj} />
 
                                 <div className="w-100 d-flex justify-content-center align-items-center mb-3">
-                                    <input type="file" onChange={(f) => setImagem(f.target.files[0])} className={' ' + css.botao}/>
+                                    <input type="file" onChange={(f) => {
+                                        const imagem = f.target.files[0];
+                                        if (imagem) {
+                                            setImagem(imagem);
+                                            setPreview(URL.createObjectURL(imagem));
+                                        }
+                                    }
+                                    } className={' ' + css.botao}/>
+                                    {preview && (
+                                        <img className={css.preview}
+                                             src={preview}
+                                             alt="Preview"
+                                        />
+                                    )}
                                 </div>
-                            </>
+                            </div>
                         ) : (
                             <>
-                                <Input htmlFor={'cnpj'} label={'CNPJ'} tipoInp={'number'}
+                                <Input htmlFor={'cnpj'} label={'CNPJ'} tipoInp={'text'}
                                        placeholder={'Digite seu CNPJ'} value={cpfCnpj} funcao={digitarCpfCnpj}/>
                                 <Input htmlFor={'tipoOng'} label={'Selecione o tipo de ONG'} tipoInp={'select'} value={tipoOng} opcoeslabel="Selecione o tipo da ONG" opcoes={["uno", "does", "treis"]} funcao={(f) => setTipoOng(f.target.value)}/>
                                 <Input htmlFor={'causaOng'} label={'Causa da ONG'} tipoInp={'textarea'}

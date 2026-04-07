@@ -10,6 +10,11 @@
     cursor: pointer;
 }
 
+.preview {
+    width: 200px;
+    height: 200px;
+}
+
 @media (max-width: 769px){
     .senha{
         display: flex;
