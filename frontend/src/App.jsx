@@ -13,7 +13,7 @@ import AreaRestrita from "./pages/AreaRestrita/AreaRestrita.jsx";
 
 export default function App() {
 
-    const api = 'http://10.92.3.141:5000'
+    const api = 'http://10.92.3.123:5000'
 
     const quemSomos = useRef(null);
     const doacoes = useRef(null);
@@ -48,7 +48,7 @@ export default function App() {
 
     return (
         <BrowserRouter>
-            <Header scrollQuemSomos={scrollQuemSomos} scrollDoacoes={scrollDoacoes} scrollOngs={scrollOngs} logado={logado} setLogado={setLogado} setMensagem={setMensagem} setTipoMensagem={setTipoMensagem}/>
+            <Header scrollQuemSomos={scrollQuemSomos} scrollDoacoes={scrollDoacoes} scrollOngs={scrollOngs} logado={logado} setLogado={setLogado} setMensagem={setMensagem} setTipoMensagem={setTipoMensagem} api={api}/>
 
             <Routes>
                 <Route path="/" element={<Home quemSomos={quemSomos} doacoes={doacoes} ongs={ongs}/>}/>
