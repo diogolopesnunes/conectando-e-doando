@@ -25,7 +25,10 @@ def cadastro():
         nome = request.form.get('nome')
         nome = nome.strip()
         if len(nome) <= 0:
-            return jsonify({'erro': 'O nome não pode ser vazio'}), 400
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'O nome não pode ser vazio'
+            }}), 400
         email = request.form.get('email')
         senha = request.form.get('senha')
         confirmar_senha = request.form.get('confirmar_senha')
