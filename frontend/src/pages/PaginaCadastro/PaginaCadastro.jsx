@@ -32,10 +32,12 @@ export default function PaginaCadastro({api}) {
             setChecado2(true)
             setChecado1(false)
             setTipoUsuario('1')
+            setCpfCnpj('')
         } else{
             setChecado2(false)
             setChecado1(true)
-            setTipoUsuario('3')
+            setTipoUsuario('0')
+            setCpfCnpj('')
         }
     }
 
@@ -127,7 +129,10 @@ export default function PaginaCadastro({api}) {
                             <Input htmlFor={'confirmarSenha'} label={'Confirme sua senha'} tipoInp={'password'}
                                    placeholder={'Digite a senha digitada anteriormente'} classe={'metade'} value={confirmarSenha} funcao={(f) => setConfirmarSenha(f.target.value)}/>
                         </div>
-                        <Input htmlFor={'telefone'} label={'Telefone'} tipoInp={'tel'}  placeholder={'Digite seu telefone'} value={telefone} funcao={(f) => setTelefone(f.target.value)}/>
+                        <Input htmlFor={'telefone'} label={'Telefone'} tipoInp={'text'}  placeholder={'Digite seu telefone'} value={telefone} funcao={(e) => setTelefone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                               inputMode="numeric"
+                               maxLength={11}
+                               minLength={11}/>
                         <div className="w-75 m-auto d-flex justify-content-between flex-lg-row flex-column">
                             <Input tipoInp={'radio'} label={'Sou doador'} htmlFor={'user'} classe={'metade'}
                                    value={'0'} funcao={alterar} checado={checado1} />
@@ -137,7 +142,7 @@ export default function PaginaCadastro({api}) {
 
                         {selecionado == "0" ? (
                             <div>
-                                <Input htmlFor={'cpf'} label={'CPF'} tipoInp={'text'} placeholder={'Digite seu CPF'} value={cpfCnpj} funcao={digitarCpfCnpj} />
+                                <Input htmlFor={'cpf'} label={'CPF'} tipoInp={'text'} placeholder={'Digite seu CPF'} value={cpfCnpj} funcao={(e) => setCpfCnpj(e.target.value.replace(/\D/g, "").slice(0, 11))} inputMode="numeric" maxLength={11} minLength={11} />
 
                                 <div className="w-100 d-flex justify-content-center align-items-center mb-3">
                                     <input type="file" onChange={(f) => {
@@ -159,7 +164,7 @@ export default function PaginaCadastro({api}) {
                         ) : (
                             <>
                                 <Input htmlFor={'cnpj'} label={'CNPJ'} tipoInp={'text'}
-                                       placeholder={'Digite seu CNPJ'} value={cpfCnpj} funcao={digitarCpfCnpj}/>
+                                       placeholder={'Digite seu CNPJ'} value={cpfCnpj} funcao={(e) => setCpfCnpj(e.target.value.replace(/\D/g, "").slice(0, 14))} inputMode="numeric" maxLength={14} minLength={14}/>
                                 <Input htmlFor={'tipoOng'} label={'Selecione o tipo de ONG'} tipoInp={'select'} value={tipoOng} opcoeslabel="Selecione o tipo da ONG" opcoes={["uno", "does", "treis"]} funcao={(f) => setTipoOng(f.target.value)}/>
                                 <Input htmlFor={'causaOng'} label={'Causa da ONG'} tipoInp={'textarea'}
                                        placeholder={'Digite a causa da ONG'} value={descricaoCausa} funcao={(f) => setDescricaoCausa(f.target.value)}/>
