@@ -84,6 +84,17 @@
     display: inline-block;
 }
 
+.adicionar{
+    padding: 0 5px !important;
+    text-align: center;
+    border-radius: 100%;
+}
+
+.paginaSelecionada{
+    background-color: var(--roxo);
+    color: white;
+}
+
 @-moz-document url-prefix() {
     .botao {
         align-items: center;

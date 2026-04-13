@@ -19,7 +19,21 @@
     text-decoration: none;
 }
 
+.color-roxo{
+    color: var(--roxo);
+}
 
+.color-vermelho{
+    color: var(--vermelho);
+}
+
+.color-laranja{
+    color: var(--laranja);
+}
+
+.color-rosa{
+    color: var(--rosa);
+}
 /*BACKGROUNDS PREDEFINIDOS*/
 /*Usar principalmente em botões*/
 
@@ -30,4 +44,9 @@
 
 .formataAltura{
     min-height: calc(100vh - 180px);
+}
+
+a.active {
+    background-color: var(--roxo) !important;
+    color: var(--branco) !important;
 }

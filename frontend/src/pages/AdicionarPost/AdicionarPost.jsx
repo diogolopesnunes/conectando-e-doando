@@ -1,0 +1,170 @@
+import Form from "../../components/Form/Form.jsx";
+import Input from "../../components/Input/Input.jsx";
+import Buton from "../../components/Buton/Buton.jsx";
+import { useState, useRef, useEffect } from "react";
+import css from "./AdicionarPost.module.css"
+import Alerts from "../../components/Alerts/Alerts.jsx";
+import { useNavigate } from "react-router-dom";
+import Nav from "../../components/Nav/Nav.jsx";
+
+export default function PaginaPost({ api }) {
+
+    const [nome, setNome] = useState('');
+    const [descricao, setDescricao] = useState('');
+    const [imagem, setImagem] = useState(null);
+    const [preview, setPreview] = useState(null);
+
+    const [mensagem, setMensagem] = useState('');
+    const [tipoMensagem, setTipoMensagem] = useState('');
+
+    const inputImagemRef = useRef();
+    const navigate = useNavigate();
+
+
+    useEffect(() => {
+        if (mensagem) {
+            const timer = setTimeout(() => {
+                setMensagem('');
+            }, 10000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [mensagem]);
+
+    function colocarImagem(e) {
+        const file = e.target.files[0];
+        if (file) {
+            setImagem(file);
+            setPreview(URL.createObjectURL(file));
+        }
+    }
+
+    async function publicar(e) {
+        e.preventDefault();
+
+        const form = new FormData();
+        form.append("nome", nome);
+        form.append("descricao", descricao);
+
+        if (imagem) {
+            form.append("imagem", imagem);
+        }
+
+        let resposta = await fetch(`${api}/post`, {
+            method: "POST",
+            body: form
+        });
+
+        resposta = await resposta.json();
+        console.log(resposta);
+
+        if (resposta.sucesso) {
+            setMensagem("Post realizado com sucesso!");
+            setTipoMensagem("sucesso");
+
+
+            setNome('');
+            setDescricao('');
+            setImagem(null);
+            setPreview(null);
+            inputImagemRef.current.value = null;
+
+            setTimeout(() => {
+                navigate('/post');
+            }, 2000);
+
+        } else {
+            setMensagem("Erro ao publicar post");
+            setTipoMensagem("erro");
+        }
+    }
+
+    return (
+        <>
+            <Nav />
+            <div className="container m-auto">
+                <div className="row">
+                    <div className="col">
+
+
+                        {mensagem && (
+                            <Alerts
+                                tipo={tipoMensagem}
+                                imagem={`./public/${tipoMensagem}.png`}
+                                duracao={'10000'}
+                                descricao={mensagem}
+                            />
+                        )}
+
+                        <div className={'m-auto '}>
+                            <Form largura="maior" titulo={"Adicionar Post"} onSubmit={publicar}>
+                                <Input
+                                    htmlFor="nome"
+                                    label="Nome do Post"
+                                    tipoInp="text"
+                                    placeholder="Digite o nome do Post"
+                                    value={nome}
+                                    funcao={(e) => setNome(e.target.value)}
+                                />
+
+                                <Input
+                                    htmlFor="descricao"
+                                    label="Descrição"
+                                    tipoInp="textarea"
+                                    placeholder="Descreva a publicação"
+                                    value={descricao}
+                                    funcao={(e) => setDescricao(e.target.value)}
+                                />
+
+
+                                <div className="w-100 flex-column d-flex justify-content-center align-items-center mb-4">
+                                    <label className="mb-3 fw-bold">Imagem Post</label>
+
+                                    <input
+                                        ref={inputImagemRef}
+                                        type="file"
+                                        onChange={colocarImagem}
+                                        className={css.botao}
+                                    />
+
+                                    {preview && (
+                                        <>
+                                            <img
+                                                className={"mt-3 " + css.preview}
+                                                src={preview}
+                                                alt="Preview"
+                                            />
+
+                                            <Buton
+                                                tipo="button"
+                                                texto="Remover"
+                                                background={'vermelho'}
+                                                tamanho={'pequeno'}
+                                                tipo={"submit"}
+                                                onClick={() => {
+                                                    inputImagemRef.current.value = null;
+                                                    setPreview(null);
+                                                    setImagem(null);
+                                                }}
+                                            />
+                                        </>
+                                    )}
+                                </div>
+
+
+                                <Buton
+                                    texto={'Adicionar'}
+                                    background={'laranja'}
+                                    tamanho={'medio'}
+                                    tipo={"submit"}
+                                />
+
+                            </Form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+}

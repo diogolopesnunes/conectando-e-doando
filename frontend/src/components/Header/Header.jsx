@@ -1,5 +1,5 @@
 import {useState, useEffect} from "react";
-import {Link, useLocation, useNavigate} from "react-router-dom";
+import {Link, NavLink, useLocation, useNavigate} from "react-router-dom";
 import css from "./Header.module.css";
 import Buton from "../Buton/Buton.jsx";
 
@@ -116,7 +116,7 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
                             <Link to="/" onClick={scrollDoacoes}>Doações</Link>
                             {/*<Link to="/" onClick={scrollOngs}>Depoimentos</Link>*/}
                             <Link to="/" onClick={scrollOngs}>ONGs</Link>
-                            <Link to="/cadastro">Cadastro</Link>
+                            <NavLink className={({ isActive}) => (isActive ? 'active' : '')} to="/cadastro">Cadastro</NavLink>
                             <Link to="/login">Login</Link>
                             <span></span>
                         </>

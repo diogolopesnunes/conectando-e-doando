@@ -63,18 +63,18 @@ export default function PaginaCadastro({api}) {
     const [previewBanner, setPreviewBanner] = useState(null);
 
     function colocarImagem(e) {
-        const imagem = e.target.files[0];
-        if (imagem) {
-            setImagem(imagem);
-            setPreview(URL.createObjectURL(imagem));
+        const algo = e.target.files[0];
+        if (algo) {
+            setImagem(algo);
+            setPreview(URL.createObjectURL(algo));
         }
     }
 
     function colocarImagemBanner(e) {
-        const imagem = e.target.files[0];
-        if (imagem) {
-            setImagemBanner(imagem);
-            setPreviewBanner(URL.createObjectURL(imagem));
+        const algo = e.target.files[0];
+        if (algo) {
+            setImagemBanner(algo);
+            setPreviewBanner(URL.createObjectURL(algo));
         }
     }
 
@@ -103,14 +103,13 @@ export default function PaginaCadastro({api}) {
         form.append("conta_ong", contaOng)
         form.append("cidade_ong",cidadeOng)
         form.append("telefone", telefone)
-        form.append("bannerOng", imagemBanner)
 
         if (imagem) {
             form.append("imagem", imagem)
         }
 
         if (imagemBanner) {
-            form.append("imagem_banner", imagemBanner)
+            form.append("bannerOng", imagemBanner)
         }
 
         let retorno = await fetch(`${api}/cadastro`, {
@@ -172,7 +171,7 @@ export default function PaginaCadastro({api}) {
 
 
                                 <div className="w-100 flex-column d-flex justify-content-center align-items-center mb-3">
-                                    <label className={"mb-3"}>Imagem de perfil</label>
+                                    <label className={"mb-3 fw-bold"}>Imagem de perfil</label>
                                     <input ref={inputImagemRef} type="file" onChange={colocarImagem} className={' ' + css.botao}/>
                                     {preview && (
                                         <>
@@ -203,8 +202,8 @@ export default function PaginaCadastro({api}) {
                                 <Input htmlFor={'conta'} label={'Conta:'} tipoInp={'text'} placeholder={'Informe a conta bancária'} value={contaOng} funcao={(f) => setContaOng(f.target.value)}/>
 
 
-                                <div className={"w-100 flex-column d-flex justify-content-center align-items-center mb-3" + ' ' + css.divImagem }>
-                                    <label className={"mb-3"}>Ícone da ONG</label>
+                                <div className={"w-100 flex-column d-flex justify-content-center align-items-center mb-5"}>
+                                    <label className={"mb-3 fw-bold"}>Ícone da ONG</label>
                                     <input ref={inputImagemRef} type="file" onChange={colocarImagem} className={' ' + css.botao}/>
                                     {preview && (
                                         <>
@@ -218,7 +217,7 @@ export default function PaginaCadastro({api}) {
                                 </div>
 
                                 <div className="w-100 flex-column d-flex justify-content-center align-items-center mb-3">
-                                    <label className={"mb-3"}>Imagem do Banner</label>
+                                    <label className={"mb-3 fw-bold"}>Imagem do Banner</label>
                                     <input ref={inputBannerRef} type="file" onChange={colocarImagemBanner} className={' ' + css.botao}/>
                                     {previewBanner && (
                                         <>

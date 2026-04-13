@@ -1,4 +1,4 @@
-import {BrowserRouter, Routes, Route, Link, useNavigate} from "react-router-dom";
+import {BrowserRouter, Routes, Route, Link} from "react-router-dom";
 import PaginaCadastro from "./pages/PaginaCadastro/PaginaCadastro.jsx";
 import PaginaLogin from "./pages/PaginaLogin/PaginaLogin.jsx"
 import Footer from "./components/Footer/Footer.jsx";
@@ -10,10 +10,16 @@ import Erro from "./pages/Erro/Erro.jsx"
 import PaginaValidarEmail from "./pages/PaginaValidarEmail/PaginaValidarEmail.jsx";
 import PaginaAlterarSenha from "./pages/PaginaAlterarSenha/PaginaAlterarSenha.jsx";
 import AreaRestrita from "./pages/AreaRestrita/AreaRestrita.jsx";
+import Projetos from "./pages/Ong/Projetos/Projetos.jsx"
+import AdicionarProjetos from "./pages/AdicionarProjetos/AdicionarProjetos.jsx";
+import  AdicionarPost from "./pages/AdicionarPost/AdicionarPost.jsx";
+import EdicaoProjetos from "./pages/EdicaoProjetos/EdicaoProjetos.jsx";
+import EdicaoONGS from "./pages/EdicaoONGs/EdicaoONGs.jsx";
+
 
 export default function App() {
 
-    const api = 'http://10.92.3.123:5000'
+    const api = 'http://10.92.3.144:5000'
 
     const quemSomos = useRef(null);
     const doacoes = useRef(null);
@@ -58,7 +64,13 @@ export default function App() {
                 <Route path={"/validar"} element={<PaginaValidarEmail api={api} />}/>
                 <Route path={"/alterar_senha"} element={<PaginaAlterarSenha api={api} />} />
                 <Route path={"/dashboard"} element={<AreaRestrita />} />
-                <Route path="*" element={<Erro/>}/>
+                <Route path={"/projetos_ong"} element={<Projetos api={api}/>} />
+                <Route path={"/adicionar_projetos"} element={<AdicionarProjetos api={api}/>} />
+                <Route path={"/adicionar_post"} element={<AdicionarPost api={api}/>} />
+                <Route path={"/edicao_projetos"} element={<EdicaoProjetos api={api}/>} />
+                <Route path={"/edicao_ongs"} element={<EdicaoONGS api={api}/>} />
+
+                <Route path="*" element={<Erro/>} />
             </Routes>
             <Footer/>
         </BrowserRouter>

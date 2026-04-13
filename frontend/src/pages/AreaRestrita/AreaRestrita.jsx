@@ -4,6 +4,7 @@ import css from "./AreaRestrita.module.css";
 import {useEffect, useState} from "react";
 import Alerts from "../../components/Alerts/Alerts.jsx";
 import {useNavigate} from "react-router-dom";
+import Nav from "../../components/Nav/Nav.jsx";
 
 
 export default function AreaRestrita() {
@@ -25,9 +26,13 @@ export default function AreaRestrita() {
     }, [])
 
     return (
-        <div className={'container m-auto'}>
+        <div className={'container m-auto d-flex align-items-center justify-content-center'}>
             <div className={'row formataAltura'}>
+                <div className={'col-12'}>
+                    <Nav/>
+                </div>
                 <div className={'col'}>
+
                     <h1>Olá, {nome}</h1>
                 </div>
             </div>

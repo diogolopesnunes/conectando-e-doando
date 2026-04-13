@@ -70,7 +70,9 @@ export default function Login({setLogado, api }){
                     <Form largura="maior" onSubmit={login} titulo={'Login'}>
 
                         <Input tipoInp={"email"} label={"Email:"} htmlFor={"email"} placeholder={"Digite seu email"} value={email} funcao={(e) => setEmail(e.target.value)}/>
+
                         <Input tipoInp={"password"} label={"Senha:"} htmlFor={"senha"} placeholder={"Digite sua senha"} value={senha} funcao={(e) => setSenha(e.target.value)}/>
+
                         <div className="my-3">
                             <Buton texto={"Login"} tamanho={"medio"} background={"laranja"} tipo={'submit'}/>
                         </div>
