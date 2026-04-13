@@ -79,6 +79,9 @@ def gerar_token(id_usuario):
 
     token = jwt.encode(payload, senha_secreta, algorithm='HS256')
 
+    if isinstance(token, bytes):
+        token = token.decode('utf-8')
+
     return token
 
 
