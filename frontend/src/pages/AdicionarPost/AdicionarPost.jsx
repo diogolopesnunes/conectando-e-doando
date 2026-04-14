@@ -10,6 +10,9 @@ import Nav from "../../components/Nav/Nav.jsx";
 export default function PaginaPost({ api }) {
     const { id_projeto } = useParams()
 
+    const [id_usuario, setIdUsuario] = useState("");
+    const navegate = useNavigate();
+
     const [titulo, setTitulo] = useState('');
     const [acao, setAcao] = useState('');
     const [imagem, setImagem] = useState(null);
@@ -20,6 +23,14 @@ export default function PaginaPost({ api }) {
 
     const inputImagemRef = useRef();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!localStorage.getItem("email") || !localStorage.getItem("email") || !localStorage.getItem("id_usuario")) {
+            navegate('/login')
+        } else{
+            setIdUsuario(localStorage.getItem("id_usuario"));
+        }
+    }, [])
 
 
     useEffect(() => {
@@ -52,7 +63,7 @@ export default function PaginaPost({ api }) {
         }
 
 
-        let resposta = await fetch(`${api}/postar/57/${id_projeto}`, {
+        let resposta = await fetch(`${api}/postar/${id_usuario}/${id_projeto}`, {
             method: "POST",
             credentials: "include",
             body: form

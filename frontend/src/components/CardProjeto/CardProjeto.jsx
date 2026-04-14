@@ -3,8 +3,8 @@ import css from "./CardProjeto.module.css"
 
 export default function CardProjeto({NomeProjeto, id, title}) {
     return (
-        <div className={'row w-75 m-auto bg-light p-2 rounded-2 shadow-sm my-3 flex-column flex-sm-row text-center text-sm-start'} title={title}>
-            <div className={'col-sm-6 col-12 mb-4 mb-sm-0'}>
+        <div className={'row w-75 m-auto bg-light p-2 rounded-2 shadow-sm my-3 flex-column flex-sm-row text-center text-sm-start '  + css.card} title={title}>
+            <div className={'col-sm-6 col-12 mb-4 mb-sm-0 ' + css.textoGrande}>
                 <h5>{NomeProjeto}</h5>
             </div>
             <div className={'col d-flex justify-content-evenly flex-sm-row flex-column gap-3'}>

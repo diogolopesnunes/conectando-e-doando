@@ -12,9 +12,11 @@ import PaginaAlterarSenha from "./pages/PaginaAlterarSenha/PaginaAlterarSenha.js
 import AreaRestrita from "./pages/AreaRestrita/AreaRestrita.jsx";
 import Projetos from "./pages/Ong/Projetos/Projetos.jsx"
 import AdicionarProjetos from "./pages/AdicionarProjetos/AdicionarProjetos.jsx";
-import  AdicionarPost from "./pages/AdicionarPost/AdicionarPost.jsx";
+import AdicionarPost from "./pages/AdicionarPost/AdicionarPost.jsx";
 import EdicaoProjetos from "./pages/EdicaoProjetos/EdicaoProjetos.jsx";
 import EdicaoONGS from "./pages/EdicaoONGs/EdicaoONGs.jsx";
+import PaginaProjeto from "./pages/Ong/PaginaProjeto/PaginaProjeto.jsx";
+
 
 
 export default function App() {
@@ -69,6 +71,7 @@ export default function App() {
                 <Route path={"/adicionar_post/:id_projeto"} element={<AdicionarPost api={api}/>} />
                 <Route path={"/edicao_projetos"} element={<EdicaoProjetos api={api}/>} />
                 <Route path={"/edicao_ongs"} element={<EdicaoONGS api={api}/>} />
+                <Route path={'/projeto/:id_projeto'} element={<PaginaProjeto api={api}/>} />
 
                 <Route path="*" element={<Erro/>} />
             </Routes>

@@ -56,6 +56,7 @@ export default function Login({setLogado, api }){
             localStorage.setItem('nome', retorno.usuario.nome);
             localStorage.setItem('email', retorno.usuario.email);
             localStorage.setItem('id_usuario', retorno.usuario.id);
+            localStorage.setItem('tipo_usuario', retorno.usuario.tipoUsuario);
             setTimeout(function () {
                 navegate('/dashboard')
             }, 1500)

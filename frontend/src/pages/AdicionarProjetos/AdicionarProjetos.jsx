@@ -11,7 +11,7 @@ export default function PaginaProjeto({ api }) {
 
     const [nome, setNome] = useState('');
     const [descricao, setDescricao] = useState('');
-    const [meta, setMeta] = useState('');
+    const [meta_doacao, setMeta] = useState('');
     const [imagem, setImagem] = useState(null);
     const [preview, setPreview] = useState(null);
 
@@ -19,8 +19,16 @@ export default function PaginaProjeto({ api }) {
     const [tipoMensagem, setTipoMensagem] = useState('');
 
     const inputImagemRef = useRef();
+    const [idUsuario, setIdUsuario] = useState("");
     const navigate = useNavigate();
 
+    useEffect(() => {
+        if (!localStorage.getItem("email") || !localStorage.getItem("email") || !localStorage.getItem("id_usuario")) {
+            navegate('/login')
+        } else{
+            setIdUsuario(localStorage.getItem("id_usuario"));
+        }
+    }, [])
 
     useEffect(() => {
         if (mensagem) {
@@ -46,13 +54,13 @@ export default function PaginaProjeto({ api }) {
         const form = new FormData();
         form.append("nome", nome);
         form.append("descricao", descricao);
-        form.append("meta", meta);
+        form.append("meta_doacao", meta_doacao);
 
         if (imagem) {
             form.append("imagem", imagem);
         }
 
-        let resposta = await fetch(`${api}/projetos`, {
+        let resposta = await fetch(`${api}/cadastrar_projeto/${idUsuario}`, {
             method: "POST",
             credentials: "include",
             body: form
@@ -61,26 +69,17 @@ export default function PaginaProjeto({ api }) {
         resposta = await resposta.json();
         console.log(resposta);
 
-        if (resposta.sucesso) {
-            setMensagem("Projeto cadastrado com sucesso!");
-            setTipoMensagem("sucesso");
-
-
-            setNome('');
-            setDescricao('');
-            setMeta('');
-            setImagem(null);
-            setPreview(null);
-            inputImagemRef.current.value = null;
-
-            setTimeout(() => {
-                navigate('/projetos');
-            }, 2000);
-
-        } else {
-            setMensagem("Erro ao cadastrar projeto");
-            setTipoMensagem("erro");
+        
+        if (resposta.mensagem) {
+            setMensagem(resposta.mensagem.descricao);
+            setTipoMensagem(resposta.mensagem.tipo);
+            if (resposta.mensagem.tipo == 'sucesso') {
+                setTimeout(() => {
+                    navigate('/projetos_ong');
+                }, 2000);
+            }
         }
+
     }
 
     return (
@@ -125,7 +124,7 @@ export default function PaginaProjeto({ api }) {
                                     label="Meta (R$)"
                                     tipoInp="text"
                                     placeholder="Ex: 1000"
-                                    value={meta}
+                                    value={meta_doacao}
                                     funcao={(e) => setMeta(e.target.value.replace(/\D/g, ""))}
                                     inputMode="numeric"
                                 />

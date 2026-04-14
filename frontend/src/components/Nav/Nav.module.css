@@ -4,22 +4,15 @@
 }
 
 .nav_btn {
-    padding: 10px 20px;
+    padding: 10px !important;
     border-radius: 20px;
     background-color: white;
     border: 1px solid #999;
     text-decoration: none;
     color: black;
-    padding: 10px !important;
     width: 105px;
     text-align: center;
 }
-
-/*.nav_btn.ativo {*/
-/*    background-color: #80005a;*/
-/*    color: white;*/
-/*    border: none;*/
-/*}*/
 
 @media (max-width: 426px) {
     .nav_container{
