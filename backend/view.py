@@ -5,6 +5,7 @@ from flask_bcrypt import check_password_hash, bcrypt
 import math
 from funcoes import validar_senha, criptografar, checar_senha, enviando_email, gerar_token, verificar_codigo, email_verificacao, valida_nova_senha
 from main import app, con
+from datetime import datetime
 
 senha_secreta = app.config['SECRET_KEY']
 
@@ -12,6 +13,52 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
 quantidadePorPagina = 15
+
+# Se precisar validar uma rota utilizando token no backend
+# é preciso rodar o projeto com o link com IP não o localhost
+# Se rodar com o localhost NÃO FUNCIONA, o back não pega o token de maneira nenhuma
+
+#     print("Cookies recebidos:", dict(request.cookies))
+#     token = request.cookies.get("access_token")
+#     print("Token:", token)
+#
+#     if not token:
+#         return jsonify({'mensagem': {
+#             'tipo': 'erro',
+#             'descricao': 'Token de autenticação necessário'
+#         }}), 401
+#     cur = con.cursor()
+#
+#     try:
+#         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+#         id_token = dados['id_usuario']
+#         if id_usuario != id_token:
+#             return jsonify({'mensagem': {
+#                 'tipo': 'erro',
+#                 'descricao': 'Você não tem permissão'
+#             }}), 403
+#
+#         cur.execute(
+#             'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
+#             (id_token,)
+#         )
+#
+#         usuario = cur.fetchone()
+#         if not usuario:
+#             return jsonify({'mensagem': {
+#                 'tipo': 'erro',
+#                 'descricao': 'Usuário não encontrado'
+#             }}), 404
+#         tipo_usuario = usuario[0]
+#
+#         #  1 = ONG (ajuste se necessário)
+#         if tipo_usuario != 1:
+#             return jsonify({'mensagem': {
+#                 'tipo': 'erro',
+#                 'descricao': 'Apenas por ONGs podem acessar esta página'
+#             }}), 403
+
+
 
 @app.route('/cadastro', methods=['POST'])
 def cadastro():
@@ -265,18 +312,20 @@ def login():
             if check_password_hash(senha_armazenada, senha):
                 token = gerar_token(id_usuario)
 
-                cur.execute('SELECT NOME FROM USUARIO WHERE ID_USUARIO = ?', (id_usuario,))
-                nome = cur.fetchone()[0]
-
+                cur.execute('SELECT NOME, TIPO_DE_USUARIO FROM USUARIO WHERE ID_USUARIO = ?', (id_usuario,))
+                resultado = cur.fetchone()
+                nome = resultado[0]
+                tipoUsuario = resultado[1]
                 resp = make_response(jsonify({
                     'mensagem': {
                         'tipo': 'sucesso',
                         'descricao': 'Login bem-sucedido'
                     },
                     'usuario': {
-                        'id': id_usuario,
+                        'id_usuario': id_usuario,
                         'nome': nome,
-                        'email': email
+                        'email': email,
+                        'tipoUsuario': tipoUsuario
                     }
                 }), 200)
 
@@ -284,12 +333,12 @@ def login():
                     "access_token",
                     token,
                     httponly=True,
-                    secure=False,
-                    samesite="Lax",
+                    secure=False, #Mexer se for localHost para =
+                    samesite="Lax", #Mexer se for localHost para =
                     path="/",
                     max_age=600
                 )
-                print(token)
+
                 cur.execute('UPDATE USUARIO SET TENTATIVAS = 0 WHERE EMAIL = ?', (email,))
                 con.commit()
 
@@ -863,26 +912,40 @@ def cadastrar_projeto(id_usuario):
                 'descricao': 'Projeto já cadastrado'
             }})
 
-        print(descricao)
 
         if not nome or not str(nome).strip():
-            return jsonify({'mensagem': 'Nome obrigatório'}), 400
+            return jsonify({'mensagem': {
+                "tipo":"erro",
+                'descricao':'Nome obrigatório'}}), 400
         if not descricao or not str(descricao).strip():
-            return jsonify({'mensagem': 'Descrição obrigatória'}), 400
+            return jsonify({'mensagem': {
+                'tipo':'erro',
+                'descricao':'Descrição obrigatória'}}), 400
         if meta_doacao is None:
-            return jsonify({'mensagem': 'Meta de doação obrigatória'}), 400
+            return jsonify({'mensagem': {
+                'tipo':"erro",
+                'descricao':'Meta de doação obrigatória'}}), 400
         try:
             meta_doacao = int(meta_doacao)
         except:
-            return jsonify({'mensagem': 'Meta deve ser número'}), 400
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Meta deve ser número'
+            }}), 400
 
         if meta_doacao <= 0:
-            return jsonify({'mensagem': 'Meta deve ser maior que zero'}), 400
+            return jsonify({'mensagem': {
+                'tipo':'erro',
+                'descricao': 'Meta deve ser maior que zero'
+            }}), 400
 
         try:
             atividade = int(atividade)
         except:
-            return jsonify({'mensagem': 'Atividade inválida'}), 400
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Atividade inválida'
+            }}), 400
 
 
         cur.execute("""
@@ -900,8 +963,6 @@ def cadastrar_projeto(id_usuario):
         id_projeto = cur.fetchone()[0]
         con.commit()
 
-
-
         caminho_imagem = None
 
         if imagem:
@@ -913,20 +974,32 @@ def cadastrar_projeto(id_usuario):
 
 
         return jsonify({
-            'mensagem': 'Projeto cadastrado com sucesso',
+            'mensagem': {
+                'tipo': 'sucesso',
+                'descricao': 'Projeto cadastrado com sucesso'
+            },
             'id_projeto': id_projeto
         }), 201
 
     except jwt.ExpiredSignatureError:
-        return jsonify({'mensagem': 'Token expirado'}), 401
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token expirado'
+        }}), 401
 
     except jwt.InvalidTokenError:
-        return jsonify({'mensagem': 'Token inválido'}), 401
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token invalido'
+        }}), 401
 
     except Exception as e:
         if con:
             con.rollback()
-        return jsonify({'mensagem': f'Erro ao cadastrar projeto: {e}'}), 500
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': f'Erro ao cadastrar projeto: {e}'
+        }}), 500
 
     finally:
         if cur:
@@ -979,13 +1052,9 @@ def listar_projetos(id_usuario, pagina):
 
 @app.route('/postar/<int:id_usuario>/<int:id_projeto>', methods=['POST'])
 def postar(id_usuario, id_projeto):
-    # print("Cookies recebidos:", request.cookies)
-    # token = request.cookies.get('access_token')
-    # print(token)
-
-    print("Cookies recebidos:", dict(request.cookies))
+    # print("Cookies recebidos:", dict(request.cookies))
     token = request.cookies.get("access_token")
-    print("Token:", token)
+    # print("Token:", token)
 
     if not token:
         return jsonify({'mensagem': {
@@ -993,9 +1062,6 @@ def postar(id_usuario, id_projeto):
             'descricao': 'Token de autenticação necessário'
         }}), 401
     cur = con.cursor()
-
-    print(id_projeto)
-    print(token)
 
     try:
         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
@@ -1046,8 +1112,15 @@ def postar(id_usuario, id_projeto):
     acao = request.form.get('acao')
     atividade = request.form.get('atividade', 1)
     imagem = request.files.get('imagem')
-
-
+    cur.execute("""select fk_usuario_ong 
+                   from projeto_ong
+                   where id_projeto = ?""", (id_projeto,))
+    idOngProjeto = cur.fetchone()
+    if idOngProjeto != id_projeto:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'O projeto pertence a outra ong'
+        }})
     if not titulo or not str(titulo).strip():
         return jsonify({'mensagem': {
             'tipo': 'erro',
@@ -1084,7 +1157,7 @@ def postar(id_usuario, id_projeto):
         return jsonify({
             'mensagem': {
                 'tipo': 'sucesso',
-                'descricao': 'Post postado com sucesso'
+                'descricao': 'Post realizado com sucesso'
             },
             'id_post': id_post
         }), 201
@@ -1104,7 +1177,10 @@ def postar(id_usuario, id_projeto):
 def editar_projeto(id_projeto, id_usuario):
     token = request.cookies.get('access_token')
     if not token:
-        return jsonify({'mensagem': 'Token de autenticação necessário'}), 401
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token de autenticação necessário'
+        }}), 401
     cur = None
 
     try:
@@ -1135,6 +1211,10 @@ def editar_projeto(id_projeto, id_usuario):
                 'tipo': 'erro',
                 'descricao': 'Apenas administradores e ONGs podem acessar esta página'
             }}), 403
+        if request.method == "GET":
+            cur.execute('select nome, atividade, meta_doacao, descricao from projeto_ong where id_projeto = ? and fk_usuario_ong = ? ',(id_projeto, id_usuario))
+            info_projeto_ong = cur.fetchone()
+            return jsonify({'nome' : info_projeto_ong[0], 'atividade': info_projeto_ong[1], 'meta_doacao': info_projeto_ong[2], 'descricao': info_projeto_ong[3]})
 
         nome = request.form.get('nome')
         descricao = request.form.get('descricao')
@@ -1184,29 +1264,18 @@ def editar_projeto(id_projeto, id_usuario):
                 'tipo': 'erro',
                 'descricao': 'Projeto não encontrado'
             }})
-        cur.execute('select nome, atividade, meta_doacao, descricao from projeto_ong where id_projeto = ? and fk_usuario_ong = ? ',(id_projeto, id_usuario))
-        info_projeto_ong = cur.fetchone()
-        return jsonify({'nome' : info_projeto_ong[0], 'atividade': info_projeto_ong[1], 'meta_doacao': info_projeto_ong[2], 'descricao': info_projeto_ong[3]})
-
 
         cur.execute("""
-            INSERT INTO PROJETO_ONG (
-                FK_USUARIO_ONG,
-                NOME,
-                DESCRICAO,
-                META_DOACAO,
-                ATIVIDADE
-            )
-            VALUES (?, ?, ?, ?, ?)
-            RETURNING ID_PROJETO
-        """, (id_usuario, nome.strip(), descricao.strip(), meta_doacao, atividade))
-
-        id_projeto = cur.fetchone()[0]
+            UPDATE PROJETO_ONG 
+            SET NOME =?,
+                DESCRICAO = ?,
+                META_DOACAO = ?,
+                ATIVIDADE = ?
+            WHERE ID_PROJETO =? AND FK_USUARIO_ONG = ?
+            
+        """, (nome.strip(), descricao.strip(), meta_doacao, atividade, id_projeto, id_usuario))
         con.commit()
-
-
-
-        caminho_imagem = None
+        caminhho_imagem = None
 
         if imagem:
             nome_imagem = f"{id_projeto}.jpg"
@@ -1217,20 +1286,232 @@ def editar_projeto(id_projeto, id_usuario):
 
 
         return jsonify({
-            'mensagem': 'Projeto cadastrado com sucesso',
+            'mensagem': {
+                'tipo': 'sucesso',
+                'descricao': 'Projeto editado com sucesso'
+            },
             'id_projeto': id_projeto
         }), 201
 
     except jwt.ExpiredSignatureError:
-        return jsonify({'mensagem': 'Token expirado'}), 401
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token expirado'
+        }}), 401
 
     except jwt.InvalidTokenError:
-        return jsonify({'mensagem': 'Token inválido'}), 401
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token inválido'
+        }}), 401
 
     except Exception as e:
         if con:
             con.rollback()
-        return jsonify({'mensagem': f'Erro ao cadastrar projeto: {e}'}), 500
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': f'Erro ao editar projeto: {e}'
+        }}), 500
+
+    finally:
+        if cur:
+            cur.close()
+
+
+@app.route("/editar_post/<int:id_usuario>/<int:id_projeto>/<int:id_post>", methods=['PUT', "GET"])
+def editar_post(id_projeto, id_usuario, id_post):
+    token = request.cookies.get('access_token')
+    if not token:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token de autenticação necessário'
+        }}), 401
+    cur = None
+
+    try:
+        dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+        id_token = dados['id_usuario']
+        if id_usuario != id_token:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Você não tem permissão'
+            }}), 403
+
+        cur = con.cursor()
+        cur.execute(
+            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
+            (id_token,)
+        )
+        usuario = cur.fetchone()
+        if not usuario:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Usuário não encontrado'
+            }}), 404
+        tipo_usuario = usuario[0]
+
+        # 2 = admin | 1 = ONG
+        if tipo_usuario not in [1, 2]:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Apenas administradores e ONGs podem acessar esta página'
+            }}), 403
+
+        if request.method == "GET":
+            cur.execute('select titulo, atividade, acao from post_projeto where id_projeto = ? and id_post = ? ',(id_projeto, id_post))
+            info_post = cur.fetchone()
+            return jsonify({'titulo' : info_post[0], 'atividade': info_post[1], 'acao': info_post[2]})
+
+
+        titulo = request.form.get('titulo')
+        atividade = request.form.get('atividade', 1)
+        acao = request.form.get('acao')
+        imagem = request.files.get('imagem')
+
+        if not titulo or not str(titulo).strip():
+            return jsonify({'mensagem': {
+                "tipo": "erro",
+                "descricao": 'Titulo obrigatório'
+            }}), 400
+        if not acao or not str(acao).strip():
+            return jsonify({'mensagem': {
+                "tipo": "erro",
+                'descricao': 'Descrição obrigatória'
+            }}), 400
+
+        try:
+            atividade = int(atividade)
+        except:
+            return jsonify({'mensagem': {
+                "tipo": "erro",
+                "descricao": 'Atividade inválida'}}), 400
+
+        cur.execute('select 1 from projeto_ong where id_projeto = ? and fk_usuario_ong = ?', (id_projeto, id_usuario))
+        projeto_ong = cur.fetchone()
+        if not projeto_ong:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Projeto não encontrado'
+            }})
+
+        cur.execute("""
+                    UPDATE POST_PROJETO
+                    SET TITULO   =?,
+                        ACAO      = ?,
+                        ATIVIDADE      = ?
+                    WHERE ID_POST_projeto = ? AND FK_PROJETO = ?
+
+                    """, (titulo.strip(), acao.strip(), atividade, id_post ,id_projeto))
+        con.commit()
+        caminhho_imagem = None
+
+        if imagem:
+            nome_imagem = f"{id_projeto}.jpg"
+            caminho_imagem_destino = os.path.join(app.config['UPLOAD_FOLDER'], "Usuarios/Post_Ong")
+            os.makedirs(caminho_imagem_destino, exist_ok=True)
+            caminho_imagem = os.path.join(caminho_imagem_destino, nome_imagem)
+            imagem.save(caminho_imagem)
+
+        return jsonify({
+            'mensagem': {
+                'tipo': 'sucesso',
+                'descricao': 'Post editado com sucesso'
+            },
+            'id_projeto': id_projeto
+        }), 201
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token expirado'
+        }}), 401
+
+    except jwt.InvalidTokenError:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token inválido'
+        }}), 401
+
+    except Exception as e:
+        if con:
+            con.rollback()
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': f'Erro ao editar POST: {e}'
+        }}), 500
+
+    finally:
+        if cur:
+            cur.close()
+
+@app.route('/listar_posts/<int:id_projeto>/<int:pagina>', methods=["GET"])
+def listar_posts(id_projeto, pagina):
+    token = request.cookies.get('access_token')
+    if not token:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token de autenticação necessário'
+        }}), 401
+    cur = con.cursor()
+
+    try:
+
+        cur.execute("""select id_post_projeto, acao, titulo, atividade from post_projeto where fk_projeto = ?""", (id_projeto,))
+        resultado = cur.fetchall()
+
+        cur.execute("""select count(id_post_projeto)
+                       from post_projeto
+                       where fk_projeto = ?""", (id_projeto,))
+        quantidade = cur.fetchone()[0]
+
+        numeroPaginas = math.ceil(quantidade / quantidadePorPagina)
+
+        minimo = ((pagina - 1) * quantidadePorPagina) + 1
+        maximo = pagina * quantidadePorPagina
+
+        cur.execute("""
+                    SELECT id_post_projeto, titulo, acao, atividade, data_hora
+                    FROM post_projeto
+                    WHERE fk_projeto = ?
+                    ORDER BY data_hora ASC ROWS ? TO ?
+                    """, (id_projeto, minimo, maximo))
+        resultado = cur.fetchall()
+
+        posts = []
+        numeroPosts = 1
+        for linha in resultado:
+            if linha[3] == 1:
+                fData = linha[4].strftime("%d/%m/%Y %H:%M:%S")
+                posts.append({
+                    'numero post': numeroPosts,
+                    'id_post': linha[0],
+                    'titulo': linha[1],
+                    'acao': linha[2],
+                    'data_hora': fData
+                })
+            numeroPosts += 1
+            proximaPagina = pagina + 1
+            if proximaPagina > numeroPaginas:
+                proximaPagina = 0
+        return jsonify({'posts': posts, 'numeroPaginas': numeroPaginas, 'proximaPagina': proximaPagina, 'paginaAnterior': pagina - 1}), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token expirado'
+        }}), 401
+
+    except jwt.InvalidTokenError:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token inválido'
+        }}), 401
+
+    except Exception as e:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': f'Erro ao listar posts: {e}'
+        }}), 500
 
     finally:
         if cur:
