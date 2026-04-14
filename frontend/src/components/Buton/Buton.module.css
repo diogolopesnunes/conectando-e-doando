@@ -90,6 +90,14 @@
     border-radius: 100%;
 }
 
+.pagina, .paginaSelecionada {
+    padding: 5px 10px !important;
+    width: 35px !important;
+    background-color: var(--branco);
+    border: 1px solid black;
+    border-radius: 10px;
+}
+
 .paginaSelecionada{
     background-color: var(--roxo);
     color: white;

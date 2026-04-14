@@ -50,3 +50,7 @@ a.active {
     background-color: var(--roxo) !important;
     color: var(--branco) !important;
 }
+
+.paginas{
+    background-color: var(--branco) !important;
+}

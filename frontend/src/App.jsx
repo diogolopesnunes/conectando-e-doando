@@ -19,7 +19,7 @@ import EdicaoONGS from "./pages/EdicaoONGs/EdicaoONGs.jsx";
 
 export default function App() {
 
-    const api = 'http://10.92.3.144:5000'
+    const api = 'http://10.92.3.170:5000'
 
     const quemSomos = useRef(null);
     const doacoes = useRef(null);
@@ -66,7 +66,7 @@ export default function App() {
                 <Route path={"/dashboard"} element={<AreaRestrita />} />
                 <Route path={"/projetos_ong"} element={<Projetos api={api}/>} />
                 <Route path={"/adicionar_projetos"} element={<AdicionarProjetos api={api}/>} />
-                <Route path={"/adicionar_post"} element={<AdicionarPost api={api}/>} />
+                <Route path={"/adicionar_post/:id_projeto"} element={<AdicionarPost api={api}/>} />
                 <Route path={"/edicao_projetos"} element={<EdicaoProjetos api={api}/>} />
                 <Route path={"/edicao_ongs"} element={<EdicaoONGS api={api}/>} />
 

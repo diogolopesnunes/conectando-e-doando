@@ -10,6 +10,7 @@ export default function Projetos({ api }) {
     const [pagina, setPagina] = useState(1)
     const [proximaPagina, setProximaPagina] = useState(2)
     const [paginaAnterior, setPaginaAnterior] = useState(0)
+    const [quantidade, setQuantidade] = useState(0)
 
     async function ListarProjetos(){
 
@@ -25,13 +26,12 @@ export default function Projetos({ api }) {
             setProjetos(retorno.projetos)
             setProximaPagina(retorno.proximaPagina)
             setPaginaAnterior(retorno.paginaAnterior)
-            console.log(retorno.projetos)
+            setQuantidade(retorno.numeroPaginas)
         }
     }
 
     useEffect( () => {
-            console.log(projetos, pagina)
-            ListarProjetos()
+        ListarProjetos()
     }, [pagina]);
 
     return (
@@ -54,25 +54,34 @@ export default function Projetos({ api }) {
                 </div>
                 <div className={'col-12'}>
                     {projetos.map((projeto) =>(
-                        <CardProjeto NomeProjeto={projeto.nome} key={projeto.id_projeto}/>
+                        <CardProjeto NomeProjeto={projeto.nome} id={projeto.id_projeto} title={projeto.descricao}/>
                     ))}
                 </div>
-                <div className={'col-2 m-auto d-flex justify-content-between'}>
+                <div className={'col-3 m-auto d-flex justify-content-between paginas'}>
 
                     {paginaAnterior !== 0 && (
-                        <Buton texto={"<"} onClick={() => setPagina(paginaAnterior)} />
+                        <>
+                            <Buton texto={"<"} onClick={() => setPagina(paginaAnterior)} classe={'pagina'} />
+                            {pagina == quantidade && paginaAnterior !== 0 && (
+                                <Buton texto={paginaAnterior-1} onClick={() => setPagina(paginaAnterior-1)} classe={'pagina'} />
+                            )}
+                            <Buton texto={paginaAnterior} onClick={() => setPagina(paginaAnterior)} classe={'pagina'} />
+                        </>
                     )}
 
                     <Buton texto={pagina} classe={'paginaSelecionada'}/>
-                    <Buton texto={proximaPagina} onClick={() => setPagina(proximaPagina)}/>
-                    <Buton texto={proximaPagina+1} onClick={() => setPagina(proximaPagina+1)}/>
-
-
                     {proximaPagina !== 0 && (
-                        <Buton texto={">"} onClick={() => setPagina(proximaPagina)} />
+                        <>
+                            <Buton texto={proximaPagina} onClick={() => setPagina(proximaPagina)} classe={'pagina'}/>
+                            {proximaPagina+1 <= quantidade && pagina == 1 && (
+                                <Buton texto={proximaPagina+1} onClick={() => setPagina(proximaPagina+1)} classe={'pagina'}/>
+                            )}
+                        </>
                     )}
 
-
+                    {proximaPagina !== 0 && (
+                        <Buton texto={">"} onClick={() => setPagina(proximaPagina)} classe={'pagina'} />
+                    )}
                 </div>
             </div>
         </div>

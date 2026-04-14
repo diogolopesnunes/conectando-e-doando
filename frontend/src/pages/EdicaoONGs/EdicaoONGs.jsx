@@ -136,15 +136,21 @@ export default function EditarOng({ api }) {
                                    funcao={(e)=>setCpfCnpj(e.target.value.replace(/\D/g,"").slice(0,14))}
                             />
 
-                            <Input label="Senha" tipoInp="password"
-                                   value={senha}
-                                   funcao={(e)=>setSenha(e.target.value)}
-                            />
+                            {/*<Input label="Senha" tipoInp="password"*/}
+                            {/*       value={senha}*/}
+                            {/*       funcao={(e)=>setSenha(e.target.value)}*/}
+                            {/*/>*/}
 
-                            <Input label="Confirmar Senha" tipoInp="password"
-                                   value={confirmarSenha}
-                                   funcao={(e)=>setConfirmarSenha(e.target.value)}
-                            />
+                            {/*<Input label="Confirmar Senha" tipoInp="password"*/}
+                            {/*       value={confirmarSenha}*/}
+                            {/*       funcao={(e)=>setConfirmarSenha(e.target.value)}*/}
+                            {/*/>*/}
+                            <div className={"w-75 m-auto d-flex justify-content-between " + css.senha}>
+                                <Input minLength={8} maxLength={20} htmlFor={'senha'} label={'Senha'} tipoInp={'password'}
+                                       placeholder={'Digite sua senha'} classe={'metade'} value={senha} funcao={(f) => setSenha(f.target.value)}/>
+                                <Input minLength={8} maxLength={20} htmlFor={'confirmarSenha'} label={'Confirme sua senha'} tipoInp={'password'}
+                                       placeholder={'Digite a senha digitada anteriormente'} classe={'metade'} value={confirmarSenha} funcao={(f) => setConfirmarSenha(f.target.value)}/>
+                            </div>
 
                             <Input label="Tipo de ONG" tipoInp="select"
                                    value={tipoOng}
@@ -170,21 +176,29 @@ export default function EditarOng({ api }) {
 
                             <Input label="Conta" tipoInp="text" value={contaOng} funcao={(e)=>setContaOng(e.target.value)} />
 
-                            <div className="w-100 d-flex flex-column align-items-center mb-4">
-                                <label className="fw-bold mb-2">Logo da ONG</label>
+                            <div className="w-100 flex-column d-flex justify-content-center align-items-center mb-4">
+                                <label className="mb-3 fw-bold">Logo da ONG</label>
 
-                                <input ref={inputImagemRef} type="file" onChange={colocarImagem} />
+                                <input
+                                    ref={inputImagemRef}
+                                    type="file"
+                                    onChange={colocarImagem}
+                                    className={css.botao}
+                                />
 
                                 {preview && (
                                     <>
-                                        <img className={css.preview} src={preview} />
+                                        <img
+                                            className={"mt-3 " + css.preview}
+                                            src={preview}
+                                            alt="Preview"
+                                        />
 
                                         <Buton
                                             tipo="button"
                                             texto="Remover"
-                                            background={'vermelho'}
-                                            tamanho={'pequeno'}
-                                            tipo={"submit"}
+                                            background="vermelho"
+                                            tamanho="pequeno"
                                             onClick={() => {
                                                 inputImagemRef.current.value = null;
                                                 setPreview(null);

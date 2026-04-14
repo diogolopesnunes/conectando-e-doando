@@ -26,7 +26,9 @@ export default function EditarProjeto({ api }) {
 
     useEffect(() => {
         async function buscarProjeto() {
-            let resposta = await fetch(`${api}/projetos/${id}`);
+            let resposta = await fetch(`${api}/projetos/${id}`, {
+                credentials: "include"
+            });
             resposta = await resposta.json();
 
             if (resposta) {
@@ -74,6 +76,7 @@ export default function EditarProjeto({ api }) {
 
         let resposta = await fetch(`${api}/projetos/${id}`, {
             method: "PUT",
+            credentials: "include",
             body: form
         });
 

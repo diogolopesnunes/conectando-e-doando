@@ -116,7 +116,7 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
                             <Link to="/" onClick={scrollDoacoes}>Doações</Link>
                             {/*<Link to="/" onClick={scrollOngs}>Depoimentos</Link>*/}
                             <Link to="/" onClick={scrollOngs}>ONGs</Link>
-                            <NavLink className={({ isActive}) => (isActive ? 'active' : '')} to="/cadastro">Cadastro</NavLink>
+                            <Link to="/cadastro">Cadastro</Link>
                             <Link to="/login">Login</Link>
                             <span></span>
                         </>

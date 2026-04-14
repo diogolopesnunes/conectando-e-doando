@@ -4,13 +4,14 @@ import Buton from "../../components/Buton/Buton.jsx";
 import { useState, useRef, useEffect } from "react";
 import css from "./AdicionarPost.module.css"
 import Alerts from "../../components/Alerts/Alerts.jsx";
-import { useNavigate } from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import Nav from "../../components/Nav/Nav.jsx";
 
 export default function PaginaPost({ api }) {
+    const { id_projeto } = useParams()
 
-    const [nome, setNome] = useState('');
-    const [descricao, setDescricao] = useState('');
+    const [titulo, setTitulo] = useState('');
+    const [acao, setAcao] = useState('');
     const [imagem, setImagem] = useState(null);
     const [preview, setPreview] = useState(null);
 
@@ -43,39 +44,31 @@ export default function PaginaPost({ api }) {
         e.preventDefault();
 
         const form = new FormData();
-        form.append("nome", nome);
-        form.append("descricao", descricao);
+        form.append("titulo", titulo);
+        form.append("acao", acao);
 
         if (imagem) {
             form.append("imagem", imagem);
         }
 
-        let resposta = await fetch(`${api}/post`, {
+
+        let resposta = await fetch(`${api}/postar/57/${id_projeto}`, {
             method: "POST",
+            credentials: "include",
             body: form
-        });
+        })
 
         resposta = await resposta.json();
         console.log(resposta);
 
-        if (resposta.sucesso) {
-            setMensagem("Post realizado com sucesso!");
-            setTipoMensagem("sucesso");
-
-
-            setNome('');
-            setDescricao('');
-            setImagem(null);
-            setPreview(null);
-            inputImagemRef.current.value = null;
-
-            setTimeout(() => {
-                navigate('/post');
-            }, 2000);
-
-        } else {
-            setMensagem("Erro ao publicar post");
-            setTipoMensagem("erro");
+        if (resposta.mensagem) {
+            setMensagem(resposta.mensagem.descricao);
+            setTipoMensagem(resposta.mensagem.tipo);
+            if (resposta.mensagem.tipo == 'sucesso') {
+                setTimeout(() => {
+                    navigate('/projetos_ong');
+                }, 2000);
+            }
         }
     }
 
@@ -90,7 +83,7 @@ export default function PaginaPost({ api }) {
                         {mensagem && (
                             <Alerts
                                 tipo={tipoMensagem}
-                                imagem={`./public/${tipoMensagem}.png`}
+                                imagem={`/${tipoMensagem}.png`}
                                 duracao={'10000'}
                                 descricao={mensagem}
                             />
@@ -99,21 +92,21 @@ export default function PaginaPost({ api }) {
                         <div className={'m-auto '}>
                             <Form largura="maior" titulo={"Adicionar Post"} onSubmit={publicar}>
                                 <Input
-                                    htmlFor="nome"
-                                    label="Nome do Post"
+                                    htmlFor="titulo"
+                                    label="Título do Post:"
                                     tipoInp="text"
-                                    placeholder="Digite o nome do Post"
-                                    value={nome}
-                                    funcao={(e) => setNome(e.target.value)}
+                                    placeholder="Digite o título do Post"
+                                    value={titulo}
+                                    funcao={(e) => setTitulo(e.target.value)}
                                 />
 
                                 <Input
-                                    htmlFor="descricao"
-                                    label="Descrição"
+                                    htmlFor="acao"
+                                    label="Ação:"
                                     tipoInp="textarea"
                                     placeholder="Descreva a publicação"
-                                    value={descricao}
-                                    funcao={(e) => setDescricao(e.target.value)}
+                                    value={acao}
+                                    funcao={(e) => setAcao(e.target.value)}
                                 />
 
 
@@ -136,10 +129,10 @@ export default function PaginaPost({ api }) {
                                             />
 
                                             <Buton
-                                                tipo="button"
+                                                // tipo="button"
                                                 texto="Remover"
                                                 background={'vermelho'}
-                                                tamanho={'pequeno'}
+                                                tamanho={'pequeno   '}
                                                 tipo={"submit"}
                                                 onClick={() => {
                                                     inputImagemRef.current.value = null;

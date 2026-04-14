@@ -54,6 +54,7 @@ export default function PaginaProjeto({ api }) {
 
         let resposta = await fetch(`${api}/projetos`, {
             method: "POST",
+            credentials: "include",
             body: form
         });
 
@@ -93,7 +94,7 @@ export default function PaginaProjeto({ api }) {
                         {mensagem && (
                             <Alerts
                                 tipo={tipoMensagem}
-                                imagem={`./public/${tipoMensagem}.png`}
+                                imagem={`/${tipoMensagem}.png`}
                                 duracao={'10000'}
                                 descricao={mensagem}
                             />

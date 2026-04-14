@@ -15,14 +15,6 @@
     }
 }
 
-@media (max-width: 426px){
-    .botao {
-        width: 90%;
-        height: 35px;
-    }
-}
-
-
 .botao::file-selector-button {
     font-family: 'Inter', sans-serif;
     background-color: #BD0D59;

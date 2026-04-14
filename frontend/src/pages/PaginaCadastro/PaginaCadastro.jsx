@@ -179,7 +179,7 @@ export default function PaginaCadastro({api}) {
                                                  src={preview}
                                                  alt="Preview"
                                             />
-                                            <Buton tipo={"button"} onClick={() => { inputImagemRef.current.value = null;setPreview(null); setImagem(null)}} texto={"Remover"} />
+                                            <Buton tipo={"button"} onClick={() => { inputImagemRef.current.value = null;setPreview(null); setImagem(null)}} background={'vermelho'} tamanho={'pequeno'} texto={"Remover"} />
                                         </>
                                     )}
                                 </div>
@@ -201,7 +201,6 @@ export default function PaginaCadastro({api}) {
                                 <Input htmlFor={'agencia'} label={'Agencia:'} tipoInp={'text'} placeholder={'Informe a agencia bancária'} value={agenciaOng} funcao={(f) => setAgenciaOng(f.target.value)}/>
                                 <Input htmlFor={'conta'} label={'Conta:'} tipoInp={'text'} placeholder={'Informe a conta bancária'} value={contaOng} funcao={(f) => setContaOng(f.target.value)}/>
 
-
                                 <div className={"w-100 flex-column d-flex justify-content-center align-items-center mb-5"}>
                                     <label className={"mb-3 fw-bold"}>Ícone da ONG</label>
                                     <input ref={inputImagemRef} type="file" onChange={colocarImagem} className={' ' + css.botao}/>
@@ -211,7 +210,7 @@ export default function PaginaCadastro({api}) {
                                                  src={preview}
                                                  alt="Preview"
                                             />
-                                            <Buton tipo={"button"} onClick={() => {inputImagemRef.current.value = null; setPreview(null); setImagem(null);}} texto={"Remover"} />
+                                            <Buton tipo={"button"} onClick={() => {inputImagemRef.current.value = null; setPreview(null); setImagem(null);}} background={'vermelho'} tamanho={'pequeno'} texto={"Remover"} />
                                         </>
                                     )}
                                 </div>
@@ -225,7 +224,7 @@ export default function PaginaCadastro({api}) {
                                                  src={previewBanner}
                                                  alt="Preview"
                                             />
-                                            <Buton tipo={"button"} onClick={() => {inputBannerRef.current.value = null; setPreviewBanner(null); setImagemBanner(null);}} texto={"Remover"} />
+                                            <Buton tipo={"button"} onClick={() => {inputBannerRef.current.value = null; setPreviewBanner(null); setImagemBanner(null);}} background={'vermelho'} tamanho={'pequeno'} texto={"Remover"} />
                                         </>
                                     )}
                                 </div>
