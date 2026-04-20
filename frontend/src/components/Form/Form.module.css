@@ -1,0 +1,29 @@
+.borda{
+    border: 1px solid var(--cor-borda);
+}
+
+.menor {
+    max-width: 35%;
+}
+
+.maior {
+    max-width: 52%;
+}
+
+
+
+@media (max-width: 426px) {
+    .menor{
+        max-width: 90%;
+    }
+
+    .maior {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 769px){
+    .menor {
+        max-width: 90%;
+    }
+}

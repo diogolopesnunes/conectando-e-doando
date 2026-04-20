@@ -1,0 +1,13 @@
+.maior {
+    width: 835px;
+    height: 535px;
+}
+
+.menor {
+    width: 465;
+    height: 535px;
+}
+
+.imagem_crianca {
+    background-image: url('./public/background_crianca.png');
+}

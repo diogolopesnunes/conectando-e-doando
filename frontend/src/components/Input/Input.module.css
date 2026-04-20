@@ -1,0 +1,19 @@
+.metade{
+    width: 45%;
+}
+.input {
+    border: 1px solid var(--cor-borda);
+}
+textarea{
+    height: 100px;
+}
+
+input:disabled{
+    background-color: lightgray;
+}
+
+@media(max-width:993px){
+    .metade{
+        width: 100%;
+    }
+}
