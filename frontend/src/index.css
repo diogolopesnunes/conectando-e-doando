@@ -10,6 +10,8 @@
     --branco: #fff;
     --titulo: Inter;
     --cor-borda: #D9534F;
+    --titulo-card: 16px;
+    --cinza: rgb(234, 234, 234);
 }
 
 * {

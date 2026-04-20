@@ -14,7 +14,7 @@ export default function AreaRestrita() {
     const [mensagem, setMensagem] = useState('');
     const navegate = useNavigate();
 
-
+    // né melhor fazer isso como uma função e depois só usar ela? as outras paginas da dashboard tbm vão usar
     useEffect(() => {
         if (!localStorage.getItem("email") || !localStorage.getItem("email") || !localStorage.getItem("id_usuario")) {
             navegate('/login')
