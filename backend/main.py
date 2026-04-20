@@ -5,7 +5,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
 
-CORS(app, supports_credentials=True, origins=["http://10.152.60.6:5173","http://10.230.135.6:5173", "http://10.92.3.170:5173", "http://localhost:5173"])
+CORS(app, supports_credentials=True, origins=["http://10.152.60.6:5173","http://10.230.135.6:5173", "http://10.92.3.170:5173", "http://localhost:5173", "http://192.168.0.147:5173"])
 
 host = app.config['DB_HOST']
 data_base = app.config['DB_NAME']
@@ -21,4 +21,4 @@ except Exception as e:
 from view import *
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)

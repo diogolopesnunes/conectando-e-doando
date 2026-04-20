@@ -18,45 +18,45 @@ quantidadePorPagina = 15
 # é preciso rodar o projeto com o link com IP não o localhost
 # Se rodar com o localhost NÃO FUNCIONA, o back não pega o token de maneira nenhuma
 
-#     print("Cookies recebidos:", dict(request.cookies))
-#     token = request.cookies.get("access_token")
-#     print("Token:", token)
-#
-#     if not token:
-#         return jsonify({'mensagem': {
-#             'tipo': 'erro',
-#             'descricao': 'Token de autenticação necessário'
-#         }}), 401
-#     cur = con.cursor()
-#
-#     try:
-#         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
-#         id_token = dados['id_usuario']
-#         if id_usuario != id_token:
-#             return jsonify({'mensagem': {
-#                 'tipo': 'erro',
-#                 'descricao': 'Você não tem permissão'
-#             }}), 403
-#
-#         cur.execute(
-#             'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
-#             (id_token,)
-#         )
-#
-#         usuario = cur.fetchone()
-#         if not usuario:
-#             return jsonify({'mensagem': {
-#                 'tipo': 'erro',
-#                 'descricao': 'Usuário não encontrado'
-#             }}), 404
-#         tipo_usuario = usuario[0]
-#
-#         #  1 = ONG (ajuste se necessário)
-#         if tipo_usuario != 1:
-#             return jsonify({'mensagem': {
-#                 'tipo': 'erro',
-#                 'descricao': 'Apenas por ONGs podem acessar esta página'
-#             }}), 403
+    # print("Cookies recebidos:", dict(request.cookies))
+    # token = request.cookies.get("access_token")
+    # print("Token:", token)
+    #
+    # if not token:
+    #     return jsonify({'mensagem': {
+    #         'tipo': 'erro',
+    #         'descricao': 'Token de autenticação necessário'
+    #     }}), 401
+    # cur = con.cursor()
+    #
+    # try:
+    #     dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+    #     id_token = dados['id_usuario']
+    #     if id_usuario != id_token:
+    #         return jsonify({'mensagem': {
+    #             'tipo': 'erro',
+    #             'descricao': 'Você não tem permissão'
+    #         }}), 403
+    #
+    #     cur.execute(
+    #         'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
+    #         (id_token,)
+    #     )
+    #
+    #     usuario = cur.fetchone()
+    #     if not usuario:
+    #         return jsonify({'mensagem': {
+    #             'tipo': 'erro',
+    #             'descricao': 'Usuário não encontrado'
+    #         }}), 404
+    #     tipo_usuario = usuario[0]
+    #
+    #     #  1 = ONG (ajuste se necessário)
+    #     if tipo_usuario != 1:
+    #         return jsonify({'mensagem': {
+    #             'tipo': 'erro',
+    #             'descricao': 'Apenas por ONGs podem acessar esta página'
+    #         }}), 403
 
 
 
@@ -189,6 +189,7 @@ def cadastro():
 
 @app.route('/listar_usuarios', methods=['GET'])
 def listar_usuarios():
+    print("Cookies recebidos:", dict(request.cookies))
     token = request.cookies.get('access_token')
     if not token:
         return jsonify({'mensagem': 'Token de autenticação necessário'}), 401
@@ -336,7 +337,7 @@ def login():
                     secure=False, #Mexer se for localHost para =
                     samesite="Lax", #Mexer se for localHost para =
                     path="/",
-                    max_age=600
+                    max_age=60000
                 )
 
                 cur.execute('UPDATE USUARIO SET TENTATIVAS = 0 WHERE EMAIL = ?', (email,))
