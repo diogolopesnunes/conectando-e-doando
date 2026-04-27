@@ -1,6 +1,7 @@
 .nav_container {
     display: flex;
     gap: 10px;
+    margin-bottom: 15px !important;
 }
 
 .nav_btn {

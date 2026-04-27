@@ -40,7 +40,7 @@ export default function Nav() {
             {tipoUsuario == 1 && (
                 <>
                     <NavLink
-                        to="/previa"
+                        to={"/previa_ong"}
                         className={cssAtivado}>
                         Prévia
                     </NavLink>
@@ -69,7 +69,7 @@ export default function Nav() {
             {tipoUsuario == 2 && (
                 <>
                     <NavLink
-                        to="/previa"
+                        to="/dashboard_adm_ong"
                         className={cssAtivado}>
                         ONGs
                     </NavLink>

@@ -1,25 +1,33 @@
-.dashboard-container {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-.main-content {
-    flex: 1;
-    padding: 20px;
-    background-color: #f9f9f9;
-}
-
-.ong-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 30px;
-    justify-items: center;
-    margin-top: 30px;
-}
-
-p {
+.cardBonito {
+    background-color: var(--cinza);
+    align-content: center;
     text-align: center;
-    color: #888;
-    font-size: 16px;
+    padding: 20px !important;
+    border-radius: 20px;
+    max-heigth: 250px;
+    max-width: 90%;
+    gap: 20px;
+    text-align: center;
+    align-items: center;
+}
+
+.nome {
+    color: var(--preto);
+    font-size: var(--titulo-card);
+}
+
+.nome p{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 98%;
+    text-align: left;
+}
+
+.item_impar {
+    color: var(--preto);
+}
+
+.item_par {
+    color: var(--preto);
 }

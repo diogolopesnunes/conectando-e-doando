@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import css from './Alerts.module.css';
 
-export default function Alerts({ titulo, descricao, imagem, tipo, duracao}) {
+export default function Alerts({ titulo, descricao, imagem, tipo, duracao }) {
     const [visivel, setVisivel] = useState(true);
 
-
     useEffect(() => {
-        const timer = setTimeout(() => setVisivel(false), duracao);
+        const timer = setTimeout(() => {
+            setVisivel(false);
+        }, duracao);
+
         return () => clearTimeout(timer);
     }, [duracao]);
 
@@ -23,7 +25,8 @@ export default function Alerts({ titulo, descricao, imagem, tipo, duracao}) {
 
             <button
                 className={`${css.fechar} ${css[`fechar_${tipo}`]}`}
-                onClick={() => setVisivel(false)}>
+                onClick={() => setVisivel(false)}
+            >
                 ✕
             </button>
         </div>

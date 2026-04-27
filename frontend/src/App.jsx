@@ -16,11 +16,12 @@ import AdicionarPost from "./pages/AdicionarPost/AdicionarPost.jsx";
 import EdicaoProjetos from "./pages/EdicaoProjetos/EdicaoProjetos.jsx";
 import EdicaoONGS from "./pages/EdicaoONGs/EdicaoONGs.jsx";
 import PaginaProjeto from "./pages/Ong/PaginaProjeto/PaginaProjeto.jsx";
-import Previa from "./pages/Previa/PaginaPrevia.jsx";
+import DashboardAdmOng from "./pages/DashboardAdmOng/DashboardAdmOng.jsx"
+
 
 export default function App() {
 
-    const api = 'http://26.249.137.151:5000'
+    const api = 'http://10.92.3.126:5000'
 
     const quemSomos = useRef(null);
     const doacoes = useRef(null);
@@ -71,7 +72,8 @@ export default function App() {
                 <Route path={"/edicao_projetos/:id_projeto"} element={<EdicaoProjetos api={api}/>} />
                 <Route path={"/edicao_ongs"} element={<EdicaoONGS api={api}/>} />
                 <Route path={'/projeto/:id_projeto'} element={<PaginaProjeto api={api}/>} />
-                <Route path={'/previa'} element={<Previa />} />
+                <Route path={'/dashboard_adm_ong'} element={<DashboardAdmOng api={api}/>} />
+
 
                 <Route path="*" element={<Erro/>} />
             </Routes>

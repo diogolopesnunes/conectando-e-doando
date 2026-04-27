@@ -5,6 +5,7 @@ import {Link, useNavigate} from "react-router-dom";
 import Input from "../../../components/Input/Input.jsx";
 import Buton from "../../../components/Buton/Buton.jsx";
 import Titulo from "../../../components/Titulo/Titulo.jsx";
+import css from "./Projetos.module.css"
 
 export default function Projetos({ api }) {
     const [projetos, setProjetos] = useState([])
@@ -65,7 +66,10 @@ export default function Projetos({ api }) {
                 </div>
                 <div className={'col-12'}>
                     {projetos.map((projeto) =>(
-                        <CardProjeto NomeProjeto={projeto.nome} id={projeto.id_projeto} title={projeto.descricao}/>
+                        <Link to={`/projeto/${projeto.id_projeto}`} className={css.texto}>
+                            <CardProjeto NomeProjeto={projeto.nome} id={projeto.id_projeto} title={projeto.descricao}/>
+                        </Link>
+
                     ))}
                 </div>
                 {quantidade >= 1 ?(

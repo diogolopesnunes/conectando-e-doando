@@ -33,6 +33,7 @@ export default function EditarOng({ api }) {
 
     const [idUsuario, setIdUsuario] = useState(localStorage.getItem("id_usuario"));
 
+    const navegate = useNavigate();
 
     useEffect(() => {
         if (!localStorage.getItem("email") || !localStorage.getItem("email") || !localStorage.getItem("id_usuario")) {
@@ -119,6 +120,11 @@ export default function EditarOng({ api }) {
         if (res.mensagem){
             setMensagem(res.mensagem.descricao);
             setTipoMensagem(res.mensagem.tipo);
+            if (res.mensagem.tipo == 'sucesso'){
+                setTimeout(function () {
+                    navegate('/projetos_ong')
+                }, 1500)
+            }
         }
     }
 

@@ -10,6 +10,8 @@ import Nav from "../../components/Nav/Nav.jsx";
 export default function EditarProjeto({ api }) {
 
     const { id_projeto } = useParams();
+    console.log(id_projeto);
+    console.log(api);
 
     const [nome, setNome] = useState('');
     const [descricao, setDescricao] = useState('');
@@ -45,7 +47,7 @@ export default function EditarProjeto({ api }) {
             if (resposta.projeto) {
                 setNome(resposta.projeto.nome);
                 setDescricao(resposta.projeto.descricao);
-                setMeta(resposta.projeto.meta);
+                setMeta(resposta.projeto.meta_doacao);
                 setPreview(resposta.projeto.imagem);
             }
         }
@@ -79,13 +81,13 @@ export default function EditarProjeto({ api }) {
         const form = new FormData();
         form.append("nome", nome);
         form.append("descricao", descricao);
-        form.append("meta", meta);
+        form.append("meta_doacao", meta);
 
         if (imagem) {
             form.append("imagem", imagem);
         }
 
-        let resposta = await fetch(`${api}/projetos/${id}`, {
+        let resposta = await fetch(`${api}/editar_projeto/${idUsuario}/${id_projeto}`, {
             method: "PUT",
             credentials: "include",
             body: form
@@ -93,12 +95,12 @@ export default function EditarProjeto({ api }) {
 
         resposta = await resposta.json();
 
-        if (resposta.sucesso) {
+        if (resposta.mensagem?.tipo === "sucesso") {
             setMensagem("Projeto atualizado com sucesso!");
             setTipoMensagem("sucesso");
 
             setTimeout(() => {
-                navigate('/projetos');
+                navigate('/projetos_ong');
             }, 2000);
 
         } else {

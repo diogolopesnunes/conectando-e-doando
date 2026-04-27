@@ -1,32 +1,34 @@
 import Input from "../../components/Input/Input.jsx";
 import Titulo from "../../components/Titulo/Titulo.jsx";
 import Buton from "../../components/Buton/Buton.jsx";
-import {Link, useNavigate} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import css from "./PaginaLogin.module.css";
 import Form from "../../components/Form/Form.jsx";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import Alerts from "../../components/Alerts/Alerts.jsx";
 
-export default function Login({setLogado, api }){
-    const [email, setEmail] = useState('')
-    const [senha, setSenha] = useState('')
-    const [mensagem, setMensagem] = useState('')
-    const [tipoMensagem, setTipoMensagem] = useState('')
+export default function Login({ setLogado, api }) {
+    const [email, setEmail] = useState('');
+    const [senha, setSenha] = useState('');
+
+    // 👇 agora mensagem é um OBJETO
+    const [mensagem, setMensagem] = useState(null);
 
     const navegate = useNavigate();
 
-    useEffect(()=>{
+    useEffect(() => {
         if (mensagem) {
             const timer = setTimeout(() => {
-                setMensagem('');
+                setMensagem(null);
             }, 10000);
 
             return () => clearTimeout(timer);
         }
-    },[mensagem])
+    }, [mensagem]);
 
     async function login(e) {
         e.preventDefault();
+
         let retorno = await fetch(`${api}/login`, {
             method: "POST",
             headers: {
@@ -36,58 +38,102 @@ export default function Login({setLogado, api }){
             body: JSON.stringify({
                 email, senha
             })
-        })
-        retorno = await retorno.json()
-        console.log(retorno)
-        if(!retorno){
+        });
+
+        retorno = await retorno.json();
+        console.log(retorno);
+
+        if (!retorno) {
             console.log("Erro do servidor:", retorno);
             return;
         }
-        if (retorno.mensagem){
-            setMensagem(retorno.mensagem.descricao)
-            setTipoMensagem(retorno.mensagem.tipo)
-            setLogado(true)
-            if (retorno.mensagem.descricao == 'Sua conta está inativa'){
-                localStorage.setItem("email", email)
-                navegate('/validar')
+
+        if (retorno.mensagem) {
+            // 👇 gera ID aqui (correto)
+            setMensagem({
+                id: Date.now(),
+                texto: retorno.mensagem.descricao,
+                tipo: retorno.mensagem.tipo
+            });
+
+            setLogado(true);
+
+            if (retorno.mensagem.descricao === 'Sua conta está inativa') {
+                localStorage.setItem("email", email);
+                navegate('/validar');
             }
         }
-        if(retorno.usuario) {
+
+        if (retorno.usuario) {
             localStorage.setItem('nome', retorno.usuario.nome);
             localStorage.setItem('email', retorno.usuario.email);
             localStorage.setItem('id_usuario', retorno.usuario.id_usuario);
             localStorage.setItem('tipo_usuario', retorno.usuario.tipoUsuario);
-            setTimeout(function () {
-                navegate('/dashboard')
-            }, 1500)
+
+            setTimeout(() => {
+                navegate('/dashboard');
+            }, 1500);
         }
     }
-    return(
+
+    return (
         <div className="container m-auto formataAltura">
             <div className={'row'}>
                 <div className="col align-self-center">
 
-                    {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={"10000"} descricao={mensagem} />}
+                    {/* 👇 ALERTA CORRIGIDO */}
+                    {mensagem && (
+                        <Alerts
+                            key={mensagem.id}
+                            tipo={mensagem.tipo}
+                            imagem={`./public/${mensagem.tipo}.png`}
+                            duracao={10000}
+                            descricao={mensagem.texto}
+                        />
+                    )}
+
                     <Form largura="maior" onSubmit={login} titulo={'Login'}>
 
-                        <Input tipoInp={"email"} label={"Email:"} htmlFor={"email"} placeholder={"Digite seu email"} value={email} funcao={(e) => setEmail(e.target.value)}/>
+                        <Input
+                            tipoInp={"email"}
+                            label={"Email:"}
+                            htmlFor={"email"}
+                            placeholder={"Digite seu email"}
+                            value={email}
+                            funcao={(e) => setEmail(e.target.value)}
+                        />
 
-                        <Input tipoInp={"password"} label={"Senha:"} htmlFor={"senha"} placeholder={"Digite sua senha"} value={senha} funcao={(e) => setSenha(e.target.value)}/>
+                        <Input
+                            tipoInp={"password"}
+                            label={"Senha:"}
+                            htmlFor={"senha"}
+                            placeholder={"Digite sua senha"}
+                            value={senha}
+                            funcao={(e) => setSenha(e.target.value)}
+                        />
 
                         <div className="my-3">
-                            <Buton texto={"Login"} tamanho={"medio"} background={"laranja"} tipo={'submit'}/>
+                            <Buton texto={"Login"} tamanho={"medio"} background={"laranja"} tipo={'submit'} />
                         </div>
+
                         <div className={'row'}>
                             <div className="col-sm col-12 mb-sm-0 mb-2 text-center d-flex align-items-center justify-content-center">
-                                <Link to={"/cadastro"} className={"text-decoration-none "+ css.frase}>Não tem uma conta?<span className={"d-block " + css.fraseLaranja}>Cadastre-se!</span></Link>
+                                <Link to={"/cadastro"} className={"text-decoration-none " + css.frase}>
+                                    Não tem uma conta?
+                                    <span className={"d-block " + css.fraseLaranja}>Cadastre-se!</span>
+                                </Link>
                             </div>
+
                             <div className="col-sm col-12 text-center d-flex align-items-center justify-content-center">
-                                <Link to={"/esqueciminhasenha"} className={"text-decoration-none "+ css.frase}>Esqueci minha senha!</Link>
+                                <Link to={"/esqueciminhasenha"} className={"text-decoration-none " + css.frase}>
+                                    Esqueci minha senha!
+                                </Link>
                             </div>
                         </div>
+
                     </Form>
                 </div>
             </div>
         </div>
-    )
+    );
 }
