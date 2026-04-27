@@ -949,6 +949,14 @@ def listar_ong_adm():
     try:
         cur = con.cursor()
 
+        cur.execute("""select count(id_usuario) from usuario""")
+        quantidade = cur.fetchone()[0]
+        pagina = 1
+        numeroPaginas = math.ceil(quantidade / quantidadePorPagina)
+
+        minimo = ((pagina - 1) * quantidadePorPagina) + 1
+        maximo = pagina * quantidadePorPagina
+
         cur.execute("""select id_usuario, nome, descricao_causa, situacao, cpf_cnpj, telefone, data_hora_registro from usuario where tipo_de_usuario = 1""")
         ongs = cur.fetchall()
         ongs_lista = []
@@ -2053,14 +2061,18 @@ def permitir_recusar_ong(id_usuario, id_ong):
 
         email, status_atual = ong
 
-        if status_atual != 0:
+        print(email)
+
+        print(status_atual)
+
+        if status_atual != 4:
             return jsonify({'mensagem': {
                 'tipo': 'erro',
                 'mesagem': 'ONG já foi analisada'
             }}), 400
 
         if acao == 1 :
-            cur.execute('UPDATE ong SET status = 1 WHERE id = ?', (id_ong,))
+            cur.execute('UPDATE usuario SET situacao = 1 WHERE id = ?', (id_ong,))
             con.commit()
 
             return jsonify({'mensagem': {
@@ -2075,7 +2087,7 @@ def permitir_recusar_ong(id_usuario, id_ong):
                     'descricao': 'Motivo é obrigatório'
                 }}), 400
 
-            cur.execute('UPDATE usuario SET atividade = 5 WHERE id_usuario = ?', (id_ong,))
+            cur.execute('UPDATE usuario SET situacao = 5 WHERE id_usuario = ?', (id_ong,))
             con.commit()
 
             enviando_email(email, assunto, mensagem)
