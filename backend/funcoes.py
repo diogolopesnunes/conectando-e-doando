@@ -160,3 +160,6 @@ def valida_nova_senha(senha, id_usuario, cur):
         return (mensagem, senha_criptografada)
     else:
         return (None, senha_criptografada)
+
+
+

@@ -897,7 +897,7 @@ def listar_ong_adm():
     try:
         cur = con.cursor()
 
-        cur.execute("""select id_usuario, nome, descricao_causa, situacao from usuario where tipo_de_usuario = 1""")
+        cur.execute("""select id_usuario, nome, descricao_causa, situacao, cpf_cnpj, telefone, data_hora_registro from usuario where tipo_de_usuario = 1""")
         ongs = cur.fetchall()
         ongs_lista = []
 
@@ -907,6 +907,9 @@ def listar_ong_adm():
                 'nome': ong[1],
                 'descricao_causa': ong[2],
                 'situacao': ong[3],
+                'cpf_cpnj': ong[4],
+                'telefone': ong[5],
+                'data_hora_registro': ong[6].strftime("%d/%m/%Y %H:%M")
             })
 
         return jsonify(mensagem='Lista de Ongs', ongs=ongs_lista)
@@ -1331,7 +1334,7 @@ def editar_projeto(id_projeto, id_usuario):
                         UPDATE PROJETO_ONG
                         SET NOME        =?,
                             DESCRICAO   = ?,
-                            META_DOACAO = ?,
+                            META_DOACAO = ?
                         WHERE ID_PROJETO = ?
                           AND FK_USUARIO_ONG = ?
 
@@ -1490,6 +1493,103 @@ def editar_post(id_projeto, id_usuario, id_post):
         if cur:
             cur.close()
 
+
+
+
+@app.route("/ativar_desativar_projeto/<int:id_usuario>/<int:id_projeto>", methods=["PUT"])
+def ativar_desativar_projeto(id_usuario, id_projeto):
+    token = request.cookies.get('access_token')
+    if not token:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token de autenticação necessário'
+        }}), 401
+    cur = con.cursor()
+
+
+    try:
+        dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+        id_token = dados['id_usuario']
+        if id_usuario != id_token:
+            cur.execute("""select tipo_de_usuario from usuario where id_usuario = ?""", (id_token,))
+            tipo = cur.fetchone()
+            if tipo == 2 or tipo == 1:
+                pass
+            else:
+                return jsonify({'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Você não tem permissão'
+                }}), 403
+
+        cur.execute(
+            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',(id_token,)
+        )
+        usuario = cur.fetchone()
+        if not usuario:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Usuário não encontrado'
+            }}), 404
+        tipo_usuario = usuario[0]
+
+
+        # 2 = admin | 1 = ONG
+        if tipo_usuario not in [1, 2]:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Apenas administradores e ONGs podem acessar esta página'
+            }}), 403
+    except jwt.ExpiredSignatureError:
+        return jsonify({'mensagem': {
+        'tipo': 'erro',
+        'descricao': f'É necessário um token válido para ativar/desativar um post'
+    }}), 200
+
+    try:
+        print(tipo_usuario)
+        if tipo_usuario == 1:
+            cur.execute('select 1 from projeto_ong where id_projeto = ? and fk_usuario_ong = ?', (id_projeto, id_usuario))
+            projeto_ong = cur.fetchone()
+            if not projeto_ong:
+                return jsonify({'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Projeto não encontrado'
+                }})
+            cur.execute('select atividade from projeto_ong where id_projeto = ? and fk_usuario_ong = ?', (id_projeto, id_usuario))
+            atividade = cur.fetchone()[0]
+        if tipo_usuario == 2:
+            cur.execute('select 1 from projeto_ong where id_projeto = ?',
+                        (id_projeto,))
+            projeto_ong = cur.fetchone()
+
+            if not projeto_ong :
+                return jsonify({'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Projeto não encontrado'
+                }})
+            cur.execute('select atividade from projeto_ong where id_projeto = ?', (id_projeto,))
+            atividade = cur.fetchone()[0]
+
+
+        nova_atividade = 0 if atividade == 1 else 1
+        print(atividade)
+        cur.execute('update projeto_ong set atividade = ? where ID_PROJETO = ?', (nova_atividade, id_projeto))
+        con.commit()
+        status = 'ativado' if nova_atividade == 1 else 'desativado'
+        return jsonify({'mensagem': {
+            'tipo': 'sucesso',
+            'descricao': f'Projetor {status} com sucesso'
+        }})
+
+    except Exception as e:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': f'Erro ao ativar/desativar projeto: {e}'
+        }}), 500
+    finally:
+        cur.close()
+
+
 @app.route('/listar_posts/<int:id_projeto>/<int:pagina>', methods=["GET"])
 def listar_posts(id_projeto, pagina):
     token = request.cookies.get('access_token')
@@ -1573,9 +1673,9 @@ def excluir_post(id_usuario, id_projeto, id_post):
             'descricao': 'Token de autenticação necessário'
         }}), 401
     cur = con.cursor()
+    dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+    id_token = dados['id_usuario']
     try:
-        dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
-        id_token = dados['id_usuario']
         if id_usuario != id_token:
             return jsonify({'mensagem': {
                 'tipo': 'erro',
@@ -1608,7 +1708,7 @@ def excluir_post(id_usuario, id_projeto, id_post):
         'descricao': 'Post excluído com sucesso'
     }}), 200
     try:
-        cur.execute('select 1 from projeto_ong where id_projeto = ? and fk_usuario_ong = ?', (id_projeto, id_usuario))
+        cur.execute('select 1 from projeto_ong where id_projeto = ?', (id_projeto,))
         projeto_ong = cur.fetchone()
         if not projeto_ong:
             return jsonify({'mensagem': {
@@ -1618,24 +1718,40 @@ def excluir_post(id_usuario, id_projeto, id_post):
 
         cur.execute('select atividade from post_projeto where ID_POST_PROJETO = ? and fk_projeto = ?', (id_post, id_projeto))
         post_projeto = cur.fetchone()
+        cur.execute('select 1 from projeto_ong where fk_usuario_ong = ? and id_projeto = ?', (id_usuario, id_projeto))
+        id_projeto_verificado = cur.fetchone()
         print(post_projeto)
         if not post_projeto:
             return jsonify({'mensagem': {
                 'tipo': 'erro',
                 'descricao': 'Post não encontrado'
             }})
-        elif post_projeto[0] == 1:
+        elif post_projeto == 1:
             return jsonify({'mensagem': {
                 'tipo': 'erro',
                 'descricao': 'Não é possível excluir um post de atividade'
             }})
-
-        cur.execute('delete from post_projeto where ID_POST_PROJETO = ? and fk_projeto = ?', (id_post, id_projeto))
-        con.commit()
-        return jsonify({'mensagem': {
-            'tipo': 'sucesso',
-            'descricao': 'Post excluído com sucesso'
-        }})
+        if tipo_usuario == 2:
+            cur.execute('delete from post_projeto where ID_POST_PROJETO = ? and fk_projeto = ?', (id_post, id_projeto))
+            con.commit()
+            return jsonify({'mensagem': {
+                'tipo': 'sucesso',
+                'descricao': 'Post excluído com sucesso'
+            }})
+        elif id_projeto_verificado:
+            if tipo_usuario == 1 and id_usuario == id_token :
+                cur.execute('delete from post_projeto where ID_POST_PROJETO = ? and fk_projeto = (select id_projeto from projeto_ong where fk_usuario_ong = ? and id_projeto = ?)',
+                    (id_post,id_usuario, id_projeto))
+                con.commit()
+                return jsonify({'mensagem': {
+                    'tipo': 'sucesso',
+                    'descricao': 'Post excluído com sucesso'
+                }})
+        else:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Você não pode excluir esse post, pois é de propriedade de outra pessoa.'
+            }})
     except Exception as e:
         return jsonify({'mensagem': {
             'tipo': 'erro',
@@ -1704,8 +1820,8 @@ def ativar_desativar_post(id_usuario, id_projeto, id_post):
                 'descricao': 'Post não encontrado'
             }})
 
-        nova_atividade = 0 if post_projeto[0] == 1 else 1
 
+        nova_atividade = 0 if post_projeto[0] == 1 else 1
         cur.execute('update post_projeto set atividade = ? where ID_POST_PROJETO = ? and fk_projeto = ?', (nova_atividade, id_post, id_projeto))
         con.commit()
         status = 'ativado' if nova_atividade == 1 else 'desativado'
@@ -1720,3 +1836,6 @@ def ativar_desativar_post(id_usuario, id_projeto, id_post):
         }}), 500
     finally:
         cur.close()
+
+
+
