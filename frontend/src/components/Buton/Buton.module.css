@@ -80,6 +80,11 @@
     background-color: var(--preto);
 }
 
+.verde{
+    background-color: green;
+    color: var(--branco);
+}
+
 .inlineBlock {
     display: inline-block;
 }

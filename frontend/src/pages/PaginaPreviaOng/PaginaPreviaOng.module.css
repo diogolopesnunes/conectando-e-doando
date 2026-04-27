@@ -1,0 +1,46 @@
+.containerPrincipal {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.envoltorioConteudo {
+    width: 100%;
+    max-width: 1000px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.acoesCabecalho {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 10px;
+}
+
+
+.secaoProjetos {
+    background: #c23b6e;
+    padding: 30px;
+    border-radius: 10px;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .containerPrincipal {
+        padding: 10px;
+    }
+
+    .envoltorioConteudo {
+        gap: 15px;
+    }
+
+    .acoesCabecalho {
+        margin-bottom: 5px;
+    }
+}

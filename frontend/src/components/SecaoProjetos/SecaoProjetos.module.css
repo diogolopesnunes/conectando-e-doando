@@ -1,0 +1,31 @@
+.container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.container h2 {
+    text-align: center;
+}
+
+.card {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.imagem {
+    width: 180px;
+    border-radius: 8px;
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.descricao {
+    font-size: 14px;
+}

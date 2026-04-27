@@ -4,6 +4,7 @@ import Card from "../../components/Card/Card.jsx";
 import Titulo from "../../components/Titulo/Titulo.jsx";
 import OngCausa from "../../components/Componentes Home/OngCausa/OngCausa.jsx";
 import css from "./Home.module.css"
+import {Link} from "react-router-dom";
 
 export default function Home({quemSomos, ongs, doacoes}) {
 

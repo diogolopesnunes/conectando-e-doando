@@ -4,6 +4,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import css from "./PaginaProjeto.module.css";
 
+import InfoOng from "../../../components/InfoOng/InfoOng.jsx";
+import BarraDoacoes from "../../../components/BarraDoacoes/BarraDoacoes.jsx";
+import SecaoAtualizacoes from "../../../components/SecaoAtualizacoes/SecaoAtualizacoes.jsx";
+
 export default function PaginaProjeto({ api }) {
     const { id_projeto } = useParams();
     const navigate = useNavigate();
@@ -50,15 +54,11 @@ export default function PaginaProjeto({ api }) {
         ]
     };
 
-
-    const formatarMoeda = (valor) => {
-        return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    };
-
     return (
         <div className={"m-auto " + css.containerPrincipal}>
-            <Nav />
-            <div className={css.envolverConteudo}>
+            <Nav/>
+
+            <div className={css.envoltórioConteudo}>
                 <div className={css.acoesCabecalho}>
                     <Buton
                         onClick={() => navigate(-1)}
@@ -68,84 +68,14 @@ export default function PaginaProjeto({ api }) {
                     />
                 </div>
 
-                <section className={css.secaoInfoProjeto}>
-                    <div className={css.envolverImagemProjeto}>
-                        <img src={projeto.imagem} alt={projeto.nome} className={css.imagemProjeto} />
-                    </div>
-                    <div className={css.envolverDetalhesProjeto}>
-                        <h1 className={css.nomeProjeto}>{projeto.nome}</h1>
-                        <p className={css.nomeInstituicao}>{projeto.instituicao}</p>
+                <InfoOng info={projeto} />
 
-                        <div className={css.secaoChamadaAcao}>
-                            <img src="/logoSenna.png" alt="Logo Instituição" className={css.logoInstituicao}
-                                 onError={(e) => e.target.src = "https://placehold.co/35x35/png"} />
-                            <Buton background="laranja" tamanho="medio" texto="Doar para o Projeto" />
-                        </div>
-                    </div>
-                </section>
+                <BarraDoacoes projeto={projeto} />
 
-                <section className={css.secaoDescricao}>
-                    {projeto.descricao.map((paragrafo, index) => (
-                        <p key={index}>{paragrafo}</p>
-                    ))}
-                </section>
-
-                <section className={css.secaoProgresso}>
-                    <div className={css.valoresProgresso}>
-                        <div>
-                            <span className={css.rotuloArrecadado}>Valor Arrecadado: </span>
-                            <span className={css.valorArrecadado}>{formatarMoeda(projeto.valorArrecadado)}</span>
-                        </div>
-                        <div>
-                            <span className={css.rotuloMeta}>Meta de Doações: </span>
-                            <span className={css.valorMeta}>{formatarMoeda(projeto.metaDoacoes)}</span>
-                        </div>
-                    </div>
-                    <div className={css.containerBarraProgresso}>
-                        <span className={css.textoPorcentagem}>{projeto.porcentagem}%</span>
-                        <div className={css.fundoBarraProgresso}>
-                            <div
-                                className={css.preenchimentoBarraProgresso}
-                                style={{ width: `${Math.min(projeto.porcentagem, 100)}%` }}
-                            ></div>
-                        </div>
-                    </div>
-                </section>
-
-                <section className={css.secaoAtualizacoes}>
-                    <div className={css.cabecalhoAtualizacoes}>
-                        <h2 className={css.tituloAtualizacoes}>Atualizações</h2>
-                        <div className={css.envolverBotaoAdicionar}>
-                            <Buton background="laranja" tamanho="pequeno" texto="Adicionar" />
-                        </div>
-                    </div>
-
-                    {projeto.atualizacoes.map((update) => (
-                        <div key={update.id} className={css.cardAtualizacao}>
-                            <div className={css.infoCabecalhoAtualizacao}>
-                                <span>{update.hora}</span>
-                                <span>{update.data}</span>
-                            </div>
-                            <div className={css.conteudoAtualizacao}>
-                                <img src={update.imagem} alt={update.titulo} className={css.imagemAtualizacao} />
-                                <div className={css.textoAtualizacao}>
-                                    <div className={css.cabecalhoInstituicaoAtualizacao}>
-                                        <img src="/logoSenna.png" alt="Logo" className={css.logoInstituicaoAtualizacao}
-                                             onError={(e) => e.target.src = "https://placehold.co/35x35/png"} />
-                                        <span className={css.nomeInstituicaoAtualizacao}>{projeto.instituicao}</span>
-                                    </div>
-                                    <h3 className={css.tituloAtualizacao}>{update.titulo}</h3>
-                                    <p className={css.descricaoAtualizacao}>{update.descricao}</p>
-                                    <div className={css.acoesAtualizacao}>
-                                        <Buton background="rosa" tamanho="pequeno" texto="Excluir" />
-                                        <Buton background="laranja" tamanho="pequeno" texto="Editar" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </section>
+                <SecaoAtualizacoes
+                    atualizacoes={projeto.atualizacoes}
+                    instituicao={projeto.instituicao}
+                />
             </div>
         </div>
-    );
-}
+    );}

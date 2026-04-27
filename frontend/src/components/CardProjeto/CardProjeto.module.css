@@ -8,6 +8,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     margin: 0;
+    color: var(--preto);
 }
 
 @media (max-width: 426px) {

@@ -81,7 +81,6 @@ export default function Login({ setLogado, api }) {
             <div className={'row'}>
                 <div className="col align-self-center">
 
-                    {/* 👇 ALERTA CORRIGIDO */}
                     {mensagem && (
                         <Alerts
                             key={mensagem.id}

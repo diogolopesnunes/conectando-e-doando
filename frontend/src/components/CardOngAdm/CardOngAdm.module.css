@@ -1,0 +1,46 @@
+.idStyle{
+    color: var(--rosa);
+    background-color: rgba(224, 108, 158, 0.6);
+}
+
+.infos{
+    color: gray;
+    font-size: .85em;
+}
+
+.ativo{
+    color: green;
+    background-color: rgba(146, 228, 146, 0.52);
+}
+
+.bloqueado{
+    color: var(--laranja);
+    background-color: rgba(211, 156, 120, 0.6);
+}
+
+.recusado{
+    color: var(--vermelho);
+    background-color: rgba(221, 123, 118, 0.61);
+}
+
+.nomeJorge{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+@media(max-width:426px){
+    .infos p{
+        font-size: 1.1em;
+    }
+    .nome p{
+        font-size: 1.2em !important;
+    }
+    .justify p{
+        text-align: justify;
+    }
+    .nomeJorge {
+        max-width: 70%;
+    }
+}

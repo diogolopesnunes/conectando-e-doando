@@ -4,6 +4,8 @@ import Buton from "../../components/Buton/Buton.jsx";
 import {useNavigate} from "react-router-dom";
 import Nav from "../../components/Nav/Nav.jsx";
 import IMask from "imask";
+import CardOngAdm from "../../components/CardOngAdm/CardOngAdm.jsx";
+import Titulo from "../../components/Titulo/Titulo.jsx";
 
 
 
@@ -13,6 +15,11 @@ export default function DashboardAdmOng({api}) {
     const [id, setId] = useState("");
     const [ongs, setOngs] = useState([]);
     const [aprovacao, setAprovacao] = useState(1);
+    // const [pagina, setPagina] = useState(1)
+    // const [proximaPagina, setProximaPagina] = useState(2)
+    // const [paginaAnterior, setPaginaAnterior] = useState(0)
+    // const [quantidade, setQuantidade] = useState(0)
+
     const navigate = useNavigate();
 
     const ongsNaoAprovadas = ongs.filter((ong) => Number(ong.situacao) === 4 || Number(ong.situacao) === 0);
@@ -85,95 +92,88 @@ export default function DashboardAdmOng({api}) {
                 <div className={'col-12'}>
                     <Nav/>
                 </div>
+                <div className={'d-flex justify-content-center align-items-center m-auto'}>
+                    {aprovacao == 1 ? (
+                        <div>
+                            <div className={'d-none d-sm-flex gap-3'}>
+                                <Buton texto={'Ongs para aprovação'} background={'branco'} tamanho={'medio'} onClick={() => setAprovacao(0)}/>
+                                <Buton texto={'Ongs aprovadas/recusadas'} background={'rosa'} tamanho={'medio'} onClick={() => setAprovacao(1)}/>
+                            </div>
+                            <div className={'d-block d-sm-none'}>
+                                <Buton texto={'Aprovação'} background={'branco'} tamanho={'medio'} onClick={() => setAprovacao(0)}/>
+                                <Buton texto={'Recusadas'} background={'rosa'} tamanho={'medio'} onClick={() => setAprovacao(1)}/>
+                            </div>
+                        </div>
+                    ):(
+                        <div>
+                            <div className={'d-none d-sm-flex gap-3'}>
+                                <Buton texto={'Ongs para aprovação'} background={'rosa'} tamanho={'medio'} onClick={() => setAprovacao(0)}/>
+                                <Buton texto={'Ongs aprovadas/recusadas'} background={'branco'} tamanho={'medio'} onClick={() => setAprovacao(1)}/>
+                            </div>
+                            <div className={'d-block d-sm-none'}>
+                                <Buton texto={'Aprovação'} background={'rosa'} tamanho={'medio'} onClick={() => setAprovacao(0)}/>
+                                <Buton texto={'Recusadas'} background={'branco'} tamanho={'medio'} onClick={() => setAprovacao(1)}/>
+                            </div>
+                        </div>
+                    )}
+
+                </div>
                 <div className={"formataAltura m-auto col-12 " + css.containerPrevia}>
                     {aprovacao == 0 ? (
                         <div className={"row d-flex justify-content-center align-items-center gap-3"}>
                             {ongsNaoAprovadas.map((ong) => (
                                 <div key={ong.id} className={"row m-auto d-flex " + css.cardBonito}>
-                                    <div className={"col"}>
-                                        <div className={'row'}>
-                                            <div className={'col-8 ' + css.nome}>
-                                                <p>Nome: {ong.nome}</p>
-                                            </div>
-                                            <div className={"d-flex justify-content-around col-4"}>
-                                                <p className={css.item_impar}>ID: {ong.id_usuario}</p>
-                                            </div>
-                                            <div className={'col-2'}>
-                                                <Buton texto={'Aprovar'} tamanho={'pequeno'} background={'rosa'} rota={'/email_aprovacao'}/>
-                                            </div>
-                                            <div className={'col-3'}>
-                                                <p className={css.item_impar}>Data de Registro: {ong.data_hora_registro}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className={'row'}>
-                                        <div className={'col'}>
-                                            <p className={css.item_par}>{ong.descricao_causa}</p>
-                                        </div>
-                                    </div>
+                                    <CardOngAdm id={ong.id_usuario} cnpj={formatarCNPJ(ong.cpf_cpnj)} telefone={formatarTelefone(ong.telefone)} nomeOng={ong.nome} registro={ong.data_hora_registro} descricao={ong.descricao_causa} situacao={ong.situacao}/>
                                 </div>
                             ))}
                         </div>
                     ):(
+
                         <div className={"row d-flex justify-content-center align-items-center gap-3"}>
                             {ongsAprovadasEReprovadas.map((ong) => (
                                 <div key={ong.id} className={"row m-auto d-flex " + css.cardBonito}>
-                                    <div className={"col"}>
-                                        <div className={'row'}>
-                                            <div className={'col-9'}>
-                                                <div className={'row'}>
-                                                    <div className={"d-flex justify-content-around col-4"}>
-                                                        <p className={css.item_impar}>ID: {ong.id_usuario}</p>
-                                                    </div>
-                                                    <div className={'col-6  ' + css.nome}>
-                                                        <p>Nome: {ong.nome}</p>
-                                                    </div>
-
-                                                    <div className={'col-4'}>
-                                                        <p className={css.item_par}>CNPJ: {formatarCNPJ(ong.cpf_cpnj)}</p>
-                                                    </div>
-                                                    <div className={'col-4'}>
-                                                        <p className={css.item_impar}>Telefone: {formatarTelefone(ong.telefone)}</p>
-                                                    </div>
-                                                    <div className={'col-4'}>
-                                                        <p className={css.item_impar}>Registro: {ong.data_hora_registro}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className={'col-3'}>
-                                                {ong.situacao == 3 || ong.situacao == 2 ? (
-                                                    //     ativa
-                                                    <div>
-                                                        <Buton texto={'Desbloquear'} background={'laranja'}/>
-                                                        {ong.situacao == 2 && (
-                                                            <Buton texto={'Excluir'} background={'vermelho'}/>
-                                                        )}
-                                                    </div>
-                                                ) : ong.situacao == 1 ? (
-                                                    //     desativa
-                                                    <Buton texto={'Bloquear'} background={'rosa'}/>
-                                                ) : ong.situacao == 5 && (
-                                                    //     excluir
-                                                    <Buton texto={'Excluir'} background={'vermelho'}/>
-                                                )}
-                                                <p className={css.item_impar}>Situação: {ong.situacao}</p>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                    <div className={'row'}>
-                                        <div className={'col'}>
-                                            <p className={css.item_par}>{ong.descricao_causa}</p>
-                                        </div>
-                                    </div>
-
-
-
+                                    <CardOngAdm id={ong.id_usuario} cnpj={formatarCNPJ(ong.cpf_cpnj)} telefone={formatarTelefone(ong.telefone)} nomeOng={ong.nome} registro={ong.data_hora_registro} descricao={ong.descricao_causa} situacao={ong.situacao}/>
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>
+                {/*{quantidade >= 1 ?(*/}
+                {/*    <div className={'col-10 col-sm-3 m-auto d-flex justify-content-between paginas'}>*/}
+
+                {/*        {paginaAnterior !== 0 && (*/}
+                {/*            <>*/}
+                {/*                <Buton texto={"<"} onClick={() => setPagina(paginaAnterior)} classe={'pagina'} />*/}
+                {/*                {pagina == quantidade && paginaAnterior-1 !== 0 && (*/}
+                {/*                    <Buton texto={paginaAnterior-1} onClick={() => setPagina(paginaAnterior-1)} classe={'pagina'} />*/}
+                {/*                )}*/}
+                {/*                <Buton texto={paginaAnterior} onClick={() => setPagina(paginaAnterior)} classe={'pagina'} />*/}
+                {/*            </>*/}
+                {/*        )}*/}
+                {/*        {quantidade == 1 ? (*/}
+                {/*            <div className={'m-auto'}><Buton texto={pagina} classe={'paginaSelecionada'}/></div>*/}
+                {/*        ) : (*/}
+                {/*            <Buton texto={pagina} classe={'paginaSelecionada'}/>*/}
+                {/*        )}*/}
+
+                {/*        {proximaPagina !== 0 && (*/}
+                {/*            <>*/}
+                {/*                <Buton texto={proximaPagina} onClick={() => setPagina(proximaPagina)} classe={'pagina'}/>*/}
+                {/*                {proximaPagina+1 <= quantidade && pagina == 1 && (*/}
+                {/*                    <Buton texto={proximaPagina+1} onClick={() => setPagina(proximaPagina+1)} classe={'pagina'}/>*/}
+                {/*                )}*/}
+                {/*            </>*/}
+                {/*        )}*/}
+
+                {/*        {proximaPagina !== 0 && (*/}
+                {/*            <Buton texto={">"} onClick={() => setPagina(proximaPagina)} classe={'pagina'} />*/}
+                {/*        )}*/}
+                {/*    </div>*/}
+                {/*) : (*/}
+                {/*    <div className={'m-auto text-center my-5'}>*/}
+                {/*        <Titulo texto={'Não há ongs cadastradas'}/>*/}
+                {/*    </div>*/}
+                {/*)}*/}
             </div>
 
         </section>
