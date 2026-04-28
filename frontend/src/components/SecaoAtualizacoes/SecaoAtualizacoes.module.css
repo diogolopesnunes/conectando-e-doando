@@ -52,8 +52,8 @@
 }
 
 .imagemAtualizacao {
-    width: 300px;
-    height: 180px;
+    width: 250px;
+    height: 150px;
     border-radius: 20px;
     object-fit: cover;
 }
@@ -76,8 +76,8 @@
 }
 
 .logoInstituicaoAtualizacao {
-    width: 35px;
-    height: auto;
+    width: 45px;
+    height: 45px;
 }
 
 .nomeInstituicaoAtualizacao {

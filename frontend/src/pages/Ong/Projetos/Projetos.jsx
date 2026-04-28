@@ -16,6 +16,7 @@ export default function Projetos({ api }) {
     const [quantidade, setQuantidade] = useState(0);
     const [idUsuario, setIdUsuario] = useState(localStorage.getItem("id_usuario"));
     const navigate = useNavigate();
+    const [filtro, setFiltro] = useState('');
 
     const [mensagem, setMensagem] = useState('');
     const [tipoMensagem, setTipoMensagem] = useState('');
@@ -30,7 +31,7 @@ export default function Projetos({ api }) {
 
     async function ListarProjetos() {
         if (!idUsuario) return;
-        const resposta = await fetch(`${api}/listar_projetos/${idUsuario}/${pagina}`, {
+        const resposta = await fetch(`${api}/listar_projetos/${idUsuario}/${pagina}?nome=${filtro}`, {
             method: "GET",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
@@ -51,7 +52,10 @@ export default function Projetos({ api }) {
 
     useEffect(() => {
         ListarProjetos();
-    }, [pagina, idUsuario]);
+    }, [pagina, idUsuario, filtro]);
+
+
+
 
     return (
         <>
@@ -72,7 +76,15 @@ export default function Projetos({ api }) {
                             <div className={'d-block d-sm-none'}><Buton texto={'+'} background={'rosa'} rota={'/adicionar_projetos'} classe={'adicionar'} /></div>
                         </div>
                         <div className={'d-flex align-items-end'}>
-                            <Input htmlFor={'projetos'} placeholder={'Digite o nome para o filtro'} />
+                            <Input
+                                tipoInp={'text'}
+                                htmlFor={'projetos'}
+                                placeholder={'Digite o nome para o filtro'}
+                                value={filtro}
+                                funcao={(e) => {
+                                    setFiltro(e.target.value);
+                                }}
+                            />
                             <div className={'d-flex align-items-end h-100 p-2 d-none d-sm-block'}>
                                 <Buton texto={'Adicionar projeto'} tamanho={'medio'} background={'rosa'} rota={'/adicionar_projetos'} />
                             </div>

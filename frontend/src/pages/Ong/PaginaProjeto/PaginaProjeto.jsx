@@ -6,6 +6,7 @@ import css from "./PaginaProjeto.module.css";
 import InfoOng from "../../../components/InfoOng/InfoOng.jsx";
 import SecaoAtualizacoes from "../../../components/SecaoAtualizacoes/SecaoAtualizacoes.jsx";
 import Alerts from "../../../components/Alerts/Alerts.jsx";
+import Titulo from "../../../components/Titulo/Titulo.jsx";
 
 export default function PaginaProjeto({ api, info }) {
     const { id_projeto } = useParams();
@@ -114,6 +115,29 @@ export default function PaginaProjeto({ api, info }) {
                         ) : (
                             <>
                                 <InfoOng info={projeto} texto={'Fazer doação'} api={api} />
+                                <div className={css.containerProgresso}>
+                                    <div className={css.valoresMeta}>
+        <span>
+            <strong>Valor Arrecadado:</strong>
+            <span className={css.valorLaranja}> R$ 0,00</span>
+        </span>
+        <span>
+            <strong>Meta de Doações:</strong>
+            <span className={css.valorLaranja}>{` R$${projeto.meta_doacao},00`}</span>
+        </span>
+        </div>
+
+                                    <div className={css.barraProgressoContainer}>
+                                        <span className={css.porcentagemTexto}>0.0%</span>
+                                        <div className={css.barraFundo}>
+                                            <div
+                                                className={css.barraPreenchida}
+
+                                            ></div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <SecaoAtualizacoes
 
                                     atualizacoes={projeto.atualizacoes || []}
@@ -126,11 +150,25 @@ export default function PaginaProjeto({ api, info }) {
                                     logoOng={projeto.logoInstituicao}
                                 />
 
-                                {quantidade > 1 && (
+                                {quantidade >= 1 && (
                                     <div className={'col-10 col-sm-3 m-auto d-flex justify-content-between paginas'}>
-                                        {paginaAnterior !== 0 && <Buton texto={"<"} onClick={() => setPagina(paginaAnterior)} classe={'pagina'} />}
-                                        <Buton texto={pagina} classe={'paginaSelecionada'} />
-                                        {proximaPagina !== 0 && <Buton texto={">"} onClick={() => setPagina(proximaPagina)} classe={'pagina'} />}
+                                        {paginaAnterior !== 0 && (
+                                            <>
+                                                <Buton texto={"<"} onClick={() => setPagina(paginaAnterior)} classe={'pagina'} />
+                                                <Buton texto={paginaAnterior} onClick={() => setPagina(paginaAnterior)} classe={'pagina'} />
+                                            </>
+                                        )}
+                                        {quantidade === 1 ? (
+                                            <div className={'m-auto'}><Buton texto={pagina} classe={'paginaSelecionada'} /></div>
+                                        ) : (
+                                            <Buton texto={pagina} classe={'paginaSelecionada'} />
+                                        )}
+                                        {proximaPagina !== 0 && (
+                                            <>
+                                                <Buton texto={proximaPagina} onClick={() => setPagina(proximaPagina)} classe={'pagina'} />
+                                                <Buton texto={">"} onClick={() => setPagina(proximaPagina)} classe={'pagina'} />
+                                            </>
+                                        )}
                                     </div>
                                 )}
                             </>

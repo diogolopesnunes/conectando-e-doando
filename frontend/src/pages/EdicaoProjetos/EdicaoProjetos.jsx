@@ -27,6 +27,8 @@ export default function EditarProjeto({ api }) {
 
     const [idUsuario, setIdUsuario] = useState(localStorage.getItem("id_usuario"));
 
+    const navegate=useNavigate();
+
 
     useEffect(() => {
         if (!localStorage.getItem("email") || !localStorage.getItem("email") || !localStorage.getItem("id_usuario")) {
@@ -43,12 +45,17 @@ export default function EditarProjeto({ api }) {
                 credentials: "include"
             });
             resposta = await resposta.json();
-
+            console.log(resposta)
             if (resposta.projeto) {
                 setNome(resposta.projeto.nome);
                 setDescricao(resposta.projeto.descricao);
                 setMeta(resposta.projeto.meta_doacao);
                 setPreview(resposta.projeto.imagem);
+                if (resposta.mensagem.tipo == 'sucesso'){
+                    setTimeout(function () {
+                        navegate(localStorage.getItem("tipo_usuario") == 2 ? "/dashboard_adm_ong" : "/projetos_ong")
+                    }, 1500)
+                }
             }
         }
 

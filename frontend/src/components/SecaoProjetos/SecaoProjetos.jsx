@@ -17,7 +17,7 @@ export default function SecaoProjetos({ projetos, api }) {
                 <div key={proj.id_projeto || proj.id} className={css.card + ' px-2 flex-column flex-sm-row'}>
                     <Link to={`/projeto/${proj.id_projeto}`} className={'d-flex flex-column flex-sm-row w-100'}>
                         <img 
-                            src={proj.imagem ? `${api}${proj.imagem}` : "/img/projeto.jpg"} alt="Projeto"
+                            src={proj.imagem ? `${api}${proj.imagem}?t=${Date.now()}` : "/img/projeto.jpg"} alt="Projeto"
                             className={css.imagem}
                             onError={(e) => {e.target.src = "/public/SemImagemDisponivel.png";}}
                         />

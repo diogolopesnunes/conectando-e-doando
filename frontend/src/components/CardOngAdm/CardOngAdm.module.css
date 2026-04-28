@@ -1,3 +1,7 @@
+.nome{
+    color: var(--preto);
+}
+
 .idStyle{
     color: var(--rosa);
     background-color: rgba(224, 108, 158, 0.6);
@@ -23,7 +27,7 @@
     background-color: rgba(230, 153, 148, 0.61);
 }
 
-.nomeJorge{
+.nomeCortar{
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -40,7 +44,7 @@
     .justify p{
         text-align: justify;
     }
-    .nomeJorge {
+    .nomeCortar {
         max-width: 70%;
     }
 }

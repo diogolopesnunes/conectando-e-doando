@@ -86,7 +86,7 @@ export default function Nav() {
                         ADMs
                     </NavLink>
 
-                    <NavLink to={"/doacoes"} className={btnAddProjeto} >Doações</NavLink>
+                    <NavLink to={"/doacoes"} className={cssAtivado} >Doações</NavLink>
 
                     <NavLink
                         to="/edicao_adm"

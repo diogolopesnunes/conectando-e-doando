@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap' );
 
 .container {
     font-family: 'Inter', sans-serif;
@@ -22,8 +22,10 @@
 }
 
 .imagem {
-    width: 180px;
+    width: 250px;
+    height: 150px;
     border-radius: 8px;
+    object-fit: cover; /* Mantém a proporção da imagem */
 }
 
 .info {
@@ -44,18 +46,39 @@ h3 {
     overflow-wrap: anywhere;
 }
 
-@media (max-width: 426px) {
-    .imagem{
-        max-width: 100%;
-        width: 100%;
+@media (max-width: 768px) {
+    .card {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center;
+        padding-left: 0;
+        padding-right: 0;
     }
-    h3{
-        width: 100%;
-    }
-    .card{
-        max-width: 425px;
-    }
-    .info, h3{
+
+    /* Ajuste crucial: o Link que envolve a imagem precisa centralizar o conteúdo */
+    .card > a {
+        align-items: center !important;
+        justify-content: center !important;
         margin-left: 0 !important;
+    }
+
+    .imagem {
+        display: block;
+        margin: 0 auto 15px auto; /* Centraliza horizontalmente e adiciona espaço abaixo */
+    }
+
+    .info {
+        margin-left: 0 !important;
+        align-items: center;
+        width: 100%;
+    }
+
+    h3 {
+        width: 100%;
+        margin-left: 0 !important;
+    }
+
+    .descricao {
+        text-align: center;
     }
 }

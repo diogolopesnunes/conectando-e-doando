@@ -137,7 +137,7 @@ export default function EditarOng({ api }) {
             setTipoMensagem(res.mensagem.tipo);
             if (res.mensagem.tipo == 'sucesso'){
                 setTimeout(function () {
-                    navegate(localStorage.getItem("tipo_usuario") == 2 ? "/dashboard_adm_ong" : "/projetos_ong")
+                    navegate(localStorage.getItem("tipo_usuario") == 2 ? "/dashboard_adm_ong" : "/previa_ong")
                 }, 1500)
             }
         }
@@ -153,7 +153,7 @@ export default function EditarOng({ api }) {
                         {mensagem && (
                             <Alerts
                                 tipo={tipoMensagem}
-                                imagem={`./public/${tipoMensagem}.png`}
+                                imagem={`/public/${tipoMensagem}.png`}
                                 duracao={'10000'}
                                 descricao={mensagem}
                             />
@@ -251,7 +251,7 @@ export default function EditarOng({ api }) {
                                 />
                                 {previewBanner && (
                                     <>
-                                        <img className={'mt-3 ' + css.preview}
+                                        <img className={'mt-3 ' + css.previewBanner}
                                              src={previewBanner}
                                              alt="Preview"
                                         />

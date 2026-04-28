@@ -3,7 +3,7 @@ import css from "./SecaoAtualizacoes.module.css";
 
 export default function SecaoAtualizacoes({ atualizacoes = [], instituicao, idProjeto, onExcluir, onAtivarDesativar, quantidade, api, logoOng }) {
     return (
-        <section className={css.secaoAtualizacoes + ' px-3'}>
+        <section className={css.secaoAtualizacoes + ' px-3 pe-sm-3 px-lg-0'}>
             <div className={'d-flex flex-column flex-sm-row align-items-center justify-content-sm-between row justify-content-center mb-3'}>
                 <p className={'col text-center text-sm-start'}>Posts: {quantidade}</p>
                 <h2 className={css.titulo + ' col'}>Atualizações</h2>
@@ -19,7 +19,7 @@ export default function SecaoAtualizacoes({ atualizacoes = [], instituicao, idPr
 
                     <div className={css.conteudoAtualizacao + ' d-flex'}>
                         <img
-                            src={update.imagem ? `${api}${update.imagem}` : "/img/post.jpg"}
+                            src={update.imagem ? `${api}${update.imagem}?t=${Date.now()}` : "/img/post.jpg"}
                             alt={update.titulo}
                             className={css.imagemAtualizacao}
                             onError={(e) => {
@@ -31,7 +31,7 @@ export default function SecaoAtualizacoes({ atualizacoes = [], instituicao, idPr
                             <div className={css.cabecalhoInstituicaoAtualizacao + ' d-flex align-items-center justify-content-between'}>
                                 <div className={'d-flex gap-2 mt-2 mt-sm-0'}>
                                     <img
-                                        src={logoOng ? `${api}${logoOng}` : "/img/ong.png"}
+                                        src={logoOng ? `${api}${logoOng}?t=${Date.now()}` : "/img/ong.png"}
                                         alt="Logo Instituição"
                                         className={css.logoInstituicaoAtualizacao + ' rounded'}
                                         onError={(e) => {
@@ -40,16 +40,16 @@ export default function SecaoAtualizacoes({ atualizacoes = [], instituicao, idPr
                                     />
                                     <span className={css.nomeInstituicaoAtualizacao}>{instituicao}</span>
                                 </div>
-                                <div className={css.infoCabecalhoAtualizacao}>
-                                    <span>{update.hora}</span>
-                                    <span>{update.data}</span>
-                                </div>
                             </div>
                             <h3 className={css.tituloAtualizacao}>{update.titulo}</h3>
                             <p className={css.descricaoAtualizacao}>{update.descricao || update.acao}</p>
 
                         </div>
                         <div className={css.acoesAtualizacao + ' flex-column flex-sm-row mt-2'}>
+                            <div className={css.infoCabecalhoAtualizacao + " justify-self-around"}>
+                                <span>{update.hora}</span>
+                                <span>{update.data}</span>
+                            </div>
                             <Buton background="rosa" tamanho="pequeno" texto="Excluir" onClick={() => onExcluir(update.id_post || update.id)} />
                             <Buton background="laranja" tamanho="pequeno" texto="Editar" rota={`/edicao_post/${idProjeto}/${update.id_post || update.id}`} />
                             <Buton background={Number(update.atividade) === 1 ? "vermelho" : "verde"} tamanho="pequeno" texto={Number(update.atividade) === 1 ? "Desativar" : "Ativar"} onClick={() => onAtivarDesativar(update.id_post || update.id)} />

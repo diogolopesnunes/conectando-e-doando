@@ -22,7 +22,7 @@ import PaginaEnviarEmail from "./pages/PaginaEnviarEmail/PaginaEnviarEmail.jsx";
 
 export default function App() {
 
-    const api = 'http://192.168.1.17:5000'
+    const api = 'http://10.92.3.142:5000'
 
     const quemSomos = useRef(null);
     const doacoes = useRef(null);

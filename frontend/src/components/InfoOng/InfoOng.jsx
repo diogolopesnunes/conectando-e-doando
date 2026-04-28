@@ -8,7 +8,7 @@ export default function InfoOng({ info, texto, api }) {
             <section className={css.secaoInfoProjeto}>
                 <div className={css.envolverImagemProjeto}>
                     <img
-                        src={`${api}${info.imagem}`}
+                        src={`${api}${info.imagem}?t=${Date.now()}`}
                         alt={info.nome}
                         className={css.imagemProjeto}
                         onError={(e) => {
@@ -24,7 +24,7 @@ export default function InfoOng({ info, texto, api }) {
 
                     <div className={"mt-2 " + css.secaoChamadaAcao}>
                         <img
-                            src={`${api}${info.logoInstituicao}`}
+                            src={`${api}${info.logoInstituicao}?t=${Date.now()}`}
                             alt="Logo Instituição"
                             className={css.logoInstituicao + ' rounded'}
                             onError={(e) => {

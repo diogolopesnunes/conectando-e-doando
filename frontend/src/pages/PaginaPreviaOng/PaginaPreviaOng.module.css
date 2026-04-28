@@ -31,8 +31,6 @@
     color: white;
 }
 
-
-
 @media (max-width: 768px) {
     .containerPrincipal {
         padding: 10px;
@@ -45,5 +43,9 @@
     .acoesCabecalho {
         margin-bottom: 5px;
         padding: 15px !important;
+    }
+
+    .containerProgresso {
+        width: 90%;
     }
 }
