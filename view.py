@@ -2106,6 +2106,41 @@ def buscar_ong(id_ong):
         if not usuario:
             return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'ONG não encontrada'}}), 404
 
+        # tem que colocar isso para a paginação, tomara que de tempo hj na sala
+
+        # cur.execute("""select count(id_projeto)
+        #                from projeto_ong
+        #                where fk_usuario_ong = ?""", (id_usuario,))
+        # quantidade = cur.fetchone()[0]
+        #
+        # numeroPaginas = math.ceil(quantidade / quantidadePorPagina)
+        #
+        # minimo = ((pagina - 1) * quantidadePorPagina) + 1
+        # maximo = pagina * quantidadePorPagina
+        #
+        # cur.execute("""
+        #             SELECT id_projeto, nome, descricao, atividade
+        #             FROM projeto_ong
+        #             WHERE fk_usuario_ong = ?
+        #             ORDER BY id_projeto ASC ROWS ? TO ?
+        #             """, (id_usuario, minimo, maximo))
+        # resultado = cur.fetchall()
+        #
+        # projetos = []
+        # numeroProjeto = 1
+        # for linha in resultado:
+        #     projetos.append({
+        #         'numero projeto': numeroProjeto,
+        #         'id_projeto': linha[0],
+        #         'nome': linha[1],
+        #         'descricao': linha[2],
+        #         'atividade': linha[3]
+        #     })
+        #     numeroProjeto += 1
+        #     proximaPagina = pagina + 1
+        #     if proximaPagina > numeroPaginas:
+        #         proximaPagina = 0
+
         cur.execute("""select id_projeto, nome, descricao, atividade
                        from projeto_ong
                        where fk_usuario_ong = ?
