@@ -73,7 +73,7 @@ def gerar_token_temporario(id_usuario):
 def gerar_token(id_usuario):
     payload = {
         'id_usuario': id_usuario,
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=10),
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=15),
         'timestamp': datetime.datetime.utcnow().isoformat()
     }
 
@@ -84,7 +84,21 @@ def gerar_token(id_usuario):
 
     return token
 
+def validar_token(token):
+    try:
+        payload = jwt.decode(
+            token,
+            senha_secreta,
+            algorithms=['HS256']
+        )
 
+        return payload
+
+    except jwt.ExpiredSignatureError:
+        return "expirado"
+
+    except jwt.InvalidTokenError:
+        return "invalido"
 
 def email_verificacao(destinatario, assunto, mensagem):
     cur = con.cursor()
@@ -120,7 +134,7 @@ def verificar_codigo(email, codigo):
     codigo_real = cur.fetchone()
 
     if not codigo_real:
-        return jsonify({'mensagem': 'Usuário não encontrado'}), 404
+        return jsonify({'descricao': 'Usuário não encontrado'}), 404
 
     if str(codigo_real[0]) == str(codigo) and codigo != "None":
         return True, "Código válido"

@@ -1,5 +1,7 @@
 import os.path
-from flask import Flask, jsonify, request, send_file, Response, make_response
+from enum import nonmember
+
+from flask import Flask, jsonify, request, send_file, Response, make_response, send_from_directory
 import jwt
 from flask_bcrypt import check_password_hash, bcrypt
 import math
@@ -60,6 +62,11 @@ quantidadePorPagina = 15
 
 
 
+
+@app.route('/uploads/<path:filename>')
+def arquivos_upload(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 @app.route('/cadastro', methods=['POST'])
 def cadastro():
     try:
@@ -86,18 +93,22 @@ def cadastro():
         imagem = request.files.get('imagem')
         bannerOng = request.files.get('bannerOng')
         email_usuario = email
-        if tipo_de_usuario == 1:
-            if not tipo_ong and not descricao_causa and not banco_ong and not agencia_ong and not conta_ong and not cidade_ong:
-                return jsonify({'mensagem':{
+        if not nome or not email or not senha or not cpf_cnpj or not telefone:
+            return jsonify({
+                'mensagem': {
                     'tipo': 'erro',
-                    'descricao': 'A ong deve ter tipo, descrição, banco, agencia, conta e cidade'
-                }})
+                    'descricao': 'Todos os campos obrigatórios (Nome, Email, Senha, CPF/CNPJ, Telefone) devem ser preenchidos.'
+                }
+            }), 400
 
-        if not nome or not senha or not email:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Insira Nome, Email e Senha'
-            }}), 400
+        if tipo_de_usuario == '1':
+            if not tipo_ong or not descricao_causa or not banco_ong or not agencia_ong or not conta_ong or not cidade_ong:
+                return jsonify({
+                    'mensagem':{
+                        'tipo': 'erro',
+                        'descricao': 'Para ONGs, os campos Tipo de ONG, Descrição da Causa, Banco, Agência, Conta e Cidade são obrigatórios.'
+                    }
+                }), 400
         mensagem_validacao = validar_senha(senha, confirmar_senha)
         if mensagem_validacao:
             return jsonify({'mensagem': {
@@ -106,33 +117,28 @@ def cadastro():
             }}), 400
         senha_cript = criptografar(senha)
 
-
-        cur.execute('select situacao from usuario where email = ?', (email,))
-        resultado = cur.fetchone()
-        if resultado != None:
-            if resultado[0] != 5:
-                return jsonify({'mensagem': {
-                    'tipo': 'erro',
-                    'descricao': 'Usuário já cadastrado'
-                }}), 400
+        cur.execute('select 1 from usuario where email = ?', (email,))
+        if cur.fetchone():
+            cur.execute('select situacao from usuario where email = ?', (email,))
+            resultado = cur.fetchone()
         else:
-
-
+            resultado = None
+        if resultado is not None and resultado != 5:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Usuário já cadastrado'
+            }}), 400
+        else:
             if resultado == 5:
                 cur.execute("""DELETE FROM usuario WHERE email = ?""", (email,))
-                cur.execute("""insert into usuario (nome, email, senha, tipo_de_usuario, cpf_cnpj, tipo_ong,
-                                                    descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong,
-                                                    telefone, senha_antiga_2, senha_antiga_3)
-                               values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, null, null) RETURNING id_usuario """,
-                            (nome, email, senha_cript, tipo_de_usuario, cpf_cnpj,
-                             tipo_ong, descricao_causa, banco_ong, agencia_ong,
-                             conta_ong, cidade_ong, telefone))
-            else:
-                cur.execute("""insert into usuario (nome, email, senha, tipo_de_usuario, cpf_cnpj, tipo_ong,
-                descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong, telefone, senha_antiga_2, senha_antiga_3) 
-                                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, null, null) RETURNING id_usuario """, (nome, email, senha_cript, tipo_de_usuario, cpf_cnpj,
-                                             tipo_ong, descricao_causa, banco_ong, agencia_ong,
-                                                   conta_ong, cidade_ong, telefone ))
+                con.commit()
+            cur.execute("""insert into usuario (nome, email, senha, tipo_de_usuario, cpf_cnpj, tipo_ong,
+                                                descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong,
+                                                telefone, senha_antiga_2, senha_antiga_3)
+                           values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, null, null) RETURNING id_usuario """,
+                        (nome, email, senha_cript, tipo_de_usuario, cpf_cnpj,
+                         tipo_ong, descricao_causa, banco_ong, agencia_ong,
+                         conta_ong, cidade_ong, telefone))
             con.commit()
 
             cur.execute("""select id_usuario from usuario where email = ?""", (email,))
@@ -308,7 +314,11 @@ def login():
                     'tipo': 'redirecionamento',
                     'descricao': 'Sua conta está inativa'
                 }}), 403
-
+            elif situacao == 5:
+                return jsonify({'mensagem':{
+                    'tipo': 'erro',
+                    'descricao':"Sua Ong foi recusada reflita"
+                }})
             if check_password_hash(senha_armazenada, senha):
                 token = gerar_token(id_usuario)
 
@@ -390,7 +400,7 @@ def login():
         else:
             return jsonify({'mensagem': {
                 'tipo': 'erro',
-                'descricao': 'Usuário não encontrado'
+                'descricao': 'Senha ou email incorreto(s)'
             }}), 404
 
     except Exception as e:
@@ -421,7 +431,7 @@ def desbloquear_usuario(id_usuario):
             cur.close()
             return jsonify({'error': 'Apenas administradores podem desbloquear usuários'}), 403
     except Exception as e:
-        return jsonify({'message': f'Erro ao verificar token {e}'}), 500
+            return (jsonify({'message': f'Erro ao verificar token {e}'}), 401)
 
     try:
         cur = con.cursor()
@@ -466,7 +476,7 @@ def editar_usuario(id_usuario):
         return jsonify({'mensagem': {
             'tipo': 'erro',
             'descricao': f'Erro ao verificar token {e}'
-        }}), 500
+        }}), 401
     cur = con.cursor()
     if request.method == "GET":
         try:
@@ -638,7 +648,7 @@ def ativar_desativar_usuario(id_usuario):
     if not token:
         return jsonify({'mensagem': {
             "tipo":"erro",
-            "mensagem":'Token de autenticação necessário'}}), 401
+            "descricao":'Token de autenticação necessário'}}), 401
 
     try:
         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
@@ -650,12 +660,12 @@ def ativar_desativar_usuario(id_usuario):
             cur.close()
             return jsonify({'mensagem': {
                 "tipo":"erro",
-                "mensagem":'Apenas administradores podem desativar usuários'}}), 403
+                "descricao":'Apenas administradores podem ativar/desativar usuários'}}), 403
 
     except Exception as e:
         return jsonify({'message': {
             "tipo":"erro",
-            "mensagem":f'Erro ao verificar token {e}'}}), 500
+            "mensagem":f'Erro ao verificar token {e}'}}), 401
 
     try:
         cur = con.cursor()
@@ -663,32 +673,34 @@ def ativar_desativar_usuario(id_usuario):
         cur.execute('select id_usuario from usuario where id_usuario= ?', (id_usuario,))
 
         if not cur.fetchone():
-            return jsonify({"error": {
+            return jsonify({"mensagem": {
                 "tipo":"erro",
                 "mensagem":"Usuário não encontrado"}}), 404
 
         cur.execute('select situacao from usuario where id_usuario =?',(id_usuario,))
         situacao = cur.fetchone()
 
-        if situacao == 1:
+        if situacao[0] == 1:
             cur.execute("""update usuario set situacao = 3 where id_usuario = ?""", (id_usuario,))
             con.commit()
-            return jsonify({"message": {
+            return jsonify({"mensagem": {
                 "tipo":"sucesso",
-                "mensagem":"Usuário desativado com sucesso", 'id_usuario':id_usuario}})
+                "descricao":"Usuário desativado com sucesso",
+                'id_usuario':id_usuario}})
 
-        if situacao == 3 or situacao == 2:
+        if situacao[0] == 3 or situacao[0] == 2:
             cur.execute("""update usuario set situacao = 1 where id_usuario = ?""", (id_usuario,))
             con.commit()
-            return jsonify({"message": {
+            return jsonify({"mensagem": {
                 "tipo":"sucesso",
-                "mensagem":"Usuário Ativado com sucesso", 'id_usuario':id_usuario}})
+                "descricao":"Usuário Ativado com sucesso",
+                'id_usuario':id_usuario}})
 
 
     except Exception as e:
-        return jsonify({'message': {
+        return jsonify({'mensagem': {
             "tipo":"erro",
-            "mensagem":f'Erro ao desativar usuário {e}'}}), 500
+            "descricao":f'Erro ao desativar usuário {e}'}}), 500
     finally:
         cur.close()
 
@@ -880,7 +892,6 @@ def validar_conta():
         cur.execute("select tipo_de_usuario from usuario where email = ?", (email,))
         tipo_usuario = cur.fetchone()[0]
 
-        print(tipo_usuario)
 
         if not infos:
             return jsonify({"mensagem": {
@@ -889,14 +900,20 @@ def validar_conta():
             }}), 404
         elif infos[1] == 0:
             sucesso, mensagem = verificar_codigo(email, codigo)
-
-            if tipo_usuario == 0:
+            print(sucesso)
+            print(mensagem)
+            if tipo_usuario == 0 or tipo_usuario == 2:
                 if sucesso:
                     cur.execute("""UPDATE usuario SET situacao = 1, codigo = NULL WHERE email = ? AND situacao != 1 """, (email,))
                     con.commit()
                     return jsonify({"mensagem": {
                         'tipo': 'sucesso',
                         'descricao': "Conta validada com sucesso"
+                    }})
+                else:
+                    return jsonify({"mensagem": {
+                        'tipo': 'erro',
+                        'descricao': "Código inválido"
                     }})
             elif tipo_usuario == 1:
                 if sucesso:
@@ -906,11 +923,15 @@ def validar_conta():
                         'tipo': 'sucesso',
                         'descricao': "Conta validada com sucesso"
                     }})
-
+                else:
+                    return jsonify({"mensagem": {
+                        'tipo': 'erro',
+                        'descricao': "Código inválido"
+                    }})
             else:
                 return jsonify({"mensagem": {
                     'tipo': 'erro',
-                    'descricao': mensagem
+                    'descricao': 'Usuário não encontrado'
                 }}), 400
         else:
             return jsonify({"mensagem": {
@@ -931,7 +952,9 @@ def validar_conta():
 def listar_ong_adm():
     token = request.cookies.get('access_token')
     if not token:
-        return jsonify({'mensagem': 'Token de autenticação necessário'}), 401
+        return jsonify({'mensagem': {
+            "tipo":"erro",
+            "descricao":'Token de autenticação necessário'}}), 401
     try:
         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
         id_token = dados['id_usuario']
@@ -940,9 +963,13 @@ def listar_ong_adm():
         tipo_usuario = cur.fetchone()[0]
         if tipo_usuario != 2:
             cur.close()
-            return jsonify({'error': 'Apenas administradores podem acessar esta pagina'}), 403
+            return jsonify({'mensagem': {
+                "tipo":"erro",
+                "descricao":'Apenas administradores podem acessar esta pagina'}}), 403
     except Exception as e:
-        return jsonify({'message': f'Erro ao verificar token {e}'}), 500
+        return jsonify({'mensagem': {
+            "tipo":"erro",
+            "descricao":f'Erro ao verificar token {e}'}}), 500
     finally:
         cur.close()
 
@@ -975,7 +1002,9 @@ def listar_ong_adm():
         return jsonify(mensagem='Lista de Ongs', ongs=ongs_lista)
 
     except Exception as e:
-        return jsonify({'message': f'Erro ao consultar banco de dados: {e}'}), 500
+        return jsonify({'message':{
+            "tipo":"erro",
+            "descricao":f'Erro ao consultar banco de dados: {e}'}}), 500
     finally:
         cur.close()
 
@@ -1138,7 +1167,7 @@ def listar_projetos(id_usuario, pagina):
         maximo = pagina * quantidadePorPagina
 
         cur.execute("""
-                    SELECT id_projeto, nome, descricao
+                    SELECT id_projeto, nome, descricao, atividade
                     FROM projeto_ong
                     WHERE fk_usuario_ong = ?
                     ORDER BY id_projeto ASC ROWS ? TO ?
@@ -1152,7 +1181,8 @@ def listar_projetos(id_usuario, pagina):
                 'numero projeto': numeroProjeto,
                 'id_projeto': linha[0],
                 'nome': linha[1],
-                'descricao': linha[2]
+                'descricao': linha[2],
+                'atividade': linha[3]
             })
             numeroProjeto += 1
             proximaPagina = pagina+1
@@ -1470,7 +1500,7 @@ def editar_post(id_projeto, id_usuario, id_post):
             }}), 403
 
         if request.method == "GET":
-            cur.execute('select titulo, atividade, acao from post_projeto where id_projeto = ? and id_post = ? ',(id_projeto, id_post))
+            cur.execute('select titulo, atividade, acao from post_projeto where fk_projeto = ? and id_post_projeto = ? ',(id_projeto, id_post))
             info_post = cur.fetchone()
             return jsonify({'titulo' : info_post[0], 'atividade': info_post[1], 'acao': info_post[2]})
 
@@ -2008,112 +2038,337 @@ def ativar_desativar_post(id_usuario, id_projeto, id_post):
     finally:
         cur.close()
 
-@app.route("/permitir_recusar_ong/<int:id_usuario>/<int:id_ong>", methods=["PUT"])
-def permitir_recusar_ong(id_usuario, id_ong):
-    header = {}
+
+@app.route('/listar_ong_adm/<int:pagina>/<int:filtro>', methods=['GET'])
+def listar_ong_adm_paginado(pagina, filtro):
     token = request.cookies.get('access_token')
     if not token:
-        return jsonify({'mensagem': {
-            'tipo': 'erro',
-            'descricao': 'Token de autenticação necessário'
-        }}), 401
+        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Token de autenticação necessário'}}), 401
 
     cur = con.cursor()
-
     try:
         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
         id_token = dados['id_usuario']
+        cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
+        usuario = cur.fetchone()
+        if not usuario or usuario[0] != 2:
+            return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Apenas administradores podem acessar esta página'}}), 403
 
-        if id_usuario != id_token:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'mensagem': 'Você não tem permissão'
-            }}), 403
+        where_filtro = 'and situacao in (0, 4)' if filtro == 0 else 'and situacao not in (0, 4)'
+        cur.execute(f"""select count(id_usuario)
+                        from usuario
+                        where tipo_de_usuario = 1 {where_filtro}""")
+        quantidade = cur.fetchone()[0]
+        numeroPaginas = math.ceil(quantidade / quantidadePorPagina) if quantidade else 0
+        if pagina < 1:
+            pagina = 1
+        if numeroPaginas and pagina > numeroPaginas:
+            pagina = numeroPaginas
 
-        cur.execute('SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?', (id_token,))
-        resultado = cur.fetchone()
+        minimo = ((pagina - 1) * quantidadePorPagina) + 1
+        maximo = pagina * quantidadePorPagina
 
-        if not resultado:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'mensagem': 'Usuário não encontrado'}}), 404
+        cur.execute(f"""select id_usuario, nome, descricao_causa, situacao, cpf_cnpj, telefone, data_hora_registro
+                        from usuario
+                        where tipo_de_usuario = 1 {where_filtro}
+                        order by data_hora_registro desc rows ? to ?""", (minimo, maximo))
+        resultado = cur.fetchall()
+        ongs_lista = []
+        for ong in resultado:
+            ongs_lista.append({
+                'id_usuario': ong[0],
+                'nome': ong[1],
+                'descricao_causa': ong[2],
+                'situacao': ong[3],
+                'cpf_cnpj': ong[4],
+                'telefone': ong[5],
+                'data_hora_registro': ong[6].strftime('%d/%m/%Y %H:%M') if ong[6] else ''
+            })
 
-        tipo_de_usuario = resultado[0]
-
-        if tipo_de_usuario != 2:  # 2 = ADM
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'mensagem': 'Você não tem permissão'
-            }}), 403
-
-        data = request.get_json()
-        acao = data.get("acao")
-        assunto = data.get("assunto")
-        mensagem = data.get("mensagem")
-
-        cur.execute('SELECT email, situacao FROM usuario WHERE id_usuario = ?', (id_ong,))
-        ong = cur.fetchone()
-
-        if not ong:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'mensagem': 'ONG não encontrada'}}), 404
-
-        email, status_atual = ong
-
-        print(email)
-
-        print(status_atual)
-
-        if status_atual != 4:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'mesagem': 'ONG já foi analisada'
-            }}), 400
-
-        if acao == 1 :
-            cur.execute('UPDATE usuario SET situacao = 1 WHERE id = ?', (id_ong,))
-            con.commit()
-
-            return jsonify({'mensagem': {
-                'tipo': 'sucesso',
-                'mensagem': 'ONG aprovada com sucesso'
-            }})
-
-        elif acao == 0 :
-            if not assunto:
-                return jsonify({'mensagem': {
-                    'tipo': 'erro',
-                    'descricao': 'Motivo é obrigatório'
-                }}), 400
-
-            cur.execute('UPDATE usuario SET situacao = 5 WHERE id_usuario = ?', (id_ong,))
-            con.commit()
-
-            enviando_email(email, assunto, mensagem)
-
-            return jsonify({'mensagem': {
-                'tipo': 'sucesso',
-                'descricao': 'ONG recusada e email enviado'
-            }})
-
-        else:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Ação inválida'
-            }}), 400
-
-    except jwt.ExpiredSignatureError:
-        return jsonify({'mensagem': {
-            'tipo': 'erro',
-            'descricao': 'Token expirado'
-        }}), 401
-
+        proximaPagina = pagina + 1
+        if proximaPagina > numeroPaginas:
+            proximaPagina = 0
+        return jsonify({'mensagem': 'Lista de Ongs', 'ongs': ongs_lista, 'numeroPaginas': numeroPaginas, 'proximaPagina': proximaPagina, 'paginaAnterior': pagina - 1}), 200
     except Exception as e:
-        return jsonify({'mensagem': {
-            'tipo': 'erro',
-            'mensagem': str(e)
-        }}), 500
+        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': f'Erro ao listar ONGs: {e}'}}), 500
     finally:
         cur.close()
 
+
+@app.route('/buscar_ong/<int:id_ong>', methods=['GET'])
+def buscar_ong(id_ong):
+    cur = con.cursor()
+    try:
+        cur.execute("""select id_usuario, nome, tipo_ong, descricao_causa, cpf_cnpj, telefone, cidade_ong
+                       from usuario
+                       where id_usuario = ? and tipo_de_usuario = 1""", (id_ong,))
+        usuario = cur.fetchone()
+        if not usuario:
+            return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'ONG não encontrada'}}), 404
+
+        cur.execute("""select id_projeto, nome, descricao, atividade
+                       from projeto_ong
+                       where fk_usuario_ong = ?
+                       order by id_projeto desc""", (id_ong,))
+        projetos = []
+        for projeto in cur.fetchall():
+            projetos.append({
+                'id_projeto': projeto[0],
+                'nome': projeto[1],
+                'descricao': projeto[2],
+                'atividade': projeto[3],
+                'imagem': f'/uploads/Usuarios/Projeto/{projeto[0]}.jpg'
+            })
+
+        return jsonify({'ong': {
+            'id_usuario': usuario[0],
+            'nome': usuario[1],
+            'instituicao': usuario[2],
+            'descricao_causa': usuario[3],
+            'cpf_cnpj': usuario[4],
+            'telefone': usuario[5],
+            'cidade_ong': usuario[6],
+            'imagem': f'/uploads/Usuarios/Baner_Ong/{usuario[0]}_banner.jpg',
+            'logoInstituicao': f'/uploads/Usuarios/Icone_Perfil/{usuario[0]}.jpg',
+            'projetos': projetos
+        }}), 200
+    except Exception as e:
+        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': f'Erro ao buscar ONG: {e}'}}), 500
+    finally:
+        cur.close()
+
+
+@app.route('/detalhar_projeto/<int:id_projeto>/<int:pagina>', methods=['GET'])
+def detalhar_projeto(id_projeto, pagina):
+    token = request.cookies.get('access_token')
+    if not token:
+        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Token de autenticação necessário'}}), 401
+
+    cur = con.cursor()
+    try:
+        cur.execute("""select p.id_projeto, p.nome, p.descricao, p.meta_doacao, p.atividade,
+                              u.id_usuario, u.nome, u.descricao_causa
+                       from projeto_ong p
+                       join usuario u on u.id_usuario = p.fk_usuario_ong
+                       where p.id_projeto = ?""", (id_projeto,))
+        info = cur.fetchone()
+        if not info:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Projeto não encontrado'
+            }}), 404
+
+        cur.execute('select count(id_post_projeto) from post_projeto where fk_projeto = ?', (id_projeto,))
+        quantidade = cur.fetchone()[0]
+        numeroPaginas = math.ceil(quantidade / quantidadePorPagina) if quantidade else 0
+        minimo = ((pagina - 1) * quantidadePorPagina) + 1
+        maximo = pagina * quantidadePorPagina
+
+        cur.execute("""select id_post_projeto, titulo, acao, atividade, data_hora
+                       from post_projeto
+                       where fk_projeto = ?
+                       order by data_hora desc rows ? to ?""", (id_projeto, minimo, maximo))
+        atualizacoes = []
+        for post in cur.fetchall():
+            data = post[4]
+            atualizacoes.append({
+                'id_post': post[0],
+                'titulo': post[1],
+                'descricao': post[2],
+                'acao': post[2],
+                'atividade': post[3],
+                'data': data.strftime('%d/%m/%Y') if data else '',
+                'hora': data.strftime('%H:%M') if data else '',
+                'imagem': f'/uploads/Usuarios/Post_Ong/{post[0]}.jpg'
+            })
+
+        proximaPagina = pagina + 1
+        if proximaPagina > numeroPaginas:
+            proximaPagina = 0
+
+        return jsonify({'projeto': {
+            'id_projeto': info[0],
+            'nome': info[1],
+            'descricao_causa': info[2],
+            'descricao': info[2],
+            'meta_doacao': info[3],
+            'atividade': info[4],
+            'id_ong': info[5],
+            'instituicao': info[6],
+            'imagem': f'/uploads/Usuarios/Projeto/{info[0]}.jpg',
+            'logoInstituicao': f'/uploads/Usuarios/Icone_Perfil/{info[5]}.jpg',
+            'atualizacoes': atualizacoes
+        }, 'numeroPaginas': numeroPaginas, 'proximaPagina': proximaPagina, 'paginaAnterior': pagina - 1, 'quantidade':quantidade}), 200
+    except Exception as e:
+        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': f'Erro ao detalhar projeto: {e}'}}), 500
+    finally:
+        cur.close()
+
+@app.route('/verificar_token', methods=['GET'])
+def verificar_token():
+    token = request.cookies.get("access_token")
+
+    if not token:
+        return jsonify({
+            "mensagem": {
+                "tipo": "erro",
+                "descricao": "Token não encontrado"
+            }
+        }), 401
+
+    try:
+        info = jwt.decode(
+            token,
+            senha_secreta,
+            algorithms=['HS256']
+        )
+
+        return jsonify({
+            "mensagem": {
+                "tipo": "sucesso",
+                "descricao": "Token válido"
+            },
+            "id_usuario": info["id_usuario"]
+        }), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({
+            "mensagem": {
+                "tipo": "erro",
+                "descricao": "Token expirado"
+            }
+        }), 401
+
+    except Exception as e:
+        return jsonify({
+            "mensagem": {
+                "tipo": "erro",
+                "descricao": f"Erro ao verificar token: {str(e)}"
+            }
+        }), 500
+
+@app.route('/permitir_recusar_ong/<int:id_usuario>/<int:id_ong>', methods=['PUT'])
+def permitir_recusar_ong(id_usuario, id_ong):
+    token = request.cookies.get('access_token')
+    if not token:
+        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Token de autenticação necessário'}}), 401
+
+    cur = con.cursor()
+    try:
+        dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+        id_token = dados['id_usuario']
+        if id_usuario != id_token:
+            return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Você não tem permissão'}}), 403
+
+        cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
+        admin = cur.fetchone()
+        if not admin or admin[0] != 2:
+            return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Você não tem permissão'}}), 403
+
+        data = request.get_json() or {}
+        acao = int(data.get('acao')) if data.get('acao') is not None else None
+        assunto = data.get('assunto') or 'Análise do cadastro da ONG'
+        mensagem = data.get('mensagem') or ''
+
+        cur.execute('select email, situacao, nome from usuario where id_usuario = ? and tipo_de_usuario = 1', (id_ong,))
+        ong = cur.fetchone()
+        if not ong:
+            return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'ONG não encontrada'}}), 404
+
+        email, status_atual, nome_ong = ong
+        if status_atual not in (0, 4):
+            return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'ONG já foi analisada'}}), 400
+
+        if acao == 1:
+            cur.execute('update usuario set situacao = 1 where id_usuario = ?', (id_ong,))
+            con.commit()
+            try:
+                enviando_email(email, 'ONG aprovada', 'Sua ONG foi aprovada. Você já pode utilizar o sistema.', '', nome_ong)
+            except Exception:
+                pass
+            return jsonify({'mensagem': {'tipo': 'sucesso', 'descricao': 'ONG aprovada com sucesso'}}), 200
+
+        if acao == 0:
+            if not assunto or not mensagem:
+                return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Assunto e motivo são obrigatórios'}}), 400
+            cur.execute('update usuario set situacao = 5 where id_usuario = ?', (id_ong,))
+            con.commit()
+            try:
+                enviando_email(email, assunto, mensagem, '', nome_ong)
+            except Exception:
+                pass
+            return jsonify({'mensagem': {'tipo': 'sucesso', 'descricao': 'ONG recusada e email enviado'}}), 200
+
+        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Ação inválida'}}), 400
+    except jwt.ExpiredSignatureError:
+        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Token expirado'}}), 401
+    except Exception as e:
+        if con:
+            con.rollback()
+        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': f'Erro ao analisar ONG: {e}'}}), 500
+    finally:
+        cur.close()
+
+@app.route('/excluir_usuario/<int:id_usuario>/<int:id_ong>', methods=['DELETE'])
+def excluir_usuario(id_usuario, id_ong):
+    token = request.cookies.get('access_token')
+    if not token:
+        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Token de autenticação necessário'}}), 401
+
+    cur = con.cursor()
+    try:
+        dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+        id_token = dados['id_usuario']
+        if id_usuario != id_token:
+            return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Você não tem permissão'}}), 403
+
+        cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
+        admin = cur.fetchone()
+        if not admin or admin[0] != 2:
+            return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Você não tem permissão'}}), 403
+
+        cur.execute('select situacao from usuario where id_usuario = ?', (id_ong,))
+        situacao = cur.fetchone()
+
+        cur.execute('select id_usuario from usuario where id_usuario = ?', (id_ong,))
+        existe = cur.fetchone()
+        
+        if existe:
+            return  jsonify({
+                'mensagem':{
+                    'tipo':"erro",
+                    "descricao":"Essa Ong não foi encontrada"
+                }
+            })
+        
+        if situacao[0] != 5 and situacao[0] != 3 and situacao[0] != 2 :
+            return  jsonify({
+                'mensagem':{
+                    'tipo':"erro",
+                    "descricao":"Essa Ong não pode ser excluida pois não foi recusada ou bloqueada"
+                }
+            })
+        else:
+            cur.execute('select id_projeto from projeto_ong where fk_usuario_ong = ?',(id_ong,))
+            id_projetos = cur.fetchall()
+            if id_projetos:
+                for (id_proj,) in id_projetos:
+                    cur.execute('delete from post_projeto where fk_projeto = ?', (id_proj,))
+                    cur.execute('delete from projeto_ong where id_projeto = ?', (id_proj,))
+                    cur.execute('delete from usuario where id_usuario =?', (id_ong,))
+                    con.commit()
+            else:
+                cur.execute('delete from usuario where id_usuario =?', (id_ong,))
+                con.commit()
+
+            return jsonify({'mensagem': {
+                "tipo": "sucesso",
+                "descricao": "Ong excluida com sucesso"
+            }})
+
+    except Exception as e:
+        if con:
+            con.rollback()
+        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': f'Erro ao Excluir ONG: {e}'}}), 500
+    finally:
+        cur.close()
