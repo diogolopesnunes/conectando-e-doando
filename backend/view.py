@@ -1044,7 +1044,7 @@ def listar_ong_adm(pagina, aprovacao):
         for ong in ongs:
             ongs_lista.append({
                 'id_usuario': ong[0],
-                'nome': ong[1],
+                'nome': ong[1].upper(),
                 'descricao_causa': ong[2],
                 'situacao': ong[3],
                 'cpf_cnpj': ong[4],
@@ -1472,6 +1472,7 @@ def editar_projeto(id_projeto, id_usuario):
             descricao = request.form.get('descricao')
             meta_doacao = request.form.get('meta_doacao')
 
+
             imagem = request.files.get('imagem')
 
             if not nome or not str(nome).strip():
@@ -1499,8 +1500,17 @@ def editar_projeto(id_projeto, id_usuario):
                 return jsonify({'mensagem': {
                     "tipo": "erro",
                     "descricao": 'Meta deve ser maior que zero'}}), 400
+            if tipo_de_usuario == 2:
+                cur.execute("""
+                            UPDATE PROJETO_ONG
+                            SET NOME        =?,
+                                DESCRICAO   = ?,
+                                META_DOACAO = ?
+                            WHERE ID_PROJETO = ?
 
-            cur.execute("""
+                            """, (nome.strip(), descricao.strip(), meta_doacao, id_projeto))
+            elif tipo_de_usuario == 1:
+                cur.execute("""
                         UPDATE PROJETO_ONG
                         SET NOME        =?,
                             DESCRICAO   = ?,
