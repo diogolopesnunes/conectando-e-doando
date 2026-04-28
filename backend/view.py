@@ -1434,21 +1434,31 @@ def editar_projeto(id_projeto, id_usuario):
                     'select nome, meta_doacao, descricao from projeto_ong where id_projeto = ? and fk_usuario_ong = ? ',
                     (id_projeto, id_usuario))
                 info_projeto_ong = cur.fetchone()
+                if not info_projeto_ong:
+                    return jsonify({'mensagem': {
+                        'tipo': 'erro',
+                        'descricao': 'Projeto não encontrado'
+                    }})
+                return jsonify({'projeto': {
+                    'nome': info_projeto_ong[0],
+                    'meta_doacao': info_projeto_ong[1],
+                    'descricao': info_projeto_ong[2]
+                }})
 
             if tipo_de_usuario == 2:
-                cur.execute('select 1 from projeto_ong where id_projeto = ? ', (id_projeto, ))
-            projeto_ong = cur.fetchone()
+                cur.execute('select nome, meta_doacao, descricao from projeto_ong where id_projeto = ?', (id_projeto, ))
+                projeto_ong = cur.fetchone()
 
-            if not info_projeto_ong:
-                return jsonify({'mensagem': {
-                    'tipo': 'erro',
-                    'descricao': 'Projeto não encontrado'
+                if not projeto_ong:
+                    return jsonify({'mensagem': {
+                        'tipo': 'erro',
+                        'descricao': 'Projeto não encontrado'
+                    }})
+                return jsonify({'projeto': {
+                    'nome': projeto_ong[0],
+                    'meta_doacao': projeto_ong[1],
+                    'descricao': projeto_ong[2]
                 }})
-            return jsonify({'projeto': {
-                'nome': info_projeto_ong[0],
-                'meta_doacao': info_projeto_ong[1],
-                'descricao': info_projeto_ong[2]
-            }})
         except Exception as e:
             return jsonify({'mensagem': {
                 'tipo': 'erro',
@@ -1569,7 +1579,11 @@ def editar_post(id_projeto, id_usuario, id_post):
         if request.method == "GET":
             cur.execute('select titulo, atividade, acao from post_projeto where fk_projeto = ? and id_post_projeto = ? ',(id_projeto, id_post))
             info_post = cur.fetchone()
-            return jsonify({'titulo' : info_post[0], 'atividade': info_post[1], 'acao': info_post[2]})
+            return jsonify({'post':{
+                'titulo': info_post[0],
+                'atividade': info_post[1],
+                'acao': info_post[2]
+            }})
 
 
         titulo = request.form.get('titulo')
@@ -1625,7 +1639,7 @@ def editar_post(id_projeto, id_usuario, id_post):
         caminhho_imagem = None
 
         if imagem:
-            nome_imagem = f"{id_projeto}.jpg"
+            nome_imagem = f"{id_post}.jpg"
             caminho_imagem_destino = os.path.join(app.config['UPLOAD_FOLDER'], "Usuarios/Post_Ong")
             os.makedirs(caminho_imagem_destino, exist_ok=True)
             caminho_imagem = os.path.join(caminho_imagem_destino, nome_imagem)
@@ -2189,7 +2203,7 @@ def buscar_ong(id_ong, pagina):
         cur.execute("""select id_projeto, nome, descricao, atividade
                                from projeto_ong
                                where fk_usuario_ong = ?
-                               ORDER BY id_projeto ASC ROWS ? TO ?""", (id_ong, minimo, maximo))
+                               ORDER BY id_projeto DESC ROWS ? TO ?""", (id_ong, minimo, maximo))
         resultado = cur.fetchall()
 
         projetos = []
