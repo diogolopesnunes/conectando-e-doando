@@ -554,6 +554,7 @@ def editar_usuario(id_usuario):
             senha = request.form.get('senha')
             telefone = request.form.get('telefone') or infos[3]
             imagem = request.files.get('imagem')
+            banner = request.files.get('bannerOng')
             tipo_ong = request.form.get('tipo_ong') or infos[4]
             descricao_causa = request.form.get('descricao_causa') or infos[5]
             banco_ong = request.form.get('banco_ong') or infos[6]
@@ -570,10 +571,18 @@ def editar_usuario(id_usuario):
 
             if imagem and imagem.filename != "":
                 nome_imagem = f"{id_usuario}.jpg"
-                caminho_imagem_destino = os.path.join(app.config['UPLOAD_FOLDER'], "Usuarios")
+                caminho_imagem_destino = os.path.join(app.config['UPLOAD_FOLDER'], "Usuarios/Icone_Perfil")
                 os.makedirs(caminho_imagem_destino, exist_ok=True)
                 caminho_imagem = os.path.join(caminho_imagem_destino, nome_imagem)
                 imagem.save(caminho_imagem)
+
+            if banner and banner.filename != "":
+                nome_banner = f"{id_usuario}_banner.jpg"
+                caminho_banner_destino = os.path.join(app.config['UPLOAD_FOLDER'], "Usuarios/Baner_Ong", )
+                os.makedirs(caminho_banner_destino, exist_ok=True)
+                caminho_banner = os.path.join(caminho_banner_destino, nome_banner)
+                banner.save(caminho_banner)
+
             if senha:
                 mensagem, senha_criptografada = valida_nova_senha(senha, id_usuario, cur)
 
@@ -948,8 +957,8 @@ def validar_conta():
         cur.close()
 
 
-@app.route('/listar_ong_adm', methods=['GET'])
-def listar_ong_adm():
+@app.route('/listar_ong_adm/<int:pagina>/<int:aprovacao>', methods=['GET'])
+def listar_ong_adm(pagina, aprovacao):
     token = request.cookies.get('access_token')
     if not token:
         return jsonify({'mensagem': {
@@ -975,31 +984,86 @@ def listar_ong_adm():
 
     try:
         cur = con.cursor()
+        nome = request.args.get('nome', '')
 
-        cur.execute("""select count(id_usuario) from usuario""")
+        if aprovacao == 0:
+            cur.execute("""select count(id_usuario)
+                           from usuario
+                           where tipo_de_usuario = 1
+                            and situacao in (0, 4)
+                            AND UPPER(nome) LIKE UPPER(?)
+                        """, (f"%{nome}%",))
+        elif aprovacao == 1:
+            cur.execute("""select count(id_usuario)
+                           from usuario
+                           where tipo_de_usuario = 1 
+                            and situacao not in (0, 4)
+                            AND UPPER(nome) LIKE UPPER(?)
+                        """, (f"%{nome}%",))
+        else:
+            return jsonify({'mensagem': {
+                "tipo": "erro",
+                "descricao": "Filtro de aprovação inválido"
+            }}), 400
+
         quantidade = cur.fetchone()[0]
-        pagina = 1
+
         numeroPaginas = math.ceil(quantidade / quantidadePorPagina)
 
         minimo = ((pagina - 1) * quantidadePorPagina) + 1
         maximo = pagina * quantidadePorPagina
 
-        cur.execute("""select id_usuario, nome, descricao_causa, situacao, cpf_cnpj, telefone, data_hora_registro from usuario where tipo_de_usuario = 1""")
+        if aprovacao == 0:
+            cur.execute("""
+                        SELECT id_usuario, nome, descricao_causa, situacao, cpf_cnpj, telefone, data_hora_registro
+                        FROM usuario
+                        WHERE tipo_de_usuario = 1
+                          AND situacao IN (0, 4)
+                                  AND UPPER(nome) LIKE UPPER(?)
+                        ORDER BY id_usuario DESC ROWS ? TO ?
+                        """, (f"%{nome}%", minimo, maximo))
+        elif aprovacao == 1:
+            cur.execute("""
+                        SELECT id_usuario, nome, descricao_causa, situacao, cpf_cnpj, telefone, data_hora_registro
+                        FROM usuario
+                        WHERE tipo_de_usuario = 1
+                          AND situacao NOT IN (0, 4)
+                          AND UPPER(nome) LIKE UPPER(?)
+                        ORDER BY id_usuario DESC ROWS ? TO ?
+                        """, (f"%{nome}%", minimo, maximo))
+        else:
+            return jsonify({'mensagem': {
+                "tipo": "erro",
+                "descricao": "Filtro de aprovação inválido"
+            }}), 400
+
         ongs = cur.fetchall()
         ongs_lista = []
 
+        numeroOng = 1
         for ong in ongs:
             ongs_lista.append({
                 'id_usuario': ong[0],
                 'nome': ong[1],
                 'descricao_causa': ong[2],
                 'situacao': ong[3],
-                'cpf_cpnj': ong[4],
+                'cpf_cnpj': ong[4],
                 'telefone': ong[5],
                 'data_hora_registro': ong[6].strftime("%d/%m/%Y %H:%M")
             })
+            numeroOng += 1
 
-        return jsonify(mensagem='Lista de Ongs', ongs=ongs_lista)
+        proximaPagina = pagina + 1
+        if proximaPagina > numeroPaginas:
+            proximaPagina = 0
+
+        return jsonify({
+            'mensagem':'Lista de Ongs',
+            'ongs':ongs_lista,
+            'numeroPaginas':numeroPaginas,
+            'proximaPagina':proximaPagina,
+            'paginaAnterior':pagina - 1
+        })
 
     except Exception as e:
         return jsonify({'message':{
@@ -1156,9 +1220,10 @@ def cadastrar_projeto(id_usuario):
 def listar_projetos(id_usuario, pagina):
     cur = con.cursor()
     try:
+        nome = request.args.get('nome', '')
         cur.execute("""select count(id_projeto)
                        from projeto_ong
-                       where fk_usuario_ong = ?""", (id_usuario,))
+                       where fk_usuario_ong = ? AND UPPER(nome) LIKE UPPER(?)""", (id_usuario, f"%{nome}%"))
         quantidade = cur.fetchone()[0]
 
         numeroPaginas = math.ceil(quantidade/quantidadePorPagina)
@@ -1170,8 +1235,10 @@ def listar_projetos(id_usuario, pagina):
                     SELECT id_projeto, nome, descricao, atividade
                     FROM projeto_ong
                     WHERE fk_usuario_ong = ?
-                    ORDER BY id_projeto ASC ROWS ? TO ?
-                    """, (id_usuario, minimo, maximo))
+                      AND UPPER(nome) LIKE UPPER(?)
+                    ORDER BY id_projeto desc
+                    ROWS ? TO ?
+                    """, (id_usuario, f"%{nome}%", minimo, maximo))
         resultado = cur.fetchall()
 
         projetos = []
@@ -1188,7 +1255,7 @@ def listar_projetos(id_usuario, pagina):
             proximaPagina = pagina+1
             if proximaPagina > numeroPaginas:
                 proximaPagina = 0
-        return jsonify({'projetos': projetos, 'numeroPaginas': numeroPaginas, 'proximaPagina': proximaPagina, 'paginaAnterior': pagina-1}), 200
+        return jsonify({'projetos': projetos, 'numeroPaginas': numeroPaginas, 'proximaPagina': proximaPagina, 'paginaAnterior': pagina - 1}), 200
     except Exception as e:
         return jsonify({'mensagem': {
             'tipo': 'erro',
@@ -1811,7 +1878,7 @@ def listar_posts(id_projeto, pagina):
                     SELECT id_post_projeto, titulo, acao, atividade, data_hora
                     FROM post_projeto
                     WHERE fk_projeto = ?
-                    ORDER BY data_hora ASC ROWS ? TO ?
+                    ORDER BY data_hora DESC ROWS ? TO ?
                     """, (id_projeto, minimo, maximo))
         resultado = cur.fetchall()
 
@@ -2039,66 +2106,69 @@ def ativar_desativar_post(id_usuario, id_projeto, id_post):
         cur.close()
 
 
-@app.route('/listar_ong_adm/<int:pagina>/<int:filtro>', methods=['GET'])
-def listar_ong_adm_paginado(pagina, filtro):
-    token = request.cookies.get('access_token')
-    if not token:
-        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Token de autenticação necessário'}}), 401
+# @app.route('/li/<int:pagina>/<int:filtro>', methods=['GET'])
+# def listar_ong_adm_paginado(pagina, filtro):
+#     token = request.cookies.get('access_token')
+#     if not token:
+#         return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Token de autenticação necessário'}}), 401
+#
+#     cur = con.cursor()
+#     try:
+#         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+#         id_token = dados['id_usuario']
+#         cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
+#         usuario = cur.fetchone()
+#         if not usuario or usuario[0] != 2:
+#             return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Apenas administradores podem acessar esta página'}}), 403
+#
+#         where_filtro = 'and situacao in (0, 4)' if filtro == 0 else 'and situacao not in (0, 4)'
+#         cur.execute(f"""select count(id_usuario)
+#                         from usuario
+#                         where tipo_de_usuario = 1 {where_filtro}""")
+#         quantidade = cur.fetchone()[0]
+#         numeroPaginas = math.ceil(quantidade / quantidadePorPagina) if quantidade else 0
+#         if pagina < 1:
+#             pagina = 1
+#         if numeroPaginas and pagina > numeroPaginas:
+#             pagina = numeroPaginas
+#
+#         minimo = ((pagina - 1) * quantidadePorPagina) + 1
+#         maximo = pagina * quantidadePorPagina
+#         nome = request.args.get('nome', '')
+#
+#         cur.execute(f"""select id_usuario, nome, descricao_causa, situacao, cpf_cnpj, telefone, data_hora_registro
+#                         from usuario
+#                         where tipo_de_usuario = 1 {where_filtro}
+#                         AND UPPER(nome) LIKE
+#                         order by data_hora_registro desc rows ? to ?""", (minimo, maximo))
+#         resultado = cur.fetchall()
+#         ongs_lista = []
+#         for ong in resultado:
+#             ongs_lista.append({
+#                 'id_usuario': ong[0],
+#                 'nome': ong[1],
+#                 'descricao_causa': ong[2],
+#                 'situacao': ong[3],
+#                 'cpf_cnpj': ong[4],
+#                 'telefone': ong[5],
+#                 'data_hora_registro': ong[6].strftime('%d/%m/%Y %H:%M') if ong[6] else ''
+#             })
+#
+#         proximaPagina = pagina + 1
+#         if proximaPagina > numeroPaginas:
+#             proximaPagina = 0
+#         return jsonify({'mensagem': 'Lista de Ongs', 'ongs': ongs_lista, 'numeroPaginas': numeroPaginas, 'proximaPagina': proximaPagina, 'paginaAnterior': pagina - 1}), 200
+#     except Exception as e:
+#         return jsonify({'mensagem': {'tipo': 'erro', 'descricao': f'Erro ao listar ONGs: {e}'}}), 500
+#     finally:
+#         cur.close()
 
+
+@app.route('/buscar_ong/<int:id_ong>/<int:pagina>', methods=['GET'])
+def buscar_ong(id_ong, pagina):
     cur = con.cursor()
     try:
-        dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
-        id_token = dados['id_usuario']
-        cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
-        usuario = cur.fetchone()
-        if not usuario or usuario[0] != 2:
-            return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Apenas administradores podem acessar esta página'}}), 403
 
-        where_filtro = 'and situacao in (0, 4)' if filtro == 0 else 'and situacao not in (0, 4)'
-        cur.execute(f"""select count(id_usuario)
-                        from usuario
-                        where tipo_de_usuario = 1 {where_filtro}""")
-        quantidade = cur.fetchone()[0]
-        numeroPaginas = math.ceil(quantidade / quantidadePorPagina) if quantidade else 0
-        if pagina < 1:
-            pagina = 1
-        if numeroPaginas and pagina > numeroPaginas:
-            pagina = numeroPaginas
-
-        minimo = ((pagina - 1) * quantidadePorPagina) + 1
-        maximo = pagina * quantidadePorPagina
-
-        cur.execute(f"""select id_usuario, nome, descricao_causa, situacao, cpf_cnpj, telefone, data_hora_registro
-                        from usuario
-                        where tipo_de_usuario = 1 {where_filtro}
-                        order by data_hora_registro desc rows ? to ?""", (minimo, maximo))
-        resultado = cur.fetchall()
-        ongs_lista = []
-        for ong in resultado:
-            ongs_lista.append({
-                'id_usuario': ong[0],
-                'nome': ong[1],
-                'descricao_causa': ong[2],
-                'situacao': ong[3],
-                'cpf_cnpj': ong[4],
-                'telefone': ong[5],
-                'data_hora_registro': ong[6].strftime('%d/%m/%Y %H:%M') if ong[6] else ''
-            })
-
-        proximaPagina = pagina + 1
-        if proximaPagina > numeroPaginas:
-            proximaPagina = 0
-        return jsonify({'mensagem': 'Lista de Ongs', 'ongs': ongs_lista, 'numeroPaginas': numeroPaginas, 'proximaPagina': proximaPagina, 'paginaAnterior': pagina - 1}), 200
-    except Exception as e:
-        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': f'Erro ao listar ONGs: {e}'}}), 500
-    finally:
-        cur.close()
-
-
-@app.route('/buscar_ong/<int:id_ong>', methods=['GET'])
-def buscar_ong(id_ong):
-    cur = con.cursor()
-    try:
         cur.execute("""select id_usuario, nome, tipo_ong, descricao_causa, cpf_cnpj, telefone, cidade_ong
                        from usuario
                        where id_usuario = ? and tipo_de_usuario = 1""", (id_ong,))
@@ -2106,19 +2176,39 @@ def buscar_ong(id_ong):
         if not usuario:
             return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'ONG não encontrada'}}), 404
 
-        cur.execute("""select id_projeto, nome, descricao, atividade
+        cur.execute("""select count(id_projeto)
                        from projeto_ong
-                       where fk_usuario_ong = ?
-                       order by id_projeto desc""", (id_ong,))
+                       where fk_usuario_ong = ?""", (id_ong,))
+        quantidade = cur.fetchone()[0]
+
+        numeroPaginas = math.ceil(quantidade / quantidadePorPagina) if quantidade else 0
+
+        minimo = ((pagina - 1) * quantidadePorPagina) + 1
+        maximo = pagina * quantidadePorPagina
+
+        cur.execute("""select id_projeto, nome, descricao, atividade
+                               from projeto_ong
+                               where fk_usuario_ong = ?
+                               ORDER BY id_projeto ASC ROWS ? TO ?""", (id_ong, minimo, maximo))
+        resultado = cur.fetchall()
+
         projetos = []
-        for projeto in cur.fetchall():
+        numeroProjeto = 1
+        for linha in resultado:
             projetos.append({
-                'id_projeto': projeto[0],
-                'nome': projeto[1],
-                'descricao': projeto[2],
-                'atividade': projeto[3],
-                'imagem': f'/uploads/Usuarios/Projeto/{projeto[0]}.jpg'
+                'numero projeto': numeroProjeto,
+                'id_projeto': linha[0],
+                'nome': linha[1],
+                'descricao': linha[2],
+                'atividade': linha[3],
+                'imagem': f'/uploads/Usuarios/Projeto/{linha[0]}.jpg'
             })
+            numeroProjeto += 1
+            
+        proximaPagina = pagina + 1
+        if proximaPagina > numeroPaginas:
+            proximaPagina = 0
+
 
         return jsonify({'ong': {
             'id_usuario': usuario[0],
@@ -2130,8 +2220,13 @@ def buscar_ong(id_ong):
             'cidade_ong': usuario[6],
             'imagem': f'/uploads/Usuarios/Baner_Ong/{usuario[0]}_banner.jpg',
             'logoInstituicao': f'/uploads/Usuarios/Icone_Perfil/{usuario[0]}.jpg',
-            'projetos': projetos
-        }}), 200
+            'projetos': projetos,
+
+        },
+            'numeroPaginas': numeroPaginas,
+            'proximaPagina': proximaPagina,
+            'paginaAnterior': pagina - 1
+        }), 200
     except Exception as e:
         return jsonify({'mensagem': {'tipo': 'erro', 'descricao': f'Erro ao buscar ONG: {e}'}}), 500
     finally:
@@ -2328,20 +2423,20 @@ def excluir_usuario(id_usuario, id_ong):
             return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Você não tem permissão'}}), 403
 
         cur.execute('select situacao from usuario where id_usuario = ?', (id_ong,))
-        situacao = cur.fetchone()
+        situacao = cur.fetchone()[0]
 
         cur.execute('select id_usuario from usuario where id_usuario = ?', (id_ong,))
         existe = cur.fetchone()
-        
-        if existe:
-            return  jsonify({
+
+        if not existe:
+            return jsonify({
                 'mensagem':{
                     'tipo':"erro",
                     "descricao":"Essa Ong não foi encontrada"
                 }
             })
         
-        if situacao[0] != 5 and situacao[0] != 3 and situacao[0] != 2 :
+        if situacao not in [5,2,3]:
             return  jsonify({
                 'mensagem':{
                     'tipo':"erro",
@@ -2354,9 +2449,11 @@ def excluir_usuario(id_usuario, id_ong):
             if id_projetos:
                 for (id_proj,) in id_projetos:
                     cur.execute('delete from post_projeto where fk_projeto = ?', (id_proj,))
-                    cur.execute('delete from projeto_ong where id_projeto = ?', (id_proj,))
-                    cur.execute('delete from usuario where id_usuario =?', (id_ong,))
                     con.commit()
+                    cur.execute('delete from projeto_ong where id_projeto = ?', (id_proj,))
+                    con.commit()
+                cur.execute('delete from usuario where id_usuario =?', (id_ong,))
+                con.commit()
             else:
                 cur.execute('delete from usuario where id_usuario =?', (id_ong,))
                 con.commit()

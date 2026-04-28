@@ -62,7 +62,7 @@ def enviando_email(destinatario, assunto, mensagem, codigo, nome):
 def gerar_token_temporario(id_usuario):
     payload = {
         'id_usuario': id_usuario,
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=5),
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=90),
         'timestamp': datetime.datetime.utcnow().isoformat()
     }
 
@@ -73,7 +73,7 @@ def gerar_token_temporario(id_usuario):
 def gerar_token(id_usuario):
     payload = {
         'id_usuario': id_usuario,
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=15),
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=90),
         'timestamp': datetime.datetime.utcnow().isoformat()
     }
 
