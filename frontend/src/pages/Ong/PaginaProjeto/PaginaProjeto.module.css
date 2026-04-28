@@ -16,11 +16,17 @@
     gap: 20px;
 }
 
-.acoesCabecalho {
+.botaoVoltar {
     width: 100%;
     display: flex;
     justify-content: flex-start;
     margin-bottom: 10px;
+}
+
+@media (max-width: 769px) {
+    .botaoVoltar {
+        padding-left: 15px !important;
+    }
 }
 
 @media (max-width: 426px) {
@@ -32,7 +38,8 @@
         gap: 15px;
     }
 
-    .acoesCabecalho {
-        margin-bottom: 5px;
+    .botaoVoltar {
+        margin: 5px 0;
+        justify-content: center;
     }
 }

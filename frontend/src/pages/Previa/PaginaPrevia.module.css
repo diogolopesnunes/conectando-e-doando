@@ -1,0 +1,24 @@
+.cardBonito {
+    background-color: var(--cinza);
+    align-content: center;
+    text-align: center;
+    padding: 20px !important;
+    border-radius: 20px;
+    max-heigth: 250px;
+    max-width: 90%;
+    gap: 20px;
+}
+
+.nome {
+    color: var(--preto);
+    font-size: var(--titulo-card);
+    font-weight: bold;  
+}
+
+.item_impar {
+    color: var(--preto);
+}
+
+.item_par {
+    color: var(--preto);
+}

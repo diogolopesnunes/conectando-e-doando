@@ -124,3 +124,9 @@
         font-size: 0.85rem;
     }
 }
+
+@media (max-width: 321px) {
+    .imagemProjeto{
+        width: 300px;
+    }
+}

@@ -40,6 +40,22 @@
     font-size: 14px;
 }
 
-h3{
-    margin-left: 10px !important;
+h3 {
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 426px) {
+    .imagem{
+        max-width: 100%;
+        width: 100%;
+    }
+    h3{
+        width: 100%;
+    }
+    .card{
+        max-width: 425px;
+    }
+    .info, h3{
+        margin-left: 0 !important;
+    }
 }

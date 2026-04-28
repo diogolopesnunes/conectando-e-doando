@@ -119,7 +119,7 @@ export default function EditarProjeto({ api }) {
                         {mensagem && (
                             <Alerts
                                 tipo={tipoMensagem}
-                                imagem={`./public/${tipoMensagem}.png`}
+                                imagem={`/public/${tipoMensagem}.png`}
                                 duracao={'10000'}
                                 descricao={mensagem}
                             />

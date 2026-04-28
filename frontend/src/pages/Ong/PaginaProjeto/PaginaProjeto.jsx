@@ -92,7 +92,7 @@ export default function PaginaProjeto({ api, info }) {
         <div className={"m-auto container " + css.containerPrincipal}>
             <Nav />
             <div className={'row'}>
-                <div className={'col px-3 px-sm-0'}>
+                <div className={'col  px-sm-0'}>
                     <div className={css.conteudo}>
 
                         {mensagem && (
@@ -105,7 +105,7 @@ export default function PaginaProjeto({ api, info }) {
                             />
                         )}
 
-                        <div className={css.acoesCabecalho}>
+                        <div className={css.botaoVoltar}>
                             <Buton onClick={() => navigate(-1)} background="rosa" tamanho="pequeno" texto="Voltar" />
                         </div>
 

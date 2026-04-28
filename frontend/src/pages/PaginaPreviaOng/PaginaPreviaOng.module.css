@@ -44,5 +44,6 @@
 
     .acoesCabecalho {
         margin-bottom: 5px;
+        padding: 15px !important;
     }
 }
