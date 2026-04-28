@@ -1,0 +1,19 @@
+.titulo {
+    background-color: var(--roxo);
+    border-radius: 100px;
+    color: var(--branco);
+    height: 10%;
+    width: 80%;
+    position: absolute;
+    top: 0;
+    left: -1.2em;
+}
+
+.card {
+    width: 45vh;
+    height: 60vh;
+    /*border: 0.3em solid var(--preto);*/
+    position: relative;
+    border-radius: 38px;
+    border: none;
+}

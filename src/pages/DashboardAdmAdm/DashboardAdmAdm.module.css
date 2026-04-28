@@ -1,0 +1,35 @@
+.cardBonito {
+    /*background-color: var(--cinza);*/
+    align-content: center;
+    padding: 20px !important;
+    border-radius: 20px;
+    max-heigth: 250px;
+    max-width: 90%;
+    gap: 20px;
+    align-items: center;
+}
+
+.nome {
+    color: var(--preto);
+    font-size: var(--titulo-card);
+}
+
+.nome p{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    /*text-align: left;*/
+}
+
+.item_impar, .item_par {
+    color: var(--preto);
+}
+
+.alinhaEsquerdo{
+    text-align: left !important;
+}
+
+.alinhaDireita{
+    text-align: right !important;
+}

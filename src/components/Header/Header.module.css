@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+.header {
+    background: #ffffff;
+    padding: 10px 40px;
+    position: relative;
+    margin-right: 20px !important;
+}
+
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo img {
+    height: 70px;
+}
+
+.menu {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.menu a {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+    margin-left: 25px;
+    text-decoration: none;
+    color: #BD0D59;
+}
+
+
+.hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.hamburger span {
+    width: 35px;
+    height: 5px;
+
+    background: #000;
+    border-radius: 20px; /* deixa redondinho */
+    display: block;
+}
+
+
+@media (max-width: 768px) {
+
+    .header {
+        padding: 10px 10px;
+    }
+
+    .logo img {
+        height: 50px;
+        top: 100%;
+        left: 0;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    .menu {
+        transition: 1s;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: #ffffff;
+
+
+        flex-direction: column;
+        align-items: center;
+        padding: 20px 0;
+        gap: 30px;
+
+        display: none;
+    }
+
+    .menu a {
+        margin-left: 0;
+        font-size: 15px;
+    }
+
+    .menuOpen {
+        display: flex;
+    }
+}

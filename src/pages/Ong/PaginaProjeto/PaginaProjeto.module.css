@@ -1,0 +1,110 @@
+.containerPrincipal {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.conteudo {
+    width: 100%;
+    max-width: 1000px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.botaoVoltar {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 10px;
+}
+
+
+.containerProgresso {
+    background-color: #fff;
+    border: 1px solid #000000; /* Borda leve como na imagem */
+    border-radius: 15px;
+    padding: 20px !important;
+    margin: 25px 0;
+    font-family: 'Inter', sans-serif;
+}
+
+.valoresMeta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: #333;
+}
+
+.valorLaranja {
+    color: #FF8C69; /* Tom de laranja da imagem */
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+.barraProgressoContainer {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.porcentagemTexto {
+    font-weight: 800; /* Bem negrito como na imagem */
+    font-size: 24px;
+    min-width: 70px;
+    color: #000;
+}
+
+.barraFundo {
+    flex-grow: 1;
+    background-color: #f0f0f0;
+    height: 38px; /* Altura generosa para a barra */
+    border-radius: 25px;
+    overflow: hidden;
+    border: 1px solid #d1d1d1;
+}
+
+.barraPreenchida {
+    background-color: #e6e6e6; /* Roxo vibrante */
+    height: 100%;
+    border-radius: 25px;
+    transition: width 0.3s ease;
+}
+
+
+
+@media (max-width: 769px) {
+    .valoresMeta {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    .barraProgressoContainer {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+    .botaoVoltar {
+        padding-left: 15px !important;
+    }
+
+
+@media (max-width: 426px) {
+    .containerPrincipal {
+        padding: 10px;
+    }
+
+    .envoltórioConteudo {
+        gap: 15px;
+    }
+
+    .botaoVoltar {
+        margin: 5px 0;
+        justify-content: center;
+    }
+}

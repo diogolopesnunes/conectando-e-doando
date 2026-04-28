@@ -1,0 +1,100 @@
+
+
+.container {
+    margin-top: 20px !important;
+    display: flex;
+    gap: 20px;
+    padding: 40px;
+    justify-content: center;
+    align-items: stretch;
+
+}
+
+
+.cardLaranja {
+    background-color: #ff8552;
+    border-radius: 40px;
+    color: white;
+    padding: 60px 40px;
+    width: 100%;
+    max-width: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    text-align: center;
+}
+
+.cardRoxo {
+    background-color: #6a005f;
+    border-radius: 40px;
+    color: white;
+    padding: 60px 40px !important;
+    width: 100%;
+    max-width: 800px;
+    min-height: 350px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.titulo {
+    font-size: 1.7em;
+    font-weight: bold;
+    margin-bottom: 15px !important;
+    line-height: 1.1;
+    max-width: 80%;
+}
+
+.descricao {
+    font-size: 1.1rem;
+    margin-bottom: 30px !important;
+    max-width: 60% ;
+    line-height: 1.4;
+}
+
+.containerImagem {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    height: 90%;
+    display: flex;
+    align-items: flex-end;
+}
+
+.containerImagem img {
+    height: 100%;
+    object-fit: contain;
+}
+
+@media (max-width: 769px) {
+    .containerImagem{
+        display: none;
+    }
+    .titulo, .descricao {
+        max-width: 100%;
+        text-align: center;
+    }
+}
+
+@media(max-width: 500px) {
+    .container{
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+    }
+    .cardRoxo, .cardLaranja {
+        width: 90%;
+        margin: auto;
+        display: block;
+        padding: 10px !important;
+    }
+    .cardLaranja {
+        max-width: 100% !important;
+    }
+    .cardRoxo {
+        min-height: 0;
+    }
+}

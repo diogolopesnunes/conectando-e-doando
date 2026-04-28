@@ -1,0 +1,19 @@
+.textoGrande{
+    width: 50%;
+    min-width: 0;
+}
+
+.textoGrande h5{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+    color: var(--preto);
+}
+
+@media (max-width: 426px) {
+    .textoGrande{
+        width: 100%;
+        min-width: 0;
+    }
+}

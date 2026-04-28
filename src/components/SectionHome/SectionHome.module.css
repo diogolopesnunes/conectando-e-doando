@@ -1,0 +1,57 @@
+.sectionHome {
+    min-height: 450px;
+    align-items: center;
+}
+
+.img {
+    width: 50% !important;
+    height: 400px;
+    border-radius: 168px;
+    border: 2px solid var(--branco);
+}
+
+.Quem_Somos {
+    display: flex;
+    padding: 4vh;
+}
+
+.Quem_Somos_text {
+    align-items: center;
+    display: flex;
+    gap: 50px;
+    flex-direction: column;
+}
+
+.Quem_Somos_text h1 {
+    color: var(--laranja);
+    font-size: 60px;
+}
+
+.Baner2 {
+    background-color: var(--vermelho);
+}
+
+.divImg {
+    width: 50%;
+}
+
+.tamanhoSection{
+    min-height: 350px;
+}
+
+@media (max-width: 426px) {
+
+    .sectionHome h1 {
+        font-size: 40px;
+    }
+
+    .img {
+        height: 40vh;
+        width: 100% !important;
+    }
+}
+@media (max-width: 321px) {
+    .sectionHome h1 {
+        text-align: center;
+    }
+}

@@ -1,0 +1,37 @@
+.titulo {
+    font-family: Inter;
+    font-size: 40px;
+}
+
+.banner {
+    color: var(--branco);
+    font-weight: bold;
+    width: 75%;
+    max-width: 1000px;
+}
+
+.branco {
+    color: var(--branco);
+}
+.categorias{
+    margin-bottom: 10px !important;
+    max-width: 100%;
+}
+
+@media (max-width: 426px) {
+    .titulo {
+        font-size: 30px;
+    }
+
+    .banner {
+        width: 100%;
+        text-align: center;
+        margin: auto;
+    }
+
+    .categorias {
+        width: 100%;
+        padding: 10px 3rem !important;
+        text-align: center;
+    }
+}

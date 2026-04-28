@@ -1,0 +1,171 @@
+.secaoAtualizacoes {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.cabecalhoAtualizacoes {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    margin-bottom: 40px;
+}
+
+.titulo {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0;
+    color: #333;
+    text-align: center;
+}
+
+.botaoAdicionar {
+    position: absolute;
+    right: 0;
+}
+
+.cardAtualizacao {
+    border: 2px solid #ff6b6b;
+    border-radius: 25px;
+    padding: 25px !important;
+    margin-bottom: 30px !important;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background-color: #fff;
+}
+
+.infoCabecalhoAtualizacao {
+    display: flex;
+    gap: 25px;
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.conteudoAtualizacao {
+    display: flex;
+    gap: 30px;
+    width: 100%;
+    margin-top: 25px;
+}
+
+.imagemAtualizacao {
+    width: 250px;
+    height: 150px;
+    border-radius: 20px;
+    object-fit: cover;
+}
+
+.textoAtualizacao {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.textoNenhumaAtualizacao {
+    text-align: center;
+}
+
+.cabecalhoInstituicaoAtualizacao {
+    /*display: flex;*/
+    /*align-items: center;*/
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.logoInstituicaoAtualizacao {
+    width: 45px;
+    height: 45px;
+}
+
+.nomeInstituicaoAtualizacao {
+    font-weight: bold;
+    font-size: 1rem;
+    color: #333;
+}
+
+.tituloAtualizacao {
+    font-size: 1.6rem;
+    font-weight: bold;
+    margin-bottom: 12px;
+    color: #333;
+}
+
+.descricaoAtualizacao {
+    font-size: 1rem;
+    color: #444;
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+.acoesAtualizacao {
+    display: flex;
+    justify-content: flex-end;
+    gap: 20px;
+    margin-top: auto;
+}
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+    .titulo {
+        font-size: 2rem;
+    }
+
+    .cabecalhoAtualizacoes {
+        flex-direction: column;
+        margin-bottom: 20px;
+    }
+
+    .botaoAdicionar {
+        position: static;
+        margin-top: 10px;
+    }
+
+    .cardAtualizacao {
+        padding: 15px !important;
+        border: 1.5px solid #ff6b6b !important;
+        border-radius: 15px;
+        margin-bottom: 20px !important;
+    }
+
+    .conteudoAtualizacao {
+        flex-direction: column;
+        /*gap: 10px;*/
+        margin-top: 35px;
+    }
+
+    .infoCabecalhoAtualizacao {
+        font-size: 0.7rem;
+    }
+
+    .imagemAtualizacao {
+        width: 100%;
+        height: auto;
+    }
+
+    .tituloAtualizacao {
+        font-size: 1.2rem;
+        text-align: left;
+    }
+
+    .descricaoAtualizacao {
+        font-size: 0.85rem;
+        text-align: left;
+    }
+
+    .acoesAtualizacao {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 321px) {
+    .cardAtualizacao{
+        /*width: 10%;*/
+        margin: auto !important;
+    }
+    .infoCabecalhoAtualizacao, .conteudoAtualizacao, .cabecalhoInstituicaoAtualizacao{
+        gap: 0;
+    }
+}
