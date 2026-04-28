@@ -123,9 +123,16 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
                     ) : (
                         <>
                             <Buton onClick={logout} background="rosa" tamanho="pequeno" texto="Sair" />
-                            <Link to={"/dashboard"}>
-                                Dashboard
-                            </Link>
+                            {localStorage.getItem('tipo_usuario') == 1 ?(
+                                <Link to={"/previa_ong"}>
+                                    Dashboard
+                                </Link>
+                            ): localStorage.getItem('tipo_usuario') == 2 && (
+                                <Link to={"/dashboard_adm_ong"}>
+                                    Dashboard
+                                </Link>
+                            )}
+
                         </>
                     )}
                 </nav>

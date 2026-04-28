@@ -8,7 +8,7 @@
     align-items: center;
 }
 
-.envoltórioConteudo {
+.conteudo {
     width: 100%;
     max-width: 1000px;
     display: flex;
@@ -23,7 +23,7 @@
     margin-bottom: 10px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 426px) {
     .containerPrincipal {
         padding: 10px;
     }

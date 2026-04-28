@@ -31,6 +31,8 @@
     color: white;
 }
 
+
+
 @media (max-width: 768px) {
     .containerPrincipal {
         padding: 10px;

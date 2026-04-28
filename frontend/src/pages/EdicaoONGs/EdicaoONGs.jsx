@@ -4,13 +4,14 @@ import Buton from "../../components/Buton/Buton.jsx";
 import { useState, useRef, useEffect } from "react";
 import css from "./EdicaoONGs.module.css";
 import Alerts from "../../components/Alerts/Alerts.jsx";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Nav from "../../components/Nav/Nav.jsx";
 
 export default function EditarOng({ api }) {
 
     const navigate = useNavigate();
     const inputImagemRef = useRef();
+    const inputBannerRef = useRef();
 
     const [mensagem, setMensagem] = useState('');
     const [tipoMensagem, setTipoMensagem] = useState('');
@@ -31,7 +32,11 @@ export default function EditarOng({ api }) {
     const [imagem, setImagem] = useState(null);
     const [preview, setPreview] = useState(null);
 
-    const [idUsuario, setIdUsuario] = useState(localStorage.getItem("id_usuario"));
+    const [imagemBanner, setImagemBanner] = useState(false)
+    const [previewBanner, setPreviewBanner] = useState(null);
+
+    const { id_usuario } = useParams();
+    const [idUsuario, setIdUsuario] = useState(id_usuario || localStorage.getItem("id_usuario"));
 
     const navegate = useNavigate();
 
@@ -39,17 +44,17 @@ export default function EditarOng({ api }) {
         if (!localStorage.getItem("email") || !localStorage.getItem("email") || !localStorage.getItem("id_usuario")) {
             navigate('/login')
         } else{
-            setIdUsuario(localStorage.getItem("id_usuario"));
+            setIdUsuario(id_usuario || localStorage.getItem("id_usuario"));
         }
     }, [])
 
     useEffect(() => {
         async function buscarOng() {
-            let res = await fetch(`${api}/editar_usuario/${idUsuario}`,{
+            let resposta = await fetch(`${api}/editar_usuario/${idUsuario}`,{
                 method: "GET",
                 credentials: "include"
             });
-            res = await res.json();
+            let res = await resposta.json();
 
             if (res.usuario) {
                 setNome(res.usuario.nome);
@@ -86,6 +91,14 @@ export default function EditarOng({ api }) {
         }
     }
 
+    function colocarImagemBanner(e) {
+        const algo = e.target.files[0];
+        if (algo) {
+            setImagemBanner(algo);
+            setPreviewBanner(URL.createObjectURL(algo));
+        }
+    }
+
     async function editar(e) {
         e.preventDefault();
 
@@ -108,6 +121,8 @@ export default function EditarOng({ api }) {
 
         if (senha) form.append("senha", senha);
         if (imagem) form.append("imagem", imagem);
+        if (imagemBanner) {form.append("bannerOng", imagemBanner)}
+
 
         let res = await fetch(`${api}/editar_usuario/${idUsuario}`, {
             method: "PUT",
@@ -122,7 +137,7 @@ export default function EditarOng({ api }) {
             setTipoMensagem(res.mensagem.tipo);
             if (res.mensagem.tipo == 'sucesso'){
                 setTimeout(function () {
-                    navegate('/projetos_ong')
+                    navegate(localStorage.getItem("tipo_usuario") == 2 ? "/dashboard_adm_ong" : "/projetos_ong")
                 }, 1500)
             }
         }
@@ -221,6 +236,34 @@ export default function EditarOng({ api }) {
                                                 inputImagemRef.current.value = null;
                                                 setPreview(null);
                                                 setImagem(null);
+                                            }}
+                                        />
+                                    </>
+                                )}
+                            </div>
+                            <div className="w-100 flex-column d-flex justify-content-center align-items-center mb-3">
+                                <label className={"mb-3 fw-bold"}>Imagem do Banner</label>
+                                <input
+                                    ref={inputBannerRef}
+                                    type="file"
+                                    onChange={colocarImagemBanner}
+                                    className={css.botao}
+                                />
+                                {previewBanner && (
+                                    <>
+                                        <img className={'mt-3 ' + css.preview}
+                                             src={previewBanner}
+                                             alt="Preview"
+                                        />
+                                        <Buton
+                                            tipo="button"
+                                            texto="Remover"
+                                            background="vermelho"
+                                            tamanho="pequeno"
+                                            onClick={() => {
+                                                inputBannerRef.current.value = null;
+                                                setPreviewBanner(null);
+                                                setImagemBanner(null);
                                             }}
                                         />
                                     </>

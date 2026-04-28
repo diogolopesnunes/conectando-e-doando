@@ -1,4 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
 .container {
+    font-family: 'Inter', sans-serif;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -6,6 +9,7 @@
 }
 
 .container h2 {
+    font-weight: bold;
     text-align: center;
 }
 
@@ -13,6 +17,8 @@
     display: flex;
     gap: 20px;
     align-items: center;
+    border-bottom: 1px rgba(0, 0, 0, 0.24) dashed;
+    padding-bottom: 15px !important;
 }
 
 .imagem {
@@ -21,11 +27,19 @@
 }
 
 .info {
+    font-family: 'Inter', sans-serif;
+    margin-left: 20px !important;
+    color: black;
     display: flex;
     flex-direction: column;
     gap: 5px;
 }
 
 .descricao {
+    color: black;
     font-size: 14px;
+}
+
+h3{
+    margin-left: 10px !important;
 }

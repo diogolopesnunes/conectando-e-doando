@@ -12,7 +12,7 @@
     margin-bottom: 40px;
 }
 
-.tituloAtualizacoes {
+.titulo {
     font-size: 2.5rem;
     font-weight: bold;
     margin: 0;
@@ -20,7 +20,7 @@
     text-align: center;
 }
 
-.envoltórioBotaoAdicionar {
+.botaoAdicionar {
     position: absolute;
     right: 0;
 }
@@ -37,9 +37,6 @@
 }
 
 .infoCabecalhoAtualizacao {
-    position: absolute;
-    top: 20px;
-    right: 30px;
     display: flex;
     gap: 25px;
     font-size: 0.95rem;
@@ -67,9 +64,13 @@
     flex-direction: column;
 }
 
+.textoNenhumaAtualizacao {
+    text-align: center;
+}
+
 .cabecalhoInstituicaoAtualizacao {
-    display: flex;
-    align-items: center;
+    /*display: flex;*/
+    /*align-items: center;*/
     gap: 12px;
     margin-bottom: 15px;
 }
@@ -108,7 +109,7 @@
 
 /* RESPONSIVO */
 @media (max-width: 768px) {
-    .tituloAtualizacoes {
+    .titulo {
         font-size: 2rem;
     }
 
@@ -117,14 +118,14 @@
         margin-bottom: 20px;
     }
 
-    .envoltórioBotaoAdicionar {
+    .botaoAdicionar {
         position: static;
         margin-top: 10px;
     }
 
     .cardAtualizacao {
         padding: 15px !important;
-        border: 1.5px solid #7a1b5d !important;
+        border: 1.5px solid #ff6b6b !important;
         border-radius: 15px;
         margin-bottom: 20px !important;
     }
@@ -135,16 +136,7 @@
         margin-top: 35px;
     }
 
-    .cabecalhoInstituicaoAtualizacao {
-        position: absolute;
-        top: 12px;
-        left: 15px;
-    }
-
     .infoCabecalhoAtualizacao {
-        position: absolute;
-        top: 12px;
-        right: 15px;
         font-size: 0.7rem;
     }
 

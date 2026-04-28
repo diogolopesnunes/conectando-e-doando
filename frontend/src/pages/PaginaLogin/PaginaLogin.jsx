@@ -11,7 +11,6 @@ export default function Login({ setLogado, api }) {
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
 
-    // 👇 agora mensagem é um OBJETO
     const [mensagem, setMensagem] = useState(null);
 
     const navegate = useNavigate();
@@ -49,7 +48,6 @@ export default function Login({ setLogado, api }) {
         }
 
         if (retorno.mensagem) {
-            // 👇 gera ID aqui (correto)
             setMensagem({
                 id: Date.now(),
                 texto: retorno.mensagem.descricao,
@@ -71,7 +69,11 @@ export default function Login({ setLogado, api }) {
             localStorage.setItem('tipo_usuario', retorno.usuario.tipoUsuario);
 
             setTimeout(() => {
-                navegate('/dashboard');
+                if (localStorage.getItem('tipo_usuario') == 1){
+                    navegate('/previa_ong');
+                } else if(localStorage.getItem('tipo_usuario') == 2){
+                    navegate('/dashboard_adm_ong');
+                }
             }, 1500);
         }
     }

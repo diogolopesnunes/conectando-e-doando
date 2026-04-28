@@ -20,10 +20,9 @@ import DashboardAdmOng from "./pages/DashboardAdmOng/DashboardAdmOng.jsx"
 import PaginaPreviaOng from "./pages/PaginaPreviaOng/PaginaPreviaOng.jsx";
 import PaginaEnviarEmail from "./pages/PaginaEnviarEmail/PaginaEnviarEmail.jsx";
 
-
 export default function App() {
 
-    const api = 'http://10.92.3.122:5000'
+    const api = 'http://10.92.3.158:5000'
 
     const quemSomos = useRef(null);
     const doacoes = useRef(null);
@@ -46,14 +45,50 @@ export default function App() {
     const [tipoMensagem ,setTipoMensagem] = useState()
 
     useEffect(() => {
-        if (!localStorage.getItem("email") || !localStorage.getItem("email") || !localStorage.getItem("id_usuario")) {
-            setLogado(false);
-        } else{
-            setLogado(true);
-            setId(localStorage.getItem('id_usuario'))
-        }
-    }, [logado])
+        async function verificarSessao() {
+            if (window.location.pathname === "/login") {
+                return;
+            }
+            if (!localStorage.getItem("id_usuario")) {
+                return;
+            }
+            try {
+                const resposta = await fetch(`${api}/verificar_token`, {
+                    method: "GET",
+                    credentials: "include"
+                });
 
+                    if (resposta.status === 401) {
+                        setMensagem("Sua sessão expirou. Faça login novamente.");
+                        setTipoMensagem("erro");
+                        setLogado(false);
+
+                        localStorage.removeItem("email");
+                        localStorage.removeItem("id_usuario");
+                        localStorage.removeItem("tipo_usuario");
+
+                        setTimeout(() => {
+                            window.location.href = "/login";
+                        }, 5000);
+
+                        return;
+                }
+
+                setLogado(true);
+                setId(localStorage.getItem("id_usuario"));
+
+            } catch (error) {
+                console.log(error);
+                setLogado(false);
+
+                localStorage.removeItem("email");
+                localStorage.removeItem("id_usuario");
+                localStorage.removeItem("tipo_usuario");
+            }
+        }
+
+        verificarSessao();
+    }, []);
 
 
     return (
@@ -72,11 +107,14 @@ export default function App() {
                 <Route path={"/adicionar_projetos"} element={<AdicionarProjetos api={api}/>} />
                 <Route path={"/adicionar_post/:id_projeto"} element={<AdicionarPost api={api}/>} />
                 <Route path={"/edicao_projetos/:id_projeto"} element={<EdicaoProjetos api={api}/>} />
+                <Route path={"/edicao_post/:id_projeto/:id_post"} element={<AdicionarPost api={api}/>} />
+                <Route path={"/edicao_ongs/:id_usuario"} element={<EdicaoONGS api={api}/>} />
                 <Route path={"/edicao_ongs"} element={<EdicaoONGS api={api}/>} />
                 <Route path={'/projeto/:id_projeto'} element={<PaginaProjeto api={api}/>} />
                 <Route path={'/dashboard_adm_ong'} element={<DashboardAdmOng api={api}/>} />
+                <Route path={'/previa_ong/:id'} element={<PaginaPreviaOng api={api}/>} />
                 <Route path={'/previa_ong'} element={<PaginaPreviaOng api={api}/>} />
-                <Route path={'enviar_email'} element={<PaginaEnviarEmail api={api}/>} />
+                <Route path={'/enviar_email/:id_ong'} element={<PaginaEnviarEmail api={api}/>} />
 
 
                 <Route path="*" element={<Erro/>} />

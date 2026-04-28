@@ -1,39 +1,28 @@
 import Buton from "../Buton/Buton.jsx";
-import css from "./CardProjeto.module.css"
-import {Link} from "react-router-dom";
+import css from "./CardProjeto.module.css";
+import { Link } from "react-router-dom";
+import {useState} from "react";
 
-export default function CardProjeto({NomeProjeto, id, title}) {
-
-    async function deletar(e) {
+export default function CardProjeto({ NomeProjeto, id, title, api, idUsuario, atividade = 1, onAtualizar }) {
+    const [mensagem, setMensagem] = useState();
+    async function ativarDesativar(e) {
         e.preventDefault();
-        let retorno = await fetch(`${api}/logout`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            credentials: "include",
-            body: JSON.stringify({
+        e.stopPropagation();
 
-            })
-        })
+        const resposta = await fetch(`${api}/ativar_desativar_projeto/${idUsuario}/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include"
+        });
 
-        setLogado(false)
-
-        retorno = await retorno.json()
-        console.log(retorno)
-        if(!retorno){
-            console.log("Erro do servidor:", retorno);
-            return;
+        const retorno = await resposta.json();
+        if (retorno.mensagem) {
+            setMensagem({
+                texto: retorno.mensagem.descricao,
+                tipo: retorno.mensagem.tipo
+            });
         }
-        if (retorno.mensagem){
-            setMensagem(retorno.mensagem.descricao)
-            setTipoMensagem(retorno.mensagem.tipo)
-            localStorage.clear()
-            // if(retorno.mensagem.tipo == 'sucesso'){
-            //     localStorage.clear()
-            // }
-        }
-        navegate('/')
+        if (onAtualizar) onAtualizar();
     }
 
     return (
@@ -46,8 +35,13 @@ export default function CardProjeto({NomeProjeto, id, title}) {
             <div className={'col d-flex justify-content-evenly flex-sm-row flex-column gap-3'}>
                 <Buton tamanho={'pequeno'} texto={'Fazer post'} background={'rosa'} rota={`/adicionar_post/${id}`}/>
                 <Buton tamanho={'pequeno'} texto={'Editar'} background={'laranja'} rota={`/edicao_projetos/${id}`}/>
-                <Buton tamanho={'pequeno'} texto={'Desativar'} background={'vermelho'} onClick={deletar}/>
+                <Buton
+                    tamanho={'pequeno'}
+                    texto={Number(atividade) === 1 ? 'Desativar' : 'Ativar'}
+                    background={Number(atividade) === 1 ? 'vermelho' : 'verde'}
+                    onClick={ativarDesativar}
+                />
             </div>
         </div>
-    )
+    );
 }

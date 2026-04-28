@@ -1,6 +1,7 @@
 import css from "./SecaoProjetos.module.css";
+import {Link} from "react-router-dom";
 
-export default function SecaoProjetos({ projetos }) {
+export default function SecaoProjetos({ projetos, api }) {
 
     return (
         <div className={css.container}>
@@ -12,25 +13,28 @@ export default function SecaoProjetos({ projetos }) {
             )}
 
             {projetos?.map((proj) => (
-                <div key={proj.id} className={css.card}>
+                <div key={proj.id_projeto || proj.id} className={css.card}>
+                    <Link to={`/projeto/${proj.id_projeto}`} className={'d-flex'}>
+                        <img 
+                            src={proj.imagem ? `${api}${proj.imagem}` : "/img/projeto.jpg"} alt="Projeto"
+                            className={css.imagem}
+                            onError={(e) => {e.target.src = "/public/SemImagemDisponivel.png";}}
+                        />
 
-                    <img
-                        src={proj.imagem || "/img/projeto.jpg"}
-                        alt="Projeto"
-                        className={css.imagem}
-                    />
+                        <div className={css.info + ' d-flex flex-column justify-content-center'}>
 
-                    <div className={css.info}>
+                            <h3>{proj.nome || proj.titulo}</h3>
 
-                        <h3>{proj.nome}</h3>
+                            <p className={css.descricao}>
+                                {proj.descricao}
+                            </p>
 
-                        <p className={css.descricao}>
-                            {proj.descricao}
-                        </p>
-
-                    </div>
+                        </div>
+                    </Link>
 
                 </div>
+
+
             ))}
 
         </div>

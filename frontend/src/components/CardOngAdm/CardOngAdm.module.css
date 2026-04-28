@@ -15,12 +15,12 @@
 
 .bloqueado{
     color: var(--laranja);
-    background-color: rgba(211, 156, 120, 0.6);
+    background-color: rgba(255, 178, 65, 0.63);
 }
 
 .recusado{
     color: var(--vermelho);
-    background-color: rgba(221, 123, 118, 0.61);
+    background-color: rgba(230, 153, 148, 0.61);
 }
 
 .nomeJorge{

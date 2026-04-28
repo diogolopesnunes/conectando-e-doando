@@ -1,12 +1,20 @@
 import Buton from "../Buton/Buton.jsx";
 import css from "./InfoOng.module.css";
 
-export default function InfoOng({ info }) {
+export default function InfoOng({ info, texto, api }) {
+
     return (
         <>
             <section className={css.secaoInfoProjeto}>
                 <div className={css.envolverImagemProjeto}>
-                    <img src={info.imagem} alt={info.nome} className={css.imagemProjeto} />
+                    <img
+                        src={`${api}${info.imagem}`}
+                        alt={info.nome}
+                        className={css.imagemProjeto}
+                        onError={(e) => {
+                            e.target.src = "/public/SemImagemDisponivel.png";
+                        }}
+                    />
                 </div>
                 <div className={css.envolverDetalhesProjeto}>
                     <div className={"mb-5"}>
@@ -14,10 +22,16 @@ export default function InfoOng({ info }) {
                         <p className={css.nomeInstituicao}>{info.instituicao}</p>
                     </div>
 
-                    <div className={"mt-5 " + css.secaoChamadaAcao}>
-                        <img src="/logoSenna.png" alt="Logo Instituição" className={css.logoInstituicao}
-                             onError={(e) => e.target.src = "https://ingresso-a.akamaihd.net/b2b/production/uploads/article/image/1708/oppenheimer-como-nolan-recriou-a-explosao-da-bomba-atomica-6898769dc3e601.jpg"} />
-                        <Buton background="laranja" tamanho="medio" texto="Doar para o Projeto" />
+                    <div className={"mt-2 " + css.secaoChamadaAcao}>
+                        <img
+                            src={`${api}${info.logoInstituicao}`}
+                            alt="Logo Instituição"
+                            className={css.logoInstituicao + ' rounded'}
+                            onError={(e) => {
+                                e.target.src = "/public/SemImagemDisponivel.png";
+                            }}
+                        />
+                        <Buton background="laranja" tamanho="medio" texto={texto} />
                     </div>
                 </div>
             </section>
