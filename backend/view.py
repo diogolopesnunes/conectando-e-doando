@@ -1299,10 +1299,10 @@ def postar(id_usuario, id_projeto):
         tipo_usuario = usuario[0]
 
         #  1 = ONG (ajuste se necessário)
-        if tipo_usuario != 1:
+        if tipo_usuario not in (1,2):
             return jsonify({'mensagem': {
                 'tipo': 'erro',
-                'descricao': 'Apenas por ONGs podem acessar esta página'
+                'descricao': 'Apenas por ONGs ou ADMs podem acessar esta página'
             }}), 403
         cur.execute(
             'SELECT ID_PROJETO FROM PROJETO_ONG WHERE ID_PROJETO = ?', (id_projeto,)
@@ -1329,11 +1329,12 @@ def postar(id_usuario, id_projeto):
                    from projeto_ong
                    where id_projeto = ?""", (id_projeto,))
     idOngProjeto = cur.fetchone()[0]
-    if idOngProjeto != id_usuario:
-        return jsonify({'mensagem': {
-            'tipo': 'erro',
-            'descricao': 'O projeto pertence a outra ong'
-        }})
+    if usuario == 1:
+        if idOngProjeto != id_usuario:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'O projeto pertence a outra ong'
+            }})
     if not titulo or not str(titulo).strip():
         return jsonify({'mensagem': {
             'tipo': 'erro',
@@ -1854,6 +1855,7 @@ def excluir_projeto(id_usuario, id_projeto):
 
         if tipo_usuario == 2:
             cur.execute('delete from post_projeto where fk_projeto =?', (id_projeto, ))
+            con.commit()
             cur.execute('delete from projeto_ong where id_projeto = ?', (id_projeto, ))
             con.commit()
             return jsonify({'mensagem': {
@@ -1863,7 +1865,8 @@ def excluir_projeto(id_usuario, id_projeto):
 
         if tipo_usuario == 1 and id_usuario == id_token :
             cur.execute('delete from post_projeto where fk_projeto =?', (id_projeto,))
-            cur.execute('delete from projeto_ong where ID_PROJETO = ? and fk_usuario_ong = ? )',
+            con.commit()
+            cur.execute('delete from projeto_ong where ID_PROJETO = ? and fk_usuario_ong = ?',
                         (id_projeto, id_usuario))
             con.commit()
             return jsonify({'mensagem': {
