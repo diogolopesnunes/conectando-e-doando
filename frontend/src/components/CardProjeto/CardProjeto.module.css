@@ -1,5 +1,21 @@
+.card{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    overflow: hidden;
+}
+
 .textoGrande{
     width: 50%;
+    min-width: 0;
+    flex: 1;
+    min-width: 0;
+}
+
+
+.textoGrande a {
+    max-width: 100%;
     min-width: 0;
 }
 
@@ -9,6 +25,18 @@
     text-overflow: ellipsis;
     margin: 0;
     color: var(--preto);
+
+    max-width: 50%;
+    min-width: 0;
+}
+
+.botoes {
+    width: 350px !important;
+
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
 }
 
 @media (max-width: 426px) {

@@ -53,7 +53,7 @@ export default function PaginaEnviarEmail({ api }) {
             <div className="container m-auto formataAltura">
                 <div className={'row'}>
                     <div className="col align-self-center">
-                        {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={10000} descricao={mensagem} />}
+                        {mensagem && <Alerts tipo={tipoMensagem} imagem={`/public/${tipoMensagem}.png`} duracao={10000} descricao={mensagem} />}
                         <Form largura="maior" titulo={'Motivo da reprova'} onSubmit={enviar}>
                             <Input tipoInp={"text"} label={"Assunto:"} htmlFor={"assunto"} placeholder={"Digite o Assunto"} value={assunto} funcao={(e) => setAssunto(e.target.value)} />
                             <Input tipoInp={"textarea"} label={"Mensagem:"} htmlFor={"mensagem"} placeholder={"Digite a mensagem"} value={mensagemEmail} funcao={(e) => setMensagemEmail(e.target.value)} />

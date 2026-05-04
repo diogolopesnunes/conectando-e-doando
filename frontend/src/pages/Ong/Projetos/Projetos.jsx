@@ -69,8 +69,8 @@ export default function Projetos({ api }) {
             )}
             <div className="col-12"><Nav /></div>
             <div className={'container m-auto d-flex align-items-center justify-content-center'}>
-                <div className="row formataAltura">
-                    <div className={'col-12 w-75 m-auto'}>
+                <div className="row formataAltura justify-content-center">
+                    <div className={'col-12 m-auto justify-content-center'}>
                         <div className="d-flex align-items-center justify-content-between mt-3">
                             <h3 className={'color-rosa'}>Projetos</h3>
                             <div className={'d-block d-sm-none'}><Buton texto={'+'} background={'rosa'} rota={'/adicionar_projetos'} classe={'adicionar'} /></div>
@@ -90,15 +90,15 @@ export default function Projetos({ api }) {
                             </div>
                         </div>
                     </div>
-                    <div className={'col-12'}>
+                    <div className={'col-12 '}>
                         {projetos.map((projeto) => (
-                            <Link key={projeto.id_projeto} to={`/projeto/${projeto.id_projeto}`} className={css.texto}>
-                                <CardProjeto NomeProjeto={projeto.nome} id={projeto.id_projeto} title={projeto.descricao} atividade={projeto.atividade} api={api} idUsuario={idUsuario} onAtualizar={ListarProjetos} />
-                            </Link>
+
+                            <CardProjeto NomeProjeto={projeto.nome} id={projeto.id_projeto} title={projeto.descricao} atividade={projeto.atividade} api={api} idUsuario={idUsuario} onAtualizar={ListarProjetos} />
+                            
                         ))}
                     </div>
                     {quantidade >= 1 ? (
-                        <div className={'col-10 col-sm-3 m-auto d-flex justify-content-between paginas'}>
+                        <div className={'col-12 col-sm-12 m-auto d-flex justify-content-between paginas'}>
                             {paginaAnterior !== 0 && (
                                 <>
                                     <Buton texto={"<"} onClick={() => setPagina(paginaAnterior)} classe={'pagina'} />

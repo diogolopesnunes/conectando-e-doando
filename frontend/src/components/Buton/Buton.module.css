@@ -50,6 +50,11 @@
     border-radius: 20px;
 }
 
+.bege {
+    color: var(--branco);
+    background-color: var(--bege);
+}
+
 .roxo {
     color: var(--branco);
     background-color: var(--roxo);

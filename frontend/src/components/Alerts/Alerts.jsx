@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import css from './Alerts.module.css';
+import Buton from "../Buton/Buton.jsx";
 
 export default function Alerts({ titulo, descricao, imagem, tipo, duracao }) {
     const [visivel, setVisivel] = useState(true);
@@ -22,6 +23,12 @@ export default function Alerts({ titulo, descricao, imagem, tipo, duracao }) {
                 <h4>{titulo}</h4>
                 <p>{descricao}</p>
             </div>
+
+            {/*{tipo == "erro" &&*/}
+            {/*    <div>*/}
+            {/*        <Buton texto={"Confirmar"} background={"roxo"} tamanho={"pequeno"} />*/}
+            {/*    </div>*/}
+            {/*}*/}
 
             <button
                 className={`${css.fechar} ${css[`fechar_${tipo}`]}`}

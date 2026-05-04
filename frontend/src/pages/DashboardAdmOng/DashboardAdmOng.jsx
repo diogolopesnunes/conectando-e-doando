@@ -4,6 +4,7 @@ import Buton from "../../components/Buton/Buton.jsx";
 import {Link, useNavigate} from "react-router-dom";
 import Nav from "../../components/Nav/Nav.jsx";
 import IMask from "imask";
+import Swal from "sweetalert2";
 import CardOngAdm from "../../components/CardOngAdm/CardOngAdm.jsx";
 import Titulo from "../../components/Titulo/Titulo.jsx";
 import Alerts from "../../components/Alerts/Alerts.jsx";
@@ -86,6 +87,25 @@ export default function DashboardAdmOng({ api }) {
     useEffect(() => {
         listarOngs();
     }, [pagina, aprovacao, filtro, mensagem]);
+
+//     Swal.fire({
+//     title: "Are you sure?",
+//         text: "You won't be able to revert this!",
+//         icon: "warning",
+//         showCancelButton: true,
+//         confirmButtonColor: "#3085d6",
+//         cancelButtonColor: "#d33",
+//         confirmButtonText: "Yes, delete it!"
+// }).then((result) => {
+//     if (result.isConfirmed) Swal.fire({
+//         title: "Deleted!",
+//         text: "Your file has been deleted.",
+//         icon: "success"
+//     });
+// });
+
+
+
     return (
         <section className={'container m-auto'}>
             <div className={'row'}>
@@ -94,7 +114,7 @@ export default function DashboardAdmOng({ api }) {
                         <Alerts
                             key={mensagem.id}
                             tipo={mensagem.tipo}
-                            imagem={`./public/${mensagem.tipo}.png`}
+                            imagem={`/public/${mensagem.tipo}.png`}
                             duracao={10000}
                             descricao={mensagem.texto}
                         />

@@ -7,6 +7,7 @@ import InfoOng from "../../../components/InfoOng/InfoOng.jsx";
 import SecaoAtualizacoes from "../../../components/SecaoAtualizacoes/SecaoAtualizacoes.jsx";
 import Alerts from "../../../components/Alerts/Alerts.jsx";
 import Titulo from "../../../components/Titulo/Titulo.jsx";
+import Input from "../../../components/Input/Input.jsx";
 
 export default function PaginaProjeto({ api, info }) {
     const { id_projeto } = useParams();
@@ -117,15 +118,15 @@ export default function PaginaProjeto({ api, info }) {
                                 <InfoOng info={projeto} texto={'Fazer doação'} api={api} />
                                 <div className={css.containerProgresso}>
                                     <div className={css.valoresMeta}>
-        <span>
-            <strong>Valor Arrecadado:</strong>
-            <span className={css.valorLaranja}> R$ 0,00</span>
-        </span>
-        <span>
-            <strong>Meta de Doações:</strong>
-            <span className={css.valorLaranja}>{` R$${projeto.meta_doacao},00`}</span>
-        </span>
-        </div>
+                                        <span>
+                                            <strong>Valor Arrecadado:</strong>
+                                            <span className={css.valorLaranja}> R$ 0,00</span>
+                                        </span>
+                                        <span>
+                                            <strong>Meta de Doações:</strong>
+                                            <span className={css.valorLaranja}>{` R$${projeto.meta_doacao},00`}</span>
+                                        </span>
+                                    </div>
 
                                     <div className={css.barraProgressoContainer}>
                                         <span className={css.porcentagemTexto}>0.0%</span>
