@@ -1750,6 +1750,7 @@ def ativar_desativar_projeto(id_usuario, id_projeto):
                 }})
             cur.execute('select atividade from projeto_ong where id_projeto = ? and fk_usuario_ong = ?', (id_projeto, id_usuario))
             atividade = cur.fetchone()[0]
+
         if tipo_usuario == 2:
             cur.execute('select 1 from projeto_ong where id_projeto = ?',
                         (id_projeto,))
@@ -1766,12 +1767,20 @@ def ativar_desativar_projeto(id_usuario, id_projeto):
 
         nova_atividade = 0 if atividade == 1 else 1
 
+        cur.execute('select atividade from post_projeto where fk_projeto =  ?', (id_projeto,))
+        atividade_post = cur.fetchone()
+        if atividade_post:
+            if atividade_post[0] == 1:
+                cur.execute('update post_projeto set atividade = 2 where fk_PROJETO = ? and atividade = 1', (id_projeto,))
+            else:
+                cur.execute('update post_projeto set atividade = 1 where fk_PROJETO = ? and atividade = 2', (id_projeto,))
         cur.execute('update projeto_ong set atividade = ? where ID_PROJETO = ?', (nova_atividade, id_projeto))
         con.commit()
+
         status = 'ativado' if nova_atividade == 1 else 'desativado'
         return jsonify({'mensagem': {
             'tipo': 'sucesso',
-            'descricao': f'Projetor {status} com sucesso'
+            'descricao': f'Projeto {status} com sucesso'
         }})
 
     except Exception as e:
@@ -1844,7 +1853,8 @@ def excluir_projeto(id_usuario, id_projeto):
             }})
 
         if tipo_usuario == 2:
-            cur.execute('delete from projeto_ong where ik_projeto = ?', (id_projeto, ))
+            cur.execute('delete from post_projeto where fk_projeto =?', (id_projeto, ))
+            cur.execute('delete from projeto_ong where id_projeto = ?', (id_projeto, ))
             con.commit()
             return jsonify({'mensagem': {
                 'tipo': 'sucesso',
@@ -1852,6 +1862,7 @@ def excluir_projeto(id_usuario, id_projeto):
             }})
 
         if tipo_usuario == 1 and id_usuario == id_token :
+            cur.execute('delete from post_projeto where fk_projeto =?', (id_projeto,))
             cur.execute('delete from projeto_ong where ID_PROJETO = ? and fk_usuario_ong = ? )',
                         (id_projeto, id_usuario))
             con.commit()
