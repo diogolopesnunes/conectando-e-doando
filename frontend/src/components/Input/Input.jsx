@@ -102,10 +102,34 @@ export default function Input({tipoInp, label, htmlFor, placeholder, classe = ''
                         id={htmlFor}
                         name={htmlFor}
                     />
-                ) :(
-                <input type={tipoInp} placeholder={placeholder} id={htmlFor} name={htmlFor}
+            ) : mask === 'cash' ? (
+                <IMaskInput
+                    mask="R$ num"
+                    blocks={{
+                        num: {
+                            mask: Number,
+                            scale: 2,
+                            thousandsSeparator: '.',
+                            padFractionalZeros: true,
+                            radix: ',',
+                            mapToRadix: ['.'],
+                            min: 0,
+                            max: 2000000000,
+                        }
+                    }}
+                    lazy={false}
+                    value={String(value || "")}
+                    unmask={true}
+                    onAccept={(formattedValue, mask) => {
+                        funcao({ target: { name: htmlFor, value: mask.unmaskedValue } });
+                    }}
+                    className={"w-100 d-block rounded px-2 py-1 " + css.input}
+                    id={htmlFor}
+                    name={htmlFor}
+                />
+                ): (<input type={tipoInp} placeholder={placeholder} id={htmlFor} name={htmlFor}
                        className={"w-100 d-block rounded px-2 py-1 " + css.input}
-                       value={value} // Usa o valor formatado aqui
+                       value={value}
                        onChange={funcao}
                        maxLength={maxlength}
                        minLength={minLength}

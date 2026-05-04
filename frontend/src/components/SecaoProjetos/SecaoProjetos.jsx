@@ -2,7 +2,7 @@ import css from "./SecaoProjetos.module.css";
 import {Link} from "react-router-dom";
 import Buton from "../Buton/Buton.jsx";
 
-export default function SecaoProjetos({ projetos, api }) {
+export default function SecaoProjetos({ projetos, api, excluir }) {
 
     return (
         <div className={css.container}>
@@ -32,7 +32,21 @@ export default function SecaoProjetos({ projetos, api }) {
 
                         </div>
                     </Link>
-                    <div>
+                    <div className={'d-flex'}>
+                        {proj.ativadade == 1 ?(
+                            <Buton texto={'Desativar'} background={'laranja'} tamanho={'pequeno'}/>
+                        ) : (
+                            <>
+                                <Buton texto={'Ativar'} background={'laranja'} tamanho={'pequeno'}/>
+                                <Buton
+                                    tamanho={'pequeno'}
+                                    texto={'Excluir'}
+                                    background={'roxo'}
+                                    onClick={() => (excluir(proj.id_projeto))}
+                                />
+                            </>
+                        )}
+
                         <Buton texto={'Editar'} background={'laranja'} tamanho={'pequeno'} rota={`/edicao_projetos/${proj.id_projeto}`}/>
                     </div>
                 </div>

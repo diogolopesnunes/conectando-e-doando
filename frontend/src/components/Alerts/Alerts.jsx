@@ -31,7 +31,7 @@ export default function Alerts({ titulo, descricao, imagem, tipo, duracao }) {
             {/*}*/}
 
             <button
-                className={`${css.fechar} ${css[`fechar_${tipo}`]}`}
+                className={`${css.fechar} ${css[`fechar_${tipo}`]} d-flex h-100 align-items-center`}
                 onClick={() => setVisivel(false)}
             >
                 ✕

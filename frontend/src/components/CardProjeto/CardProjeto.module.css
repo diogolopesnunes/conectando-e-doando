@@ -6,33 +6,16 @@
     overflow: hidden;
 }
 
-.textoGrande{
-    width: 50%;
-    min-width: 0;
-    flex: 1;
-    min-width: 0;
-}
-
-
-.textoGrande a {
-    max-width: 100%;
-    min-width: 0;
-}
-
 .textoGrande h5{
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     margin: 0;
     color: var(--preto);
-
-    max-width: 50%;
-    min-width: 0;
 }
 
 .botoes {
     width: 350px !important;
-
     flex-shrink: 0;
     display: flex;
     justify-content: flex-end;

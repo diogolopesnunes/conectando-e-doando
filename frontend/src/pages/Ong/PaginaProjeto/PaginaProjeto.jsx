@@ -8,6 +8,7 @@ import SecaoAtualizacoes from "../../../components/SecaoAtualizacoes/SecaoAtuali
 import Alerts from "../../../components/Alerts/Alerts.jsx";
 import Titulo from "../../../components/Titulo/Titulo.jsx";
 import Input from "../../../components/Input/Input.jsx";
+import Swal from "sweetalert2";
 
 export default function PaginaProjeto({ api, info }) {
     const { id_projeto } = useParams();
@@ -49,7 +50,22 @@ export default function PaginaProjeto({ api, info }) {
         }
     }
 
+    async function confirmarExclusao() {
+        const result = await Swal.fire({
+            title: "Você tem certeza?",
+            text: "Você não poderá refazer a ação!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sim, deletar!",
+            cancelButtonText: "Cancelar",
+        });
+
+        return result.isConfirmed;
+    }
+
     async function excluirPost(idPost) {
+        const confirmou = await confirmarExclusao();
+        if (!confirmou) return;
 
         setLoadingExcluir(true);
         const resposta = await fetch(`${api}/excluir_post/${idUsuario}/${id_projeto}/${idPost}`, {
@@ -151,26 +167,26 @@ export default function PaginaProjeto({ api, info }) {
                                     logoOng={projeto.logoInstituicao}
                                 />
 
-                                {quantidade >= 1 && (
-                                    <div className={'col-10 col-sm-3 m-auto d-flex justify-content-between paginas'}>
+                                {quantidade >= 1 ? (
+                                    <div className={'col-12 col-sm-12 m-auto d-flex justify-content-center gap-4 paginas'}>
                                         {paginaAnterior !== 0 && (
                                             <>
                                                 <Buton texto={"<"} onClick={() => setPagina(paginaAnterior)} classe={'pagina'} />
+                                                {pagina === quantidade && paginaAnterior - 1 !== 0 && <Buton texto={paginaAnterior - 1} onClick={() => setPagina(paginaAnterior - 1)} classe={'pagina'} />}
                                                 <Buton texto={paginaAnterior} onClick={() => setPagina(paginaAnterior)} classe={'pagina'} />
                                             </>
                                         )}
-                                        {quantidade === 1 ? (
-                                            <div className={'m-auto'}><Buton texto={pagina} classe={'paginaSelecionada'} /></div>
-                                        ) : (
-                                            <Buton texto={pagina} classe={'paginaSelecionada'} />
-                                        )}
+                                        {quantidade === 1 ? <div className={'m-auto'}><Buton texto={pagina} classe={'paginaSelecionada'} /></div> : <Buton texto={pagina} classe={'paginaSelecionada'} />}
                                         {proximaPagina !== 0 && (
                                             <>
                                                 <Buton texto={proximaPagina} onClick={() => setPagina(proximaPagina)} classe={'pagina'} />
+                                                {proximaPagina + 1 <= quantidade && pagina === 1 && <Buton texto={proximaPagina + 1} onClick={() => setPagina(proximaPagina + 1)} classe={'pagina'} />}
                                                 <Buton texto={">"} onClick={() => setPagina(proximaPagina)} classe={'pagina'} />
                                             </>
                                         )}
                                     </div>
+                                ) : (
+                                    <div className={'m-auto text-center my-5'}><Titulo texto={'Não há projetos cadastrados'} /></div>
                                 )}
                             </>
                         )}

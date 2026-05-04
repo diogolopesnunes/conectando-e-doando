@@ -24,6 +24,17 @@ export default function Nav() {
         return projeto;
     }
 
+    function ongsAdm({ isActive }) {
+        var ongs = cssAtivado({ isActive });
+        if (local.pathname.includes('/enviar_email/')) {
+            ongs += " active";
+        }
+        // if (local.pathname.includes('/enviar_email/')) {
+        //     ongs += " active";
+        // }
+        return ongs;
+    }
+
     useEffect(() => {
         if (!localStorage.getItem("email") || !localStorage.getItem("email") || !localStorage.getItem("id_usuario") || !localStorage.getItem("tipo_usuario")) {
             navegate('/login')
@@ -45,17 +56,17 @@ export default function Nav() {
                         Prévia
                     </NavLink>
 
-                    <NavLink
-                        to="/grafico"
-                        className={cssAtivado}>
-                        Gráfico
-                    </NavLink>
+                    {/*<NavLink*/}
+                    {/*    to="/grafico"*/}
+                    {/*    className={cssAtivado}>*/}
+                    {/*    Gráfico*/}
+                    {/*</NavLink>*/}
 
-                    <NavLink
-                        to="/historico"
-                        className={cssAtivado}>
-                        Histórico
-                    </NavLink>
+                    {/*<NavLink*/}
+                    {/*    to="/historico"*/}
+                    {/*    className={cssAtivado}>*/}
+                    {/*    Histórico*/}
+                    {/*</NavLink>*/}
 
                     <NavLink to={"/projetos_ong"} className={btnAddProjeto} >Projetos</NavLink>
 
@@ -70,7 +81,7 @@ export default function Nav() {
                 <>
                     <NavLink
                         to="/dashboard_adm_ong"
-                        className={cssAtivado}>
+                        className={ongsAdm}>
                         ONGs
                     </NavLink>
 

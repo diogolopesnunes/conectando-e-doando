@@ -49,11 +49,11 @@ export default function SecaoAtualizacoes({
                 />
             </div>
 
-            {atualizacoes.length === 0 && (
-                <p className={css.textoNenhumaAtualizacao}>
-                    Nenhuma atualização cadastrada.
-                </p>
-            )}
+            {/*{atualizacoes.length === 0 && (*/}
+            {/*    <p className={css.textoNenhumaAtualizacao}>*/}
+            {/*        Nenhuma atualização cadastrada.*/}
+            {/*    </p>*/}
+            {/*)}*/}
 
             {atualizacoes.length > 0 && atualizacoesFiltradas.length === 0 && (
                 <p className={css.textoNenhumaAtualizacao}>

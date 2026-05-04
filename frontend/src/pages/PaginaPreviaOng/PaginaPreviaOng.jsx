@@ -6,6 +6,7 @@ import css from "./PaginaPreviaOng.module.css";
 import InfoOng from "../../components/InfoOng/InfoOng.jsx";
 import SecaoProjetos from "../../components/SecaoProjetos/SecaoProjetos.jsx";
 import Titulo from "../../components/Titulo/Titulo.jsx";
+import Swal from "sweetalert2";
 
 export default function PaginaPreviaOng({ api }) {
     const { id } = useParams();
@@ -51,6 +52,45 @@ export default function PaginaPreviaOng({ api }) {
         }
     }
 
+    async function confirmarExclusao() {
+        const result = await Swal.fire({
+            title: "Você tem certeza?",
+            text: "Você não poderá refazer a ação!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sim, deletar!",
+            cancelButtonText: "Cancelar",
+        });
+
+        return result.isConfirmed;
+    }
+
+    async function excluirProjeto(idProjeto){
+        const idOng = id || localStorage.getItem("id_usuario");
+        if (!idOng) return;
+
+        const confirmou = await confirmarExclusao();
+        if (!confirmou) return;
+
+
+        const resposta = await fetch(`${api}/excluir_projeto/${idOng}/${idProjeto}`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include"
+        });
+
+        const retorno = await resposta.json();
+
+        if (retorno.mensagem) {
+            setMensagem({
+                texto: retorno.mensagem.descricao,
+                tipo: retorno.mensagem.tipo
+            });
+        }
+
+        if (buscarOng) buscarOng();
+    }
+
     useEffect(() => {
         buscarOng();
     }, [id, pagina]);
@@ -67,7 +107,7 @@ export default function PaginaPreviaOng({ api }) {
                 ) : (
                     <>
                         <InfoOng info={ong} texto={"Doar Agora"} api={api} />
-                        <SecaoProjetos projetos={ong.projetos} api={api} />
+                        <SecaoProjetos projetos={ong.projetos} api={api} excluir={excluirProjeto} />
                     </>
                 )}
                 {quantidade >= 1 ? (

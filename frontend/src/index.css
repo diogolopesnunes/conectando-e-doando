@@ -5,7 +5,7 @@
     --rosa: #850038;
     --vermelho: #E03E36;
     --laranja: #F1731F;
-    --bege: #e8af91;
+    --bege: #e19f82;
     --preto: #000;
     --branco: #fff;
     --titulo: Inter;
@@ -59,4 +59,56 @@ a.active {
 
 .bordinha{
     /*border: 2px solid var(--preto) !important;*/
+}
+
+
+.swal2-container,
+.swal2-container * {
+    box-sizing: border-box !important;
+}
+
+.swal2-popup {
+    padding: 1.25em !important;
+    border-radius: 0.3125em !important;
+}
+
+.swal2-icon {
+    margin: 2.5em auto 0.6em !important;
+}
+
+.swal2-title {
+    margin: 0 !important;
+    padding: 0.8em 1em 0 !important;
+}
+
+.swal2-html-container {
+    margin: 1em 1.6em 0.3em !important;
+    padding: 0 !important;
+}
+
+.swal2-actions {
+    margin: 1.25em auto 0 !important;
+    padding: 0 !important;
+    gap: 0.625em !important;
+}
+
+.swal2-styled {
+    margin: 0.3125em !important;
+    padding: 0.625em 1.1em !important;
+    border-radius: 0.25em !important;
+}
+
+.swal2-confirm,
+.swal2-cancel {
+    padding: 0.625em 1.1em !important;
+}
+
+.swal2-confirm{
+    background-color: var(--laranja);
+}.swal2-confirm:hover{
+    background-color: var(--vermelho);
+}
+
+.swal2-cancel:hover{
+    background-color: var(--roxo) !important;
 }

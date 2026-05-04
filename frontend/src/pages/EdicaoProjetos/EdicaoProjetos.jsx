@@ -51,9 +51,15 @@ export default function EditarProjeto({ api }) {
                 setDescricao(resposta.projeto.descricao);
                 setMeta(resposta.projeto.meta_doacao);
                 setPreview(resposta.projeto.imagem);
+                console.log(localStorage.getItem("tipo_usuario"))
                 if (resposta.mensagem.tipo == 'sucesso'){
                     setTimeout(function () {
-                        navegate(localStorage.getItem("tipo_usuario") == 2 ? "/dashboard_adm_ong" : "/projetos_ong")
+                        if (localStorage.getItem("tipo_usuario") == 2) {
+                            console.log(localStorage.getItem("tipo_usuario"))
+                            navegate("/dashboard_adm_ong")
+                        } else if (localStorage.getItem("tipo_usuario") == 1){
+                            navegate("/projetos_ong")
+                        }
                     }, 1500)
                 }
             }
@@ -102,13 +108,20 @@ export default function EditarProjeto({ api }) {
 
         resposta = await resposta.json();
 
-        if (resposta.mensagem?.tipo === "sucesso") {
+        if (resposta.mensagem.tipo === "sucesso") {
             setMensagem("Projeto atualizado com sucesso!");
             setTipoMensagem("sucesso");
 
-            setTimeout(() => {
-                navigate('/projetos_ong');
-            }, 2000);
+            if (resposta.mensagem.tipo == 'sucesso'){
+                setTimeout(function () {
+                    if (localStorage.getItem("tipo_usuario") == 2) {
+                        console.log(localStorage.getItem("tipo_usuario"))
+                        navegate("/dashboard_adm_ong")
+                    } else if (localStorage.getItem("tipo_usuario") == 1){
+                        navegate("/projetos_ong")
+                    }
+                }, 1500)
+            }
 
         } else {
             setMensagem("Erro ao atualizar projeto");
@@ -157,6 +170,7 @@ export default function EditarProjeto({ api }) {
                                     tipoInp="text"
                                     value={meta}
                                     funcao={(e) => setMeta(e.target.value.replace(/\D/g, ""))}
+                                    mask={'cash'}
                                 />
 
                                 <div className="w-100 flex-column d-flex justify-content-center align-items-center mb-4">

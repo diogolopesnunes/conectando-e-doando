@@ -19,7 +19,6 @@ export default function Projetos({ api }) {
     const [filtro, setFiltro] = useState('');
 
     const [mensagem, setMensagem] = useState('');
-    const [tipoMensagem, setTipoMensagem] = useState('');
 
     useEffect(() => {
         if (!localStorage.getItem("email") || !localStorage.getItem("id_usuario")) {
@@ -60,19 +59,21 @@ export default function Projetos({ api }) {
     return (
         <>
             {mensagem && (
-                <Alerts
-                tipo={tipoMensagem}
-                imagem={`./public/${tipoMensagem}.png`}
-                duracao={'10000'}
-                descricao={mensagem}
-                />
+                <div className={'col-12'}>
+                    <Alerts
+                        tipo={mensagem.tipo}
+                        imagem={`/public/${mensagem.tipo}.png`}
+                        duracao={10000}
+                        descricao={mensagem.texto}
+                    />
+                </div>
             )}
             <div className="col-12"><Nav /></div>
             <div className={'container m-auto d-flex align-items-center justify-content-center'}>
-                <div className="row formataAltura justify-content-center">
+                <div className="row formataAltura justify-content-center w-75">
                     <div className={'col-12 m-auto justify-content-center'}>
                         <div className="d-flex align-items-center justify-content-between mt-3">
-                            <h3 className={'color-rosa'}>Projetos</h3>
+                            <h3 className={'color-rosa ' + css.titulo}>Projetos</h3>
                             <div className={'d-block d-sm-none'}><Buton texto={'+'} background={'rosa'} rota={'/adicionar_projetos'} classe={'adicionar'} /></div>
                         </div>
                         <div className={'d-flex align-items-end'}>
@@ -93,12 +94,12 @@ export default function Projetos({ api }) {
                     <div className={'col-12 '}>
                         {projetos.map((projeto) => (
 
-                            <CardProjeto NomeProjeto={projeto.nome} id={projeto.id_projeto} title={projeto.descricao} atividade={projeto.atividade} api={api} idUsuario={idUsuario} onAtualizar={ListarProjetos} />
+                            <CardProjeto NomeProjeto={projeto.nome} id={projeto.id_projeto} title={projeto.descricao} atividade={projeto.atividade} api={api} idUsuario={idUsuario} onAtualizar={ListarProjetos} setMensagem={setMensagem} />
                             
                         ))}
                     </div>
                     {quantidade >= 1 ? (
-                        <div className={'col-12 col-sm-12 m-auto d-flex justify-content-between paginas'}>
+                        <div className={'col-12 col-sm-12 m-auto d-flex justify-content-center gap-4 paginas'}>
                             {paginaAnterior !== 0 && (
                                 <>
                                     <Buton texto={"<"} onClick={() => setPagina(paginaAnterior)} classe={'pagina'} />

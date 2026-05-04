@@ -127,6 +127,8 @@ export default function PaginaProjeto({ api }) {
                                     value={meta_doacao}
                                     funcao={(e) => setMeta(e.target.value.replace(/\D/g, ""))}
                                     inputMode="numeric"
+                                    maxlength={10}
+                                    mask={'cash'}
                                 />
                                 <div className="w-100 flex-column d-flex justify-content-center align-items-center mb-4">
                                     <label className="mb-3 fw-bold">Imagem do Projeto</label>
