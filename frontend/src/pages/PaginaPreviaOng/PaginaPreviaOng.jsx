@@ -13,7 +13,6 @@ export default function PaginaPreviaOng({ api }) {
     const navigate = useNavigate();
     const [tipoUsuario, setTipoUsuario] = useState("");
     const [ong, setOng] = useState(null);
-
     const [pagina, setPagina] = useState(1);
     const [proximaPagina, setProximaPagina] = useState(2);
     const [paginaAnterior, setPaginaAnterior] = useState(0);
@@ -30,70 +29,69 @@ export default function PaginaPreviaOng({ api }) {
     async function buscarOng() {
         const idOng = id || localStorage.getItem("id_usuario");
         if (!idOng) return;
-
         const resposta = await fetch(`${api}/buscar_ong/${idOng}/${pagina}`, {
             method: "GET",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
         });
-
-        if (!resposta.ok) {
-            console.log("Erro na requisição");
-            return;
-        }
-
-        const retorno = await resposta.json();
-        if (retorno.ong) {
+        if (resposta.ok) {
+            const retorno = await resposta.json();
             setOng(retorno.ong);
             setPaginaAnterior(retorno.paginaAnterior);
-            // setQuantidade(retorno.quantidade);
-            setQuantidade(retorno.numeroPaginas)
-            setProximaPagina(retorno.proximaPagina)
+            setQuantidade(retorno.numeroPaginas);
+            setProximaPagina(retorno.proximaPagina);
         }
     }
 
-    async function confirmarExclusao() {
+    async function alternarStatusProjeto(idProjeto) {
+        const idUsuarioLogado = localStorage.getItem("id_usuario");
+        try {
+            const resposta = await fetch(`${api}/ativar_desativar_projeto/${idUsuarioLogado}/${idProjeto}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+            });
+            const retorno = await resposta.json();
+
+            Swal.fire({
+                title: retorno.mensagem.tipo === 'sucesso' ? "Sucesso!" : "Erro",
+                text: retorno.mensagem.descricao,
+                icon: retorno.mensagem.tipo === 'sucesso' ? "success" : "error",
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+            if (retorno.mensagem.tipo === 'sucesso') buscarOng();
+        } catch (error) {
+            Swal.fire("Erro", "Falha na conexão com o servidor", "error");
+        }
+    }
+
+    async function excluirProjeto(idProjeto){
+        const idOng = id || localStorage.getItem("id_usuario");
         const result = await Swal.fire({
             title: "Você tem certeza?",
-            text: "Você não poderá refazer a ação!",
+            text: "Esta ação é irreversível!",
             icon: "warning",
             showCancelButton: true,
             confirmButtonText: "Sim, deletar!",
             cancelButtonText: "Cancelar",
         });
 
-        return result.isConfirmed;
-    }
-
-    async function excluirProjeto(idProjeto){
-        const idOng = id || localStorage.getItem("id_usuario");
-        if (!idOng) return;
-
-        const confirmou = await confirmarExclusao();
-        if (!confirmou) return;
-
-
-        const resposta = await fetch(`${api}/excluir_projeto/${idOng}/${idProjeto}`, {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include"
-        });
-
-        const retorno = await resposta.json();
-
-        if (retorno.mensagem) {
-            setMensagem({
-                texto: retorno.mensagem.descricao,
-                tipo: retorno.mensagem.tipo
+        if (result.isConfirmed) {
+            const resposta = await fetch(`${api}/excluir_projeto/${idOng}/${idProjeto}`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include"
             });
+            const retorno = await resposta.json();
+            Swal.fire(retorno.mensagem.tipo === 'sucesso' ? "Deletado!" : "Erro", retorno.mensagem.descricao, retorno.mensagem.tipo === 'sucesso' ? "success" : "error");
+            buscarOng();
         }
-
-        if (buscarOng) buscarOng();
     }
 
-    useEffect(() => {
-        buscarOng();
-    }, [id, pagina]);
+    useEffect(() => { buscarOng(); }, [id, pagina]);
+
     return (
         <div className={"m-auto " + css.containerPrincipal}>
             <Nav />
@@ -101,13 +99,17 @@ export default function PaginaPreviaOng({ api }) {
                 <div className={css.acoesCabecalho}>
                     <Buton background="rosa" tamanho="pequeno" texto="Voltar" onClick={() => navigate(-1)} />
                 </div>
-
                 {!ong ? (
                     <p className="text-center">Carregando ONG...</p>
                 ) : (
                     <>
                         <InfoOng info={ong} texto={"Doar Agora"} api={api} />
-                        <SecaoProjetos projetos={ong.projetos} api={api} excluir={excluirProjeto} />
+                        <SecaoProjetos
+                            projetos={ong.projetos}
+                            api={api}
+                            excluir={excluirProjeto}
+                            alternarStatus={alternarStatusProjeto}
+                        />
                     </>
                 )}
                 {quantidade >= 1 ? (
@@ -115,19 +117,13 @@ export default function PaginaPreviaOng({ api }) {
                         {paginaAnterior !== 0 && (
                             <>
                                 <Buton texto={"<"} onClick={() => setPagina(paginaAnterior)} classe={'pagina'} />
-                                {pagina === quantidade && paginaAnterior - 1 !== 0 && <Buton texto={paginaAnterior - 1} onClick={() => setPagina(paginaAnterior - 1)} classe={'pagina'} />}
                                 <Buton texto={paginaAnterior} onClick={() => setPagina(paginaAnterior)} classe={'pagina'} />
                             </>
                         )}
-                        {quantidade === 1 ? (
-                            <div className={'m-auto'}><Buton texto={pagina} classe={'paginaSelecionada'} /></div>
-                        ) : (
-                            <Buton texto={pagina} classe={'paginaSelecionada'} />
-                        )}
+                        <Buton texto={pagina} classe={'paginaSelecionada'} />
                         {proximaPagina !== 0 && (
                             <>
                                 <Buton texto={proximaPagina} onClick={() => setPagina(proximaPagina)} classe={'pagina'} />
-                                {proximaPagina + 1 <= quantidade && pagina === 1 && <Buton texto={proximaPagina + 1} onClick={() => setPagina(proximaPagina + 1)} classe={'pagina'} />}
                                 <Buton texto={">"} onClick={() => setPagina(proximaPagina)} classe={'pagina'} />
                             </>
                         )}
