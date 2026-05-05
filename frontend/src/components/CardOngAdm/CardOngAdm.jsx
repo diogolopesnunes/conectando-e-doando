@@ -145,7 +145,7 @@ export default function CardOngAdm({
             <div className={'col-12 col-sm-4 d-flex align-items-center justify-content-center gap-1 flex-column flex-sm-row'}>
 
                 {(status === 4 || status === 0) && (
-                    <div className={'d-flex flex-column gap-2'}>
+                    <>
                         <Buton
                             texto={loadingAprovar ? 'Aprovando...' : 'Aprovar'}
                             tamanho={'pequeno'}
@@ -160,7 +160,7 @@ export default function CardOngAdm({
                             background={'vermelho'}
                             rota={`/enviar_email/${id}`}
                         />
-                    </div>
+                    </>
                 )}
 
                 {status !== 4 && status !== 0 && (

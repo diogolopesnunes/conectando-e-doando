@@ -29,9 +29,9 @@ export default function Nav() {
         if (local.pathname.includes('/enviar_email/')) {
             ongs += " active";
         }
-        // if (local.pathname.includes('/enviar_email/')) {
-        //     ongs += " active";
-        // }
+        if (local.pathname.includes('/edicao_ongs/')) {
+            ongs += " active";
+        }
         return ongs;
     }
 
@@ -80,13 +80,19 @@ export default function Nav() {
             {tipoUsuario == 2 && (
                 <>
                     <NavLink
+                        to="/cadastro"
+                        className={cssAtivado}>
+                        Cadastrar
+                    </NavLink>
+
+                    <NavLink
                         to="/dashboard_adm_ong"
                         className={ongsAdm}>
                         ONGs
                     </NavLink>
 
                     <NavLink
-                        to="/doadores"
+                        to="/dashboard_adm_doador"
                         className={cssAtivado}>
                         Doadores
                     </NavLink>

@@ -4,6 +4,13 @@
 .input {
     border: 1px solid var(--cor-borda);
 }
+
+.campoObrigatorio {
+    color: var(--vermelho) !important;
+    padding: 10px;
+    font-size: 10px;
+}
+
 textarea{
     height: 100px;
 }

@@ -11,7 +11,16 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
     const [email, setEmail] = useState("");
     const [nome, setNome] = useState("");
     const navegate = useNavigate();
+    if (logado == true && localStorage.getItem("id_usuario") == null) {
+        setLogado(false);
+    }
+
     // const [logado, setLogado] = useState("");
+    // if (localStorage.getItem('id_usuario')){
+    //     setlogado(true)
+    // } else{
+    //     setLogado(false)
+    // }
     // const [id, setId] = useState("");
     // const [mensagem, setMensagem] = useState()
     // const [tipoMensagem ,setTipoMensagem] = useState()

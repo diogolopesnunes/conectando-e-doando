@@ -27,7 +27,7 @@ import {IMaskInput} from "react-imask";
 //     }
 // };
 
-export default function Input({tipoInp, label, htmlFor, placeholder, classe = '', value, funcao, maxlength, checado, opcoeslabel, opcoes, disabled=false, minLength, mask, required=true}) {
+export default function Input({tipoInp, label, htmlFor, placeholder, classe = '', value, funcao, maxlength, checado, opcoeslabel, opcoes, disabled=false, minLength, mask, required=true, obrigatorio="Nao"}) {
 
     // 2. Lógica que transforma o valor puro em valor com máscara para a tela
     // const valorParaExibir = (mask && MASKS[mask]) ? MASKS[mask](String(value || "")) : value;
@@ -35,23 +35,29 @@ export default function Input({tipoInp, label, htmlFor, placeholder, classe = ''
     if (classe == 'metade') {
         if (tipoInp == 'radio') {
             return (
-                <div className={"d-inline-block my-3 text-center " + css.metade}>
-                    <input type={tipoInp} id={htmlFor} name={htmlFor} value={value} onChange={funcao} checked={checado} required/>
+                <div className={"d-flex flex-column my-3 text-center " + css.metade}>
+                    <input type={tipoInp} id={htmlFor} name={htmlFor} value={value} onChange={funcao} checked={checado} required={obrigatorio == "Sim"}/>
                     <label htmlFor={htmlFor} className='mx-2'>{label}</label>
                 </div>
             )
         }
         return (
-            <div className={"d-inline-block my-3 " + css.metade}>
+            <div className={"d-flex flex-column my-3 " + css.metade}>
+                {obrigatorio == "Sim" && (
+                    <span className={css.campoObrigatorio}>* Campo Obrigatório</span>
+                )}
                 <label htmlFor={htmlFor}>{label}</label>
                 <input type={tipoInp} placeholder={placeholder} id={htmlFor} name={htmlFor} className={"d-block w-100 rounded px-2 py-1 " + css.input} value={value} onChange={funcao} required={required}/>
             </div>
         )
     } else if (tipoInp == 'select') {
         return (
-            <div className={"w-75 m-auto my-3"}>
+            <div className={"d-flex w-75 m-auto my-3 flex-column"}>
+                {obrigatorio == "Sim" && (
+                    <span className={css.campoObrigatorio}>* Campo Obrigatório</span>
+                )}
                 <label htmlFor={htmlFor}>{label}</label>
-                <select id={htmlFor} onChange={funcao} className={"d-block w-100 rounded px-2 py-1 " + css.input} required value={value}>
+                <select id={htmlFor} onChange={funcao} className={"d-block w-100 rounded px-2 py-1 " + css.input} required={obrigatorio == "Sim"} value={value}>
                     <option value="" disabled>{opcoeslabel}</option>
                     {opcoes.map((opcao, i) => (
                         <option key={i} value={opcao}>{opcao}</option>
@@ -61,15 +67,21 @@ export default function Input({tipoInp, label, htmlFor, placeholder, classe = ''
         )
     } else if (tipoInp == 'textarea') {
         return (
-            <div className={"w-75 m-auto my-3"} >
+            <div className={"d-flex flex-column w-75 m-auto my-3"} >
+                {obrigatorio == "Sim" && (
+                    <span className={css.campoObrigatorio}>* Campo Obrigatório</span>
+                )}
                 <label htmlFor={htmlFor}>{label}</label>
-                <textarea id={htmlFor} name={htmlFor} value={value} onChange={funcao} placeholder={placeholder} className={"d-block w-100 rounded px-2 py-1 " + css.input} required/>
+                <textarea id={htmlFor} name={htmlFor} value={value} onChange={funcao} placeholder={placeholder} className={"d-block w-100 rounded px-2 py-1 " + css.input} required={obrigatorio == "Sim"}/>
             </div>
         )
     }
 
     return (
-        <div className={"w-75 m-auto my-3"} >
+        <div className={"d-flex flex-column w-75 m-auto my-3"} >
+            {obrigatorio == "Sim" && (
+                <span className={css.campoObrigatorio}>* Campo Obrigatório</span>
+            )}
             <label htmlFor={htmlFor}>{label} </label>
 
             {mask === "cnpj" ? (
@@ -133,7 +145,7 @@ export default function Input({tipoInp, label, htmlFor, placeholder, classe = ''
                        onChange={funcao}
                        maxLength={maxlength}
                        minLength={minLength}
-                       required
+                       required={obrigatorio == "Sim"}
                        disabled={disabled}/>
             )}
 
