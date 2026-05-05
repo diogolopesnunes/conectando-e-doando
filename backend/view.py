@@ -1792,97 +1792,49 @@ def ativar_desativar_projeto(id_usuario, id_projeto):
     finally:
         cur.close()
 
+
 @app.route('/excluir_projeto/<int:id_usuario>/<int:id_projeto>', methods=['DELETE'])
 def excluir_projeto(id_usuario, id_projeto):
     token = request.cookies.get('access_token')
     if not token:
-        return jsonify({'mensagem': {
-            'tipo': 'erro',
-            'descricao': 'Token de autenticação necessário'
-        }}), 401
+        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Token necessário'}}), 401
+
     cur = con.cursor()
-    dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
-    id_token = dados['id_usuario']
     try:
-        if id_usuario != id_token:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Você não tem permissão'
-            }}), 403
+        dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+        id_token = dados['id_usuario']
 
-        cur.execute(
-            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
-            (id_token,)
-        )
-        usuario = cur.fetchone()
-        if not usuario:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Usuário não encontrado'
-            }}), 404
-        tipo_usuario = usuario[0]
+        # Busca o tipo do usuário que está tentando deletar (quem está logado)
+        cur.execute('SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?', (id_token,))
+        tipo = cur.fetchone()
+        tipo_usuario_logado = tipo[0] if tipo else None
 
-        # 2 = admin | 1 = ONG
-        if tipo_usuario == 2:
-            pass
-        elif tipo_usuario == 1 and (id_usuario != id_token):
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Apenas administradores e ONGs podem acessar esta página'
-            }}), 403
-    except jwt.ExpiredSignatureError:
-        return jsonify({'mensagem': {
-            'tipo': 'sucesso',
-            'descricao': 'Projeto excluído com sucesso'
-        }}), 200
-    try:
-        cur.execute('select 1 from projeto_ong where id_projeto = ?', (id_projeto,))
-        projeto_ong = cur.fetchone()
-        if not projeto_ong:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Projeto não encontrado'
-            }})
+        # REGRA DE OURO:
+        # Pode deletar se: (O ID do token for o mesmo da URL) OU (Se for Admin tipo 2)
+        e_dono = (id_token == id_usuario)
+        e_admin = (tipo_usuario_logado == 2)
 
-        cur.execute('select 1 from projeto_ong where id_projeto = ?', (id_projeto,))
-        atividade = cur.fetchone()
+        if not (e_dono or e_admin):
+            return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Sem permissão'}}), 403
 
-        if atividade == 1:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Não é possível excluir um post de atividade'
-            }})
+        # Verifica se o projeto existe
+        cur.execute('SELECT 1 FROM projeto_ong WHERE id_projeto = ?', (id_projeto,))
+        if not cur.fetchone():
+            return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Projeto não encontrado'}})
 
-        if tipo_usuario == 2:
-            cur.execute('delete from post_projeto where fk_projeto =?', (id_projeto, ))
-            con.commit()
-            cur.execute('delete from projeto_ong where id_projeto = ?', (id_projeto, ))
-            con.commit()
-            return jsonify({'mensagem': {
-                'tipo': 'sucesso',
-                'descricao': 'Projeto excluído com sucesso'
-            }})
-
-        if tipo_usuario == 1 and id_usuario == id_token :
-            cur.execute('delete from post_projeto where fk_projeto =?', (id_projeto,))
-            con.commit()
-            cur.execute('delete from projeto_ong where ID_PROJETO = ? and fk_usuario_ong = ?',
-                        (id_projeto, id_usuario))
-            con.commit()
-            return jsonify({'mensagem': {
-                'tipo': 'sucesso',
-                'descricao': 'Projeto excluído com sucesso'
-            }})
+        # Executa a exclusão (Admin deleta qualquer um, ONG deleta apenas o dela)
+        if e_admin:
+            cur.execute('DELETE FROM post_projeto WHERE fk_projeto = ?', (id_projeto,))
+            cur.execute('DELETE FROM projeto_ong WHERE id_projeto = ?', (id_projeto,))
         else:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Você não pode excluir esse projeto, pois é de propriedade de outra pessoa.'
-            }})
+            cur.execute('DELETE FROM post_projeto WHERE fk_projeto = ?', (id_projeto,))
+            cur.execute('DELETE FROM projeto_ong WHERE id_projeto = ? AND fk_usuario_ong = ?', (id_projeto, id_token))
+
+        con.commit()
+        return jsonify({'mensagem': {'tipo': 'sucesso', 'descricao': 'Projeto excluído com sucesso'}})
+
     except Exception as e:
-        return jsonify({'mensagem': {
-            'tipo': 'erro',
-            'descricao': f'Erro ao excluir projeto: {e}'
-        }}), 500
+        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': f'Erro: {e}'}}), 500
     finally:
         cur.close()
 
