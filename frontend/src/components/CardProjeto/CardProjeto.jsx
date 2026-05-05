@@ -43,7 +43,7 @@ export default function CardProjeto({ NomeProjeto, id, title, api, idUsuario, at
             <div className={'row w-100 m-auto bg-light p-2 rounded-2 shadow-sm justify-content-around my-3 text-center text-sm-start '  + css.card} title={title}>
                 <div className={'col-sm-6 col-12 mb-4 mb-sm-0 ' + css.textoGrande}>
                     <Link to={`/projeto/${id}`}>
-                        <h5>{NomeProjeto}</h5>
+                        <h5 className={'text-center text-lg-start'}>{NomeProjeto}</h5>
                     </Link>
                 </div>
 

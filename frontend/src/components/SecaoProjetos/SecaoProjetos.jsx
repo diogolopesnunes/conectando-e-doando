@@ -1,11 +1,14 @@
 import css from "./SecaoProjetos.module.css";
-import { Link } from "react-router-dom";
+import {Link, useParams} from "react-router-dom";
 import Buton from "../Buton/Buton.jsx";
+import {useState} from "react";
 
-export default function SecaoProjetos({ projetos, api, excluir, alternarStatus }) {
+export default function SecaoProjetos({ projetos, api, excluir, alternarStatus, idUsuario }) {
+    const [tipoUsuario, setTipoUsuario] = useState(localStorage.getItem('tipo_usuario'))
     return (
         <div className={css.container}>
             <h2>Projetos</h2>
+            <Buton texto={'Adicionar projeto'} tamanho={'medio'} background={'laranja'} rota={`/adicionar_projetos/${idUsuario}`}/>
 
             {projetos?.length === 0 && (
                 <p>Nenhum projeto cadastrado.</p>

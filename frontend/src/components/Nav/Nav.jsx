@@ -32,7 +32,33 @@ export default function Nav() {
         if (local.pathname.includes('/edicao_ongs/')) {
             ongs += " active";
         }
+        if (local.pathname.includes('/previa_ong/')) {
+            ongs += " active";
+        }
+        if (local.pathname.includes('/projeto/')) {
+            ongs += " active";
+        }
+        if (local.pathname.includes('/adicionar_post/')) {
+            ongs += " active";
+        }
+        if (local.pathname.includes('/adicionar_projetos/')) {
+            ongs += " active";
+        }
+        if (local.pathname.includes('/edicao_projetos/')) {
+            ongs += " active";
+        }
         return ongs;
+    }
+
+    function doadoresAdm({ isActive }) {
+        var doadores = cssAtivado({ isActive });
+        if (local.pathname.includes('/edicao_doadores/')) {
+            doadores += " active";
+        }
+        // if (local.pathname.includes('/edicao_ongs/')) {
+        //     ongs += " active";
+        // }
+        return doadores;
     }
 
     useEffect(() => {
@@ -93,23 +119,23 @@ export default function Nav() {
 
                     <NavLink
                         to="/dashboard_adm_doador"
-                        className={cssAtivado}>
+                        className={doadoresAdm}>
                         Doadores
                     </NavLink>
 
-                    <NavLink
-                        to="/adms"
-                        className={cssAtivado}>
-                        ADMs
-                    </NavLink>
+                    {/*<NavLink*/}
+                    {/*    to="/adms"*/}
+                    {/*    className={cssAtivado}>*/}
+                    {/*    ADMs*/}
+                    {/*</NavLink>*/}
 
-                    <NavLink to={"/doacoes"} className={cssAtivado} >Doações</NavLink>
+                    {/*<NavLink to={"/doacoes"} className={cssAtivado} >Doações</NavLink>*/}
 
-                    <NavLink
-                        to="/edicao_adm"
-                        className={cssAtivado}>
-                        Editar ADM
-                    </NavLink>
+                    {/*<NavLink*/}
+                    {/*    to="/edicao_adm"*/}
+                    {/*    className={cssAtivado}>*/}
+                    {/*    Editar ADM*/}
+                    {/*</NavLink>*/}
                 </>
             )}
         </div>

@@ -142,7 +142,7 @@ export default function CardOngAdm({
                 </div>
             </Link>
 
-            <div className={'col-12 col-sm-4 d-flex align-items-center justify-content-center gap-1 flex-column flex-sm-row'}>
+            <div className={'col-12 col-sm-4 d-flex align-items-center justify-content-end gap-1 flex-column flex-sm-row'}>
 
                 {(status === 4 || status === 0) && (
                     <>
@@ -165,6 +165,15 @@ export default function CardOngAdm({
 
                 {status !== 4 && status !== 0 && (
                     <>
+                        {[2, 3, 5].includes(status) && (
+                            <Buton
+                                texto={'Excluir'}
+                                background={'vermelho'}
+                                tamanho={'pequeno'}
+                                onClick={excluirUsuario}
+                            />
+                        )}
+
                         <Buton
                             texto={'Editar'}
                             background={'roxo'}
@@ -189,15 +198,6 @@ export default function CardOngAdm({
                                 disabled={loadingBloquear}
                             />
                         ) : null}
-
-                        {[2, 3, 5].includes(status) && (
-                            <Buton
-                                texto={'Excluir'}
-                                background={'vermelho'}
-                                tamanho={'pequeno'}
-                                onClick={excluirUsuario}
-                            />
-                        )}
                     </>
                 )}
             </div>

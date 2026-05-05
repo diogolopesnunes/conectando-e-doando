@@ -8,7 +8,7 @@ import "sweetalert2/dist/sweetalert2.min.css";
 export default function CardDoadorAdm({
                                        id,
                                        nome,
-                                       cnpj,
+                                       cpf,
                                        telefone,
                                        registro,
                                        situacao,
@@ -111,7 +111,7 @@ export default function CardDoadorAdm({
 
     return (
         <div className={'row shadow rounded p-2'}>
-            <Link to={`/previa_ong/${id}`} className={'col-12 col-sm-8'}>
+            <div className={'col-12 col-sm-8'}>
                 <div>
                     <div className={'d-flex gap-3 ' + css.nome}>
                         <p className={'px-2 rounded ' + css.idStyle}>ID {id}</p>
@@ -130,19 +130,19 @@ export default function CardDoadorAdm({
                     </div>
 
                     <div className={'d-flex justify-content-between flex-column flex-lg-row my-3 ' + css.infos}>
-                        <p>CNPJ: {cnpj}</p>
+                        <p>CPF: {cpf}</p>
                         <p>Telefone: {telefone}</p>
                         <p>Registro: {registro}</p>
                     </div>
                 </div>
-            </Link>
+            </div>
 
             <div className={'col-12 col-sm-4 d-flex align-items-center justify-content-end gap-1 flex-row flex-sm-row'}>
 
                 {(status === 4 || status === 0) && (
                     <>
                         <Buton
-                            texto={loadingAprovar ? 'Verificando...' : 'Verificar'}
+                            texto={loadingAprovar ? 'Validando...' : 'Validar'}
                             tamanho={'pequeno'}
                             background={'verde'}
                             onClick={aprovar}
@@ -167,7 +167,7 @@ export default function CardDoadorAdm({
                             texto={'Editar'}
                             background={'roxo'}
                             tamanho={'pequeno'}
-                            rota={`/edicao_ongs/${id}`}
+                            rota={`/edicao_doadores/${id}`}
                         />
 
                         {status === 1 ? (
@@ -177,6 +177,7 @@ export default function CardDoadorAdm({
                                 tamanho={'pequeno'}
                                 onClick={bloquearDesbloquear}
                                 disabled={loadingBloquear}
+                                rota={`/enviar_email/${id}`}
                             />
                         ) : (status === 2 || status === 3) ? (
                             <Buton
@@ -191,5 +192,20 @@ export default function CardDoadorAdm({
                 )}
             </div>
         </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     );
 }

@@ -1,8 +1,16 @@
 .cardPost{
     border: 4px solid var(--rosa);
     border-radius: 15px;
-    max-height: 350px;
-    height: 350px;
+    min-height: 350px;
+}
+
+.cardPost2{
+    border-radius: 15px 0 0 15px;
+}
+
+.cardComentario{
+    border-radius: 0 15px 15px 0;
+    border-left: none;
 }
 
 .logoOng{
@@ -17,6 +25,10 @@
 }
 
 .descricao{
+    text-indent: 20px;
+}
+
+.descricao, .tituloDescricao{
     text-align: justify;
     max-width: 100%;
     overflow: hidden;
@@ -24,6 +36,17 @@
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
+}
+
+.tituloDescricao{
+    -webkit-line-clamp: 2;
+}
+
+.titulo{
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .clicavel{
@@ -42,6 +65,7 @@
     text-align: justify;
     overflow: auto;
     max-height: 90vh;
+    touch-action: none;
 }
 
 .bordaCabecalho{

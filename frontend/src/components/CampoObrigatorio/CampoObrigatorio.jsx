@@ -1,5 +1,7 @@
-export default function CampoObrigatorio(texto) {
+import css from "./CampoObrigatorio.module.css"
+
+export default function CampoObrigatorio() {
     return (
-        <span className={"span m-1"}>{texto}</span>
+        <span className={css.campoObrigatorio}>*Campo Obrigatório</span>
     )
 }
