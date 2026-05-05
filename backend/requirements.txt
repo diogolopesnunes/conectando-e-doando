@@ -4,3 +4,4 @@ fdb
 flask-bcrypt
 flask-cors
 datetime
+emoji

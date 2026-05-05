@@ -8,6 +8,7 @@ import math
 from funcoes import validar_senha, criptografar, checar_senha, enviando_email, gerar_token, verificar_codigo, email_verificacao, valida_nova_senha
 from main import app, con
 from datetime import datetime
+import emoji
 
 senha_secreta = app.config['SECRET_KEY']
 
@@ -1072,6 +1073,120 @@ def listar_ong_adm(pagina, aprovacao):
     finally:
         cur.close()
 
+
+@app.route('/listar_doador_adm/<int:pagina>/<int:aprovacao>', methods=['GET'])
+def listar_doador_adm(pagina, aprovacao):
+    token = request.cookies.get('access_token')
+    if not token:
+        return jsonify({'mensagem': {
+            "tipo":"erro",
+            "descricao":'Token de autenticação necessário'}}), 401
+    try:
+        dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+        id_token = dados['id_usuario']
+        cur = con.cursor()
+        cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
+        tipo_usuario = cur.fetchone()[0]
+        if tipo_usuario != 2:
+            cur.close()
+            return jsonify({'mensagem': {
+                "tipo":"erro",
+                "descricao":'Apenas administradores podem acessar esta pagina'}}), 403
+    except Exception as e:
+        return jsonify({'mensagem': {
+            "tipo":"erro",
+            "descricao":f'Erro ao verificar token {e}'}}), 500
+    finally:
+        cur.close()
+
+    try:
+        cur = con.cursor()
+        nome = request.args.get('nome', '')
+
+        if aprovacao == 0:
+            cur.execute("""select count(id_usuario)
+                           from usuario
+                           where tipo_de_usuario = 0
+                            and situacao in (0, 4)
+                            AND UPPER(nome) LIKE UPPER(?)
+                        """, (f"%{nome}%",))
+        elif aprovacao == 1:
+            cur.execute("""select count(id_usuario)
+                           from usuario
+                           where tipo_de_usuario = 0 
+                            and situacao not in (0, 4)
+                            AND UPPER(nome) LIKE UPPER(?)
+                        """, (f"%{nome}%",))
+        else:
+            return jsonify({'mensagem': {
+                "tipo": "erro",
+                "descricao": "Filtro de aprovação inválido"
+            }}), 400
+
+        quantidade = cur.fetchone()[0]
+
+        numeroPaginas = math.ceil(quantidade / quantidadePorPagina)
+
+        minimo = ((pagina - 1) * quantidadePorPagina) + 1
+        maximo = pagina * quantidadePorPagina
+
+        if aprovacao == 0:
+            cur.execute("""
+                        SELECT id_usuario, nome, situacao, cpf_cnpj, telefone, data_hora_registro
+                        FROM usuario
+                        WHERE tipo_de_usuario = 0
+                          AND situacao IN (0, 4)
+                                  AND UPPER(nome) LIKE UPPER(?)
+                        ORDER BY id_usuario DESC ROWS ? TO ?
+                        """, (f"%{nome}%", minimo, maximo))
+        elif aprovacao == 1:
+            cur.execute("""
+                        SELECT id_usuario, nome, situacao, cpf_cnpj, telefone, data_hora_registro
+                        FROM usuario
+                        WHERE tipo_de_usuario = 0
+                          AND situacao NOT IN (0, 4)
+                          AND UPPER(nome) LIKE UPPER(?)
+                        ORDER BY id_usuario DESC ROWS ? TO ?
+                        """, (f"%{nome}%", minimo, maximo))
+        else:
+            return jsonify({'mensagem': {
+                "tipo": "erro",
+                "descricao": "Filtro de aprovação inválido"
+            }}), 400
+
+        doadores = cur.fetchall()
+        doadores_lista = []
+
+        numeroDoador = 1
+        for doador in doadores:
+            doadores_lista.append({
+                'id_usuario': doador[0],
+                'nome': doador[1].upper(),
+                'situacao': doador[2],
+                'cpf_cnpj': doador[3],
+                'telefone': doador[4],
+                'data_hora_registro': doador[5].strftime("%d/%m/%Y %H:%M")
+            })
+            numeroDoador += 1
+
+        proximaPagina = pagina + 1
+        if proximaPagina > numeroPaginas:
+            proximaPagina = 0
+
+        return jsonify({
+            'mensagem':'Lista de Doadores',
+            'doadores':doadores_lista,
+            'numeroPaginas':numeroPaginas,
+            'proximaPagina':proximaPagina,
+            'paginaAnterior':pagina - 1
+        })
+
+    except Exception as e:
+        return jsonify({'message':{
+            "tipo":"erro",
+            "descricao":f'Erro ao consultar banco de dados: {e}'}}), 500
+    finally:
+        cur.close()
 
 @app.route('/cadastrar_projeto/<int:id_usuario>', methods=["POST"])
 def cadastrar_projeto(id_usuario):
@@ -2459,3 +2574,522 @@ def excluir_usuario(id_usuario, id_ong):
         return jsonify({'mensagem': {'tipo': 'erro', 'descricao': f'Erro ao Excluir ONG: {e}'}}), 500
     finally:
         cur.close()
+
+@app.route('/pagina_feed/<int:pagina>', methods=['GET'])
+def pagina_feed(pagina):
+    token = request.cookies.get('access_token')
+
+    if not token:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token necessário'
+        }}), 401
+
+    try:
+        dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+        id_usuario = dados['id_usuario']
+
+        cur = con.cursor()
+
+        nome = request.args.get('nome', '')
+        ong = request.args.get('ong', '')
+        tema = request.args.get('tema', '')
+        data = request.args.get('data', '')
+
+        limite = 4
+        minimo = ((pagina - 1) * limite) + 1
+        maximo = pagina * limite
+
+        selectBase = """
+            SELECT 
+                p.id_post_projeto,
+                p.titulo,
+                p.acao,
+                p.data_hora,
+                u.nome,
+                pr.id_projeto,
+                u.tipo_ong,
+                COALESCE(c.SITUACAO_CURTIDA, 0) as curtido
+            FROM post_projeto p
+            JOIN projeto_ong pr ON p.fk_projeto = pr.id_projeto
+            JOIN usuario u ON pr.FK_USUARIO_ONG = u.id_usuario
+           LEFT JOIN CURTIDAS_POSTAGEM c 
+                ON c.FK_POST = p.id_post_projeto 
+                AND c.FK_USUARIO_DOADOR = ?
+            WHERE p.atividade = 1
+        """
+
+        filtros = [id_usuario]
+
+        if nome:
+            selectBase += " AND UPPER(p.titulo) LIKE UPPER(?)"
+            filtros.append(f"%{nome}%")
+
+        if ong:
+            selectBase += " AND UPPER(u.nome) LIKE UPPER(?)"
+            filtros.append(f"%{ong}%")
+
+        if tema:
+            selectBase += " AND u.tipo_ong = ?"
+            filtros.append(tema)
+
+        if data:
+            selectBase += " AND CAST(p.data_hora AS DATE) = ?"
+            filtros.append(data)
+
+        selectBase += " ORDER BY p.data_hora DESC ROWS ? TO ?"
+        filtros.extend([minimo, maximo])
+
+        cur.execute(selectBase, tuple(filtros))
+        posts_db = cur.fetchall()
+
+        posts = []
+        for p in posts_db:
+            cur.execute("""
+                SELECT COUNT(*)
+                FROM curtidas_postagem
+                WHERE FK_POST = ? AND SITUACAO_CURTIDA = 1
+            """, (p[0],))
+            total_curtidas = cur.fetchone()[0]
+
+            posts.append({
+                'id_post': p[0],
+                'titulo': p[1],
+                'acao': p[2],
+                'data_hora': p[3].strftime("%d/%m/%Y %H:%M"),
+                'ong_nome': p[4],
+                'id_projeto': p[5],
+                'tema': p[6],
+                'curtido': bool(p[7]),
+                'total_curtidas': total_curtidas
+            })
+
+        cur.execute("""
+            SELECT u.id_usuario, u.nome
+            FROM seguidores s
+            JOIN usuario u ON s.FK_USUARIO_ONG = u.id_usuario
+            WHERE s.FK_USUARIO_DOADOR = ?
+        """, (id_usuario,))
+
+        ongs_seguidas = [{
+            'id': o[0],
+            'nome': o[1]
+        } for o in cur.fetchall()]
+
+        cur.execute("""
+            SELECT FIRST 5 id_usuario, nome, tipo_ong
+            FROM usuario
+            WHERE tipo_de_usuario = 1
+              AND id_usuario NOT IN (
+                  SELECT FK_USUARIO_ONG 
+                  FROM seguidores 
+                  WHERE FK_USUARIO_DOADOR = ?
+              )
+            ORDER BY data_hora_registro DESC
+        """, (id_usuario,))
+
+        novas_ongs = [{
+            'id': o[0],
+            'nome': o[1],
+            'tema': o[2]
+        } for o in cur.fetchall()]
+
+        proximaPagina = pagina + 1 if len(posts) > 0 else 0
+        paginaAnterior = pagina - 1 if pagina > 1 else 0
+
+        return jsonify({
+            'posts': posts,
+            'ongs_seguidas': ongs_seguidas,
+            'novas_ongs': novas_ongs,
+            'proximaPagina': proximaPagina,
+            'paginaAnterior': paginaAnterior
+        }), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token expirado'
+        }}), 401
+
+    except jwt.InvalidTokenError:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token inválido'
+        }}), 401
+
+    except Exception as e:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': f'Erro no feed: {e}'
+        }}), 500
+
+    finally:
+        if cur:
+            cur.close()
+
+
+@app.route('/pagina_feed_favoritas/<int:pagina>', methods=['GET'])
+def pagina_feed_favoritas(pagina):
+    token = request.cookies.get('access_token')
+
+    if not token:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token necessário'
+        }}), 401
+
+    try:
+        dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+        id_usuario = dados['id_usuario']
+
+        cur = con.cursor()
+
+        nome = request.args.get('nome', '')
+        ong = request.args.get('ong', '')
+        tema = request.args.get('tema', '')
+        data = request.args.get('data', '')
+
+        limite = 4
+        minimo = ((pagina - 1) * limite) + 1
+        maximo = pagina * limite
+
+        selectBase = """
+            SELECT 
+                p.id_post_projeto,
+                p.titulo,
+                p.acao,
+                p.data_hora,
+                u.nome,
+                pr.id_projeto,
+                u.tipo_ong
+            FROM post_projeto p
+            JOIN PROJETO_ONG pr ON p.fk_projeto = pr.id_projeto
+            JOIN usuario u ON pr.FK_USUARIO_ONG = u.id_usuario
+            JOIN seguidores s ON s.FK_USUARIO_ONG = u.id_usuario
+            WHERE p.atividade = 1
+              AND s.FK_USUARIO_DOADOR = ?
+        """
+
+        filtros = [id_usuario]
+
+        if nome:
+            selectBase += " AND UPPER(p.titulo) LIKE UPPER(?)"
+            filtros.append(f"%{nome}%")
+
+        if ong:
+            selectBase += " AND UPPER(u.nome) LIKE UPPER(?)"
+            filtros.append(f"%{ong}%")
+
+        if tema:
+            selectBase += " AND u.tipo_ong = ?"
+            filtros.append(tema)
+
+        if data:
+            selectBase += " AND CAST(p.data_hora AS DATE) = ?"
+            filtros.append(data)
+
+        selectBase += " ORDER BY p.data_hora DESC ROWS ? TO ?"
+        filtros.extend([minimo, maximo])
+
+        cur.execute(selectBase, tuple(filtros))
+        posts_db = cur.fetchall()
+
+        posts = []
+        for p in posts_db:
+            posts.append({
+                'id_post': p[0],
+                'titulo': p[1],
+                'acao': p[2],
+                'data_hora': p[3].strftime("%d/%m/%Y %H:%M"),
+                'ong_nome': p[4],
+                'id_projeto': p[5],
+                'tema': p[6]
+            })
+
+        proximaPagina = pagina + 1 if len(posts) > 0 else 0
+        paginaAnterior = pagina - 1 if pagina > 1 else 0
+
+        return jsonify({
+            'posts': posts,
+            'proximaPagina': proximaPagina,
+            'paginaAnterior': paginaAnterior
+        }), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token expirado'
+        }}), 401
+
+    except jwt.InvalidTokenError:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token inválido'
+        }}), 401
+
+    except Exception as e:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': f'Erro no feed: {e}'
+        }}), 500
+
+    finally:
+        if cur:
+            cur.close()
+
+
+@app.route('/postar_mensagem/<int:id_usuario>/<int:id_post>', methods=['POST'])
+def postar_mensagem(id_usuario, id_post):
+    token = request.cookies.get('access_token')
+
+    if not token:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token necessário'
+        }}), 401
+
+    cur = con.cursor()
+
+    try:
+        # Decodificação do Token
+        dados_token = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+        id_token = dados_token['id_usuario']
+
+        # Busca tipo de usuário
+        cur.execute(
+            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
+            (id_token,)
+        )
+        res_usuario = cur.fetchone()
+
+        if not res_usuario:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Usuário não encontrado'
+            }}), 404
+
+        # Correção do erro 'int object is not subscriptable'
+        tipo_usuario = res_usuario[0]
+
+        # Validação de Permissão (0 = Doador, 2 = ADM)
+        if tipo_usuario not in (0, 2):
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Apenas Doadores ou ADMs podem acessar esta página'
+            }}), 403
+
+        # Captura da mensagem vinda do JSX (React)
+        dados_corpo = request.get_json()
+        mensagem_front = dados_corpo.get('mensagem') if dados_corpo else None
+
+        if not mensagem_front or not str(mensagem_front).strip():
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Mensagem obrigatória'
+            }}), 400
+
+        # Conversão de Emoji para Shortcode (:rocket:)
+        mensagem_banco = emoji.demojize(mensagem_front)
+
+        # Verifica se o post existe na tabela de posts (ajuste o nome da coluna/tabela se necessário)
+        cur.execute(
+            'SELECT ID_POST_projeto FROM POST_PROJETO WHERE ID_POST_projeto = ?',
+            (id_post,)
+        )
+        if not cur.fetchone():
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'O post não existe'
+            }}), 404
+
+        # Inserção da Mensagem (Sintaxe SQL Corrigida)
+        cur.execute("""
+                    INSERT INTO MENSAGENS_POSTAGEM (FK_POST, FK_USUARIO_DOADOR, MENSAGEM)
+                    VALUES (?, ?, ?) RETURNING ID_MENSAGEM
+                    """, (id_post, id_token, mensagem_banco.strip()))
+
+        id_mensagem = cur.fetchone()[0]
+        con.commit()
+
+        return jsonify({
+            'mensagem': {
+                'tipo': 'sucesso',
+                'descricao': 'Mensagem realizada com sucesso'
+            },
+            'id_mensagem': id_mensagem
+        }), 201
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Token expirado'}}), 401
+    except Exception as e:
+        con.rollback()
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': f'Erro ao processar mensagem: {str(e)}'
+        }}), 500
+    finally:
+        cur.close()
+
+@app.route('/deseguir_seguir_ong/<int:id_ong>', methods=['POST'])
+def deseguir_seguir_ong(id_ong):
+    token = request.cookies.get('access_token')
+
+    if not token:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token necessário'
+        }}), 401
+
+    try:
+        dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+        id_usuario = dados['id_usuario']
+
+        cur = con.cursor()
+
+        if id_usuario == id_ong:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Você não pode seguir a si mesmo'
+            }}), 400
+
+        cur.execute("""
+            SELECT tipo_de_usuario
+            FROM usuario
+            WHERE id_usuario = ?
+        """, (id_ong,))
+        resultado = cur.fetchone()
+
+        if not resultado:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'ONG não encontrada'
+            }}), 404
+
+        if resultado[0] != 1:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Só é possível seguir ONGs'
+            }}), 400
+
+        cur.execute("""
+            SELECT ID_SEGUIDORES
+            FROM seguidores
+            WHERE FK_USUARIO_DOADOR = ? AND FK_USUARIO_ONG = ?
+        """, (id_usuario, id_ong))
+
+        ja_segue = cur.fetchone()
+
+
+        if ja_segue:
+            cur.execute("""
+                DELETE FROM seguidores
+                WHERE FK_USUARIO_DOADOR = ? AND FK_USUARIO_ONG = ?
+            """, (id_usuario, id_ong))
+
+            con.commit()
+
+            return jsonify({'mensagem': {
+                'tipo': 'sucesso',
+                'descricao': 'Você deixou de seguir a ONG'
+            }, 'seguindo': False}), 200
+
+        else:
+            cur.execute("""
+                INSERT INTO seguidores (FK_USUARIO_DOADOR, FK_USUARIO_ONG)
+                VALUES (?, ?)
+            """, (id_usuario, id_ong))
+
+            con.commit()
+
+            return jsonify({'mensagem': {
+                'tipo': 'sucesso',
+                'descricao': 'Agora você segue a ONG'
+            }, 'seguindo': True}), 201
+
+    except Exception as e:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': f'Erro: {e}'
+        }}), 500
+
+    finally:
+        cur.close()
+
+
+@app.route('/descurtir_curtir_post/<int:id_post>', methods=['POST'])
+def descurtir_curtir_post(id_post):
+    token = request.cookies.get('access_token')
+
+    if not token:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token necessário'
+        }}), 401
+
+    try:
+        dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+        id_usuario = dados['id_usuario']
+
+        cur = con.cursor()
+
+        cur.execute("""
+            SELECT ID_CURTIDAS, SITUACAO_CURTIDA
+            FROM curtidas
+            WHERE FK_POST = ? AND FK_USUARIO_DOADOR = ?
+        """, (id_post, id_usuario))
+
+        resultado = cur.fetchone()
+
+        if resultado:
+            id_curtida, situacao = resultado
+
+            nova_situacao = 0 if situacao == 1 else 1
+
+            cur.execute("""
+                UPDATE curtidas
+                SET SITUACAO_CURTIDA = ?, DATA_HORA = CURRENT_TIMESTAMP
+                WHERE ID_CURTIDAS = ?
+            """, (nova_situacao, id_curtida))
+
+            con.commit()
+
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'sucesso',
+                    'descricao': 'Curtida atualizada'
+                },
+                'curtido': True if nova_situacao == 1 else False
+            }), 200
+
+        else:
+
+            cur.execute("""
+                INSERT INTO curtidas (FK_POST, FK_USUARIO_DOADOR)
+                VALUES (?, ?)
+            """, (id_post, id_usuario))
+
+            con.commit()
+
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'sucesso',
+                    'descricao': 'Post curtido'
+                },
+                'curtido': True
+            }), 201
+
+    except Exception as e:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': f'Erro ao curtir: {e}'
+        }}), 500
+
+    finally:
+        cur.close()
+
+
+# @app.route('/listar_mensagem/<int:id_mensagem>', methods=['GET'])
+# def listar_mensagem()
+
+
+
