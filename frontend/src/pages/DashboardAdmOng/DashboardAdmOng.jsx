@@ -102,7 +102,7 @@ export default function DashboardAdmOng({ api }) {
                         />
                     )}
                 </div>
-                <div className={'d-flex justify-content-center align-items-center m-auto'}>
+                <div className={'d-flex justify-content-center gap-4 align-items-center'}>
                     {aprovacao == 1 ? (
                         <div>
                             <div className={'d-none d-sm-flex gap-3'}>

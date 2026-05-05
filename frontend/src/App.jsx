@@ -19,10 +19,12 @@ import PaginaProjeto from "./pages/Ong/PaginaProjeto/PaginaProjeto.jsx";
 import DashboardAdmOng from "./pages/DashboardAdmOng/DashboardAdmOng.jsx"
 import PaginaPreviaOng from "./pages/PaginaPreviaOng/PaginaPreviaOng.jsx";
 import PaginaEnviarEmail from "./pages/PaginaEnviarEmail/PaginaEnviarEmail.jsx";
+import DashboardAdmDoador from "./pages/DashboardAdmDoador/DashboardAdmDoador.jsx";
+import Feed from "./pages/Feed/Feed.jsx";
 
 export default function App() {
 
-    const api = 'http://10.92.3.133:5000'
+    const api = 'http://10.92.3.141:5000'
 
     const quemSomos = useRef(null);
     const doacoes = useRef(null);
@@ -39,7 +41,7 @@ export default function App() {
         ongs.current.scrollIntoView({ behavior: "smooth" });
     };
 
-    const [logado, setLogado] = useState("");
+    const [logado, setLogado] = useState(false);
     const [id, setId] = useState("");
     const [mensagem, setMensagem] = useState()
     const [tipoMensagem ,setTipoMensagem] = useState()
@@ -73,7 +75,11 @@ export default function App() {
 
                         return;
                 }
-
+                // if (localStorage.getItem('id_usuario')){
+                //     setlogado(true)
+                // } else{
+                //     setLogado(false)
+                // }
                 setLogado(true);
                 setId(localStorage.getItem("id_usuario"));
 
@@ -115,7 +121,8 @@ export default function App() {
                 <Route path={'/previa_ong/:id'} element={<PaginaPreviaOng api={api}/>} />
                 <Route path={'/previa_ong'} element={<PaginaPreviaOng api={api}/>} />
                 <Route path={'/enviar_email/:id_ong'} element={<PaginaEnviarEmail api={api}/>} />
-
+                <Route path={'/dashboard_adm_doador'} element={<DashboardAdmDoador api={api}/>} />
+                <Route path={'/feed'} element={<Feed />} />
 
                 <Route path="*" element={<Erro/>} />
             </Routes>

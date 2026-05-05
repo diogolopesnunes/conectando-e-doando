@@ -55,7 +55,7 @@ export default function Login({ setLogado, api }) {
             });
 
             setLogado(true);
-
+            
             if (retorno.mensagem.descricao === 'Sua conta está inativa') {
                 localStorage.setItem("email", email);
                 navegate('/validar');

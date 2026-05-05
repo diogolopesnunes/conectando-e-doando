@@ -7,6 +7,7 @@ import InfoOng from "../../components/InfoOng/InfoOng.jsx";
 import SecaoProjetos from "../../components/SecaoProjetos/SecaoProjetos.jsx";
 import Titulo from "../../components/Titulo/Titulo.jsx";
 import Swal from "sweetalert2";
+import Alerts from "../../components/Alerts/Alerts.jsx";
 
 export default function PaginaPreviaOng({ api }) {
     const { id } = useParams();
@@ -17,6 +18,7 @@ export default function PaginaPreviaOng({ api }) {
     const [proximaPagina, setProximaPagina] = useState(2);
     const [paginaAnterior, setPaginaAnterior] = useState(0);
     const [quantidade, setQuantidade] = useState(0);
+    const [mensagem, setMensagem] = useState(null)
 
     useEffect(() => {
         if (!localStorage.getItem("email") || !localStorage.getItem("id_usuario")) {
@@ -45,26 +47,22 @@ export default function PaginaPreviaOng({ api }) {
 
     async function alternarStatusProjeto(idProjeto) {
         const idUsuarioLogado = localStorage.getItem("id_usuario");
-        try {
-            const resposta = await fetch(`${api}/ativar_desativar_projeto/${idUsuarioLogado}/${idProjeto}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-            });
-            const retorno = await resposta.json();
+        const resposta = await fetch(`${api}/ativar_desativar_projeto/${idUsuarioLogado}/${idProjeto}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+        });
+        const retorno = await resposta.json();
 
-            Swal.fire({
-                title: retorno.mensagem.tipo === 'sucesso' ? "Sucesso!" : "Erro",
-                text: retorno.mensagem.descricao,
-                icon: retorno.mensagem.tipo === 'sucesso' ? "success" : "error",
-                timer: 1500,
-                showConfirmButton: false
+        if(retorno.mensagem){
+            setMensagem({
+                id: Date.now(),
+                texto: retorno.mensagem.descricao,
+                tipo: retorno.mensagem.tipo
             });
+        };
 
-            if (retorno.mensagem.tipo === 'sucesso') buscarOng();
-        } catch (error) {
-            Swal.fire("Erro", "Falha na conexão com o servidor", "error");
-        }
+        if (retorno.mensagem.tipo === 'sucesso') buscarOng();
     }
 
     async function excluirProjeto(idProjeto){
@@ -85,8 +83,14 @@ export default function PaginaPreviaOng({ api }) {
                 credentials: "include"
             });
             const retorno = await resposta.json();
-            Swal.fire(retorno.mensagem.tipo === 'sucesso' ? "Deletado!" : "Erro", retorno.mensagem.descricao, retorno.mensagem.tipo === 'sucesso' ? "success" : "error");
-            buscarOng();
+            if(retorno.mensagem){
+                setMensagem({
+                    id: Date.now(),
+                    texto: retorno.mensagem.descricao,
+                    tipo: retorno.mensagem.tipo
+                });
+                buscarOng()
+            };
         }
     }
 
@@ -99,6 +103,15 @@ export default function PaginaPreviaOng({ api }) {
                 <div className={css.acoesCabecalho}>
                     <Buton background="rosa" tamanho="pequeno" texto="Voltar" onClick={() => navigate(-1)} />
                 </div>
+                {mensagem && (
+                    <Alerts
+                        key={mensagem.id}
+                        tipo={mensagem.tipo}
+                        imagem={`/public/${mensagem.tipo}.png`}
+                        duracao={10000}
+                        descricao={mensagem.texto}
+                    />
+                )}
                 {!ong ? (
                     <p className="text-center">Carregando ONG...</p>
                 ) : (
