@@ -148,7 +148,7 @@ export default function EditarProjeto({ api }) {
                         <div className="m-auto">
                             <Form largura="maior" titulo={"Editar Projeto"} onSubmit={editar}>
 
-                                <Input
+                                <Input obrigatorio={"Sim"}
                                     htmlFor="nome"
                                     label="Nome do Projeto"
                                     tipoInp="text"
@@ -156,7 +156,7 @@ export default function EditarProjeto({ api }) {
                                     funcao={(e) => setNome(e.target.value)}
                                 />
 
-                                <Input
+                                <Input obrigatorio={"Sim"}
                                     htmlFor="descricao"
                                     label="Descrição"
                                     tipoInp="textarea"
@@ -164,7 +164,7 @@ export default function EditarProjeto({ api }) {
                                     funcao={(e) => setDescricao(e.target.value)}
                                 />
 
-                                <Input
+                                <Input obrigatorio={"Sim"}
                                     htmlFor="meta"
                                     label="Meta (R$)"
                                     tipoInp="text"

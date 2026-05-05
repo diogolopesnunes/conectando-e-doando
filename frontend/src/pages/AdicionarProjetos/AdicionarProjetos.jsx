@@ -4,10 +4,13 @@ import Buton from "../../components/Buton/Buton.jsx";
 import { useState, useRef, useEffect } from "react";
 import css from "./AdicionarProjetos.module.css";
 import Alerts from "../../components/Alerts/Alerts.jsx";
-import { useNavigate } from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import Nav from "../../components/Nav/Nav.jsx";
 
 export default function PaginaProjeto({ api }) {
+    const { id_usuario } = useParams();
+
+    const [idUsuario, setIdUsuario] = useState(id_usuario || localStorage.getItem("id_usuario"));
 
     const [nome, setNome] = useState('');
     const [descricao, setDescricao] = useState('');
@@ -18,15 +21,16 @@ export default function PaginaProjeto({ api }) {
     const [mensagem, setMensagem] = useState('');
     const [tipoMensagem, setTipoMensagem] = useState('');
 
+    const [tipoUsuario, setTipoUsuario] = useState(localStorage.getItem('tipo_usuario'))
+
     const inputImagemRef = useRef();
-    const [idUsuario, setIdUsuario] = useState("");
     const navigate = useNavigate();
 
     useEffect(() => {
         if (!localStorage.getItem("email") || !localStorage.getItem("email") || !localStorage.getItem("id_usuario")) {
             navegate('/login')
         } else{
-            setIdUsuario(localStorage.getItem("id_usuario"));
+            setIdUsuario(id_usuario || localStorage.getItem("id_usuario"));
         }
     }, [])
 
@@ -51,6 +55,7 @@ export default function PaginaProjeto({ api }) {
     async function publicar(e) {
         e.preventDefault();
 
+
         const form = new FormData();
         form.append("nome", nome);
         form.append("descricao", descricao);
@@ -74,9 +79,17 @@ export default function PaginaProjeto({ api }) {
             setMensagem(resposta.mensagem.descricao);
             setTipoMensagem(resposta.mensagem.tipo);
             if (resposta.mensagem.tipo == 'sucesso') {
-                setTimeout(() => {
-                    navigate('/projetos_ong');
-                }, 2000);
+                if (tipoUsuario == 1){
+                    setTimeout(() => {
+                        navigate('/projetos_ong');
+                    }, 2000);
+                } else if (tipoUsuario ==2){
+                    console.log()
+                    setTimeout(() => {
+                        navigate('/dashboard_adm_ong');
+                    }, 2000);
+                }
+
             }
         }
 
@@ -101,7 +114,7 @@ export default function PaginaProjeto({ api }) {
 
                         <div className={'m-auto '}>
                             <Form largura="maior" titulo={"Cadastro de Projeto"} onSubmit={publicar}>
-                                <Input
+                                <Input obrigatorio={"Sim"}
                                     htmlFor="nome"
                                     label="Nome do Projeto"
                                     tipoInp="text"
@@ -110,7 +123,7 @@ export default function PaginaProjeto({ api }) {
                                     funcao={(e) => setNome(e.target.value)}
                                 />
 
-                                <Input
+                                <Input obrigatorio={"Sim"}
                                     htmlFor="descricao"
                                     label="Descrição"
                                     tipoInp="textarea"
@@ -119,7 +132,7 @@ export default function PaginaProjeto({ api }) {
                                     funcao={(e) => setDescricao(e.target.value)}
                                 />
 
-                                <Input
+                                <Input obrigatorio={"Sim"}
                                     htmlFor="meta"
                                     label="Meta (R$)"
                                     tipoInp="text"

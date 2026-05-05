@@ -14,6 +14,7 @@
     --cinza: rgb(234, 234, 234);
     --cinza-claro: rgb(152, 152, 152);
     --cinza-escuro: rgb(47, 44, 44);
+    --rosa-choque: #FF69B4
 }
 
 * {
@@ -124,3 +125,20 @@ a.active {
 .swal2-cancel:hover{
     background-color: var(--roxo) !important;
 }
+
+/*::-webkit-scrollbar {*/
+/*    width: 10px;*/
+/*}*/
+
+/*::-webkit-scrollbar-thumb {*/
+/*    background: var(--roxo);*/
+/*    border-radius: 10px;*/
+/*}*/
+
+/*::-webkit-scrollbar-thumb:active {*/
+/*    background: var(--rosa);*/
+/*}*/
+
+/*::-webkit-scrollbar-thumb {*/
+/*    border: 2px solid var(--branco);*/
+/*}*/

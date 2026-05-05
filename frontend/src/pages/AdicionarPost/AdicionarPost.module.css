@@ -17,6 +17,14 @@
     border-radius: 15px;
 }
 
+.acoesCabecalho {
+    display: flex;
+    width: 37%;
+    max-width: 1000px;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
 @media (max-width: 426px){
     .botao {
         width: 90%;

@@ -27,6 +27,12 @@ export default function DashboardAdmDoador({ api }) {
         return mask.value;
     }
 
+    function formatarCPF(valor = "") {
+        const mask = IMask.createMask({ mask: "000.000.000-00" });
+        mask.resolve(String(valor || ""));
+        return mask.value;
+    }
+
     function formatarTelefone(valor = "") {
         const mask = IMask.createMask({ mask: "(00) 00000-0000" });
         mask.resolve(String(valor || ""));
@@ -106,8 +112,8 @@ export default function DashboardAdmDoador({ api }) {
                     {aprovacao == 1 ? (
                         <div>
                             <div className={'d-none d-sm-flex gap-3'}>
-                                <Buton texto={'Doadores não verificados'} background={'branco'} tamanho={'medio'} onClick={() => trocarFiltro(0)} />
-                                <Buton texto={'Doadores verificados'} background={'rosa'} tamanho={'medio'} onClick={() => trocarFiltro(1)} />
+                                <Buton texto={'Doadores não validados'} background={'branco'} tamanho={'medio'} onClick={() => trocarFiltro(0)} />
+                                <Buton texto={'Doadores validados'} background={'rosa'} tamanho={'medio'} onClick={() => trocarFiltro(1)} />
                             </div>
                             <div className={'d-block d-sm-none'}>
                                 <Buton texto={'Aprovação'} background={'branco'} tamanho={'medio'} onClick={() => trocarFiltro(0)} />
@@ -118,8 +124,8 @@ export default function DashboardAdmDoador({ api }) {
                     ) : (
                         <div>
                             <div className={'d-none d-sm-flex gap-3'}>
-                                <Buton texto={'Doadores não verificados'} background={'rosa'} tamanho={'medio'} onClick={() => trocarFiltro(0)} />
-                                <Buton texto={'Doadores verificados'} background={'branco'} tamanho={'medio'} onClick={() => trocarFiltro(1)} />
+                                <Buton texto={'Doadores não validados'} background={'rosa'} tamanho={'medio'} onClick={() => trocarFiltro(0)} />
+                                <Buton texto={'Doadores validados'} background={'branco'} tamanho={'medio'} onClick={() => trocarFiltro(1)} />
                             </div>
                             <div className={'d-block d-sm-none'}>
                                 <Buton texto={'Aprovação'} background={'rosa'} tamanho={'medio'} onClick={() => trocarFiltro(0)} />
@@ -147,7 +153,7 @@ export default function DashboardAdmDoador({ api }) {
                             <div key={doador.id_usuario} className={"row m-auto d-flex " + css.cardBonito}>
                                 <CardDoadorAdm
                                     id={doador.id_usuario}
-                                    cnpj={formatarCNPJ(doador.cpf_cnpj)}
+                                    cpf={formatarCPF(doador.cpf_cnpj)}
                                     telefone={formatarTelefone(doador.telefone)}
                                     nome={doador.nome}
                                     registro={doador.data_hora_registro}
@@ -182,9 +188,9 @@ export default function DashboardAdmDoador({ api }) {
                         </div>
                     ) : (
                         aprovacao == 1 ?(
-                            <div className={'m-auto text-center mt-5 pt-5'}><Titulo texto={'Não há Doadores cadastrados'} /></div>
+                            <div className={'m-auto text-center mt-5 pt-5'}><Titulo texto={'Não há Doadores Cadastrados'} /></div>
                         ):(
-                            <div className={'m-auto text-center mt-5 pt-5'}><Titulo texto={'Não há Doadores para analise'} /></div>
+                            <div className={'m-auto text-center mt-5 pt-5'}><Titulo texto={'Não há Doadores Não Validados'} /></div>
                         )
                     )}
                 </div>

@@ -110,4 +110,15 @@
         margin: 5px 0;
         justify-content: center;
     }
+
+    .imagemAtualizacao {
+        align-self: center;
+    }
+
+    .ProgressoContainer {
+        display: flex;
+        align-items: center;
+        width: 50% !important;
+        gap: 15px;
+    }
 }

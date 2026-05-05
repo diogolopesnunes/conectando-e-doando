@@ -17,14 +17,15 @@ import EdicaoProjetos from "./pages/EdicaoProjetos/EdicaoProjetos.jsx";
 import EdicaoONGS from "./pages/EdicaoONGs/EdicaoONGs.jsx";
 import PaginaProjeto from "./pages/Ong/PaginaProjeto/PaginaProjeto.jsx";
 import DashboardAdmOng from "./pages/DashboardAdmOng/DashboardAdmOng.jsx"
-import PaginaPreviaOng from "./pages/PaginaPreviaOng/PaginaPreviaOng.jsx";
+import {PaginaPreviaOng} from "./pages/PaginaPreviaOng/PaginaPreviaOng.jsx";
 import PaginaEnviarEmail from "./pages/PaginaEnviarEmail/PaginaEnviarEmail.jsx";
 import DashboardAdmDoador from "./pages/DashboardAdmDoador/DashboardAdmDoador.jsx";
 import Feed from "./pages/Feed/Feed.jsx";
+import EdicaoDoadores from "./pages/EdicaoDoadores/EdicaoDoadores.jsx";
 
 export default function App() {
 
-    const api = 'http://10.92.3.141:5000'
+    const api = 'http://10.92.3.154:5000'
 
     const quemSomos = useRef(null);
     const doacoes = useRef(null);
@@ -111,11 +112,14 @@ export default function App() {
                 <Route path={"/dashboard"} element={<AreaRestrita />} />
                 <Route path={"/projetos_ong"} element={<Projetos api={api}/>} />
                 <Route path={"/adicionar_projetos"} element={<AdicionarProjetos api={api}/>} />
+                <Route path={"/adicionar_projetos/:id_usuario"} element={<AdicionarProjetos api={api}/>} />
                 <Route path={"/adicionar_post/:id_projeto"} element={<AdicionarPost api={api}/>} />
                 <Route path={"/edicao_projetos/:id_projeto"} element={<EdicaoProjetos api={api}/>} />
                 <Route path={"/edicao_post/:id_projeto/:id_post"} element={<AdicionarPost api={api}/>} />
                 <Route path={"/edicao_ongs/:id_usuario"} element={<EdicaoONGS api={api}/>} />
                 <Route path={"/edicao_ongs"} element={<EdicaoONGS api={api}/>} />
+                <Route path={"/edicao_doadores/:id_usuario"} element={<EdicaoDoadores api={api} />} />
+                <Route path={"/edicao_doadores"} element={<EdicaoDoadores api={api}/>} />
                 <Route path={'/projeto/:id_projeto'} element={<PaginaProjeto api={api}/>} />
                 <Route path={'/dashboard_adm_ong'} element={<DashboardAdmOng api={api}/>} />
                 <Route path={'/previa_ong/:id'} element={<PaginaPreviaOng api={api}/>} />

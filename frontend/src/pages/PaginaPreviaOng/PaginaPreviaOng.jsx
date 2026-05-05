@@ -9,8 +9,8 @@ import Titulo from "../../components/Titulo/Titulo.jsx";
 import Swal from "sweetalert2";
 import Alerts from "../../components/Alerts/Alerts.jsx";
 
-export default function PaginaPreviaOng({ api }) {
-    const { id } = useParams();
+export function PaginaPreviaOng({api}) {
+    const {id} = useParams();
     const navigate = useNavigate();
     const [tipoUsuario, setTipoUsuario] = useState("");
     const [ong, setOng] = useState(null);
@@ -33,7 +33,7 @@ export default function PaginaPreviaOng({ api }) {
         if (!idOng) return;
         const resposta = await fetch(`${api}/buscar_ong/${idOng}/${pagina}`, {
             method: "GET",
-            headers: { "Content-Type": "application/json" },
+            headers: {"Content-Type": "application/json"},
             credentials: "include",
         });
         if (resposta.ok) {
@@ -49,23 +49,24 @@ export default function PaginaPreviaOng({ api }) {
         const idUsuarioLogado = localStorage.getItem("id_usuario");
         const resposta = await fetch(`${api}/ativar_desativar_projeto/${idUsuarioLogado}/${idProjeto}`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
+            headers: {"Content-Type": "application/json"},
             credentials: "include",
         });
         const retorno = await resposta.json();
 
-        if(retorno.mensagem){
+        if (retorno.mensagem) {
             setMensagem({
                 id: Date.now(),
                 texto: retorno.mensagem.descricao,
                 tipo: retorno.mensagem.tipo
             });
-        };
+        }
+        ;
 
         if (retorno.mensagem.tipo === 'sucesso') buscarOng();
     }
 
-    async function excluirProjeto(idProjeto){
+    async function excluirProjeto(idProjeto) {
         const idOng = id || localStorage.getItem("id_usuario");
         const result = await Swal.fire({
             title: "Você tem certeza?",
@@ -79,29 +80,32 @@ export default function PaginaPreviaOng({ api }) {
         if (result.isConfirmed) {
             const resposta = await fetch(`${api}/excluir_projeto/${idOng}/${idProjeto}`, {
                 method: "DELETE",
-                headers: { "Content-Type": "application/json" },
+                headers: {"Content-Type": "application/json"},
                 credentials: "include"
             });
             const retorno = await resposta.json();
-            if(retorno.mensagem){
+            if (retorno.mensagem) {
                 setMensagem({
                     id: Date.now(),
                     texto: retorno.mensagem.descricao,
                     tipo: retorno.mensagem.tipo
                 });
                 buscarOng()
-            };
+            }
+            ;
         }
     }
 
-    useEffect(() => { buscarOng(); }, [id, pagina]);
+    useEffect(() => {
+        buscarOng();
+    }, [id, pagina]);
 
     return (
         <div className={"m-auto " + css.containerPrincipal}>
-            <Nav />
+            <Nav/>
             <div className={css.envoltorioConteudo}>
                 <div className={css.acoesCabecalho}>
-                    <Buton background="rosa" tamanho="pequeno" texto="Voltar" onClick={() => navigate(-1)} />
+                    <Buton background="rosa" tamanho="pequeno" texto="Voltar" onClick={() => navigate(-1)}/>
                 </div>
                 {mensagem && (
                     <Alerts
@@ -116,12 +120,13 @@ export default function PaginaPreviaOng({ api }) {
                     <p className="text-center">Carregando ONG...</p>
                 ) : (
                     <>
-                        <InfoOng info={ong} texto={"Doar Agora"} api={api} />
+                        <InfoOng info={ong} texto={"Doar Agora"} api={api}/>
                         <SecaoProjetos
                             projetos={ong.projetos}
                             api={api}
                             excluir={excluirProjeto}
                             alternarStatus={alternarStatusProjeto}
+                            idUsuario={id}
                         />
                     </>
                 )}
@@ -129,20 +134,22 @@ export default function PaginaPreviaOng({ api }) {
                     <div className={'col-10 col-sm-3 m-auto d-flex justify-content-between paginas'}>
                         {paginaAnterior !== 0 && (
                             <>
-                                <Buton texto={"<"} onClick={() => setPagina(paginaAnterior)} classe={'pagina'} />
-                                <Buton texto={paginaAnterior} onClick={() => setPagina(paginaAnterior)} classe={'pagina'} />
+                                <Buton texto={"<"} onClick={() => setPagina(paginaAnterior)} classe={'pagina'}/>
+                                <Buton texto={paginaAnterior} onClick={() => setPagina(paginaAnterior)}
+                                       classe={'pagina'}/>
                             </>
                         )}
-                        <Buton texto={pagina} classe={'paginaSelecionada'} />
+                        <Buton texto={pagina} classe={'paginaSelecionada'}/>
                         {proximaPagina !== 0 && (
                             <>
-                                <Buton texto={proximaPagina} onClick={() => setPagina(proximaPagina)} classe={'pagina'} />
-                                <Buton texto={">"} onClick={() => setPagina(proximaPagina)} classe={'pagina'} />
+                                <Buton texto={proximaPagina} onClick={() => setPagina(proximaPagina)}
+                                       classe={'pagina'}/>
+                                <Buton texto={">"} onClick={() => setPagina(proximaPagina)} classe={'pagina'}/>
                             </>
                         )}
                     </div>
                 ) : (
-                    <div className={'m-auto text-center my-5'}><Titulo texto={'Não há projetos cadastrados'} /></div>
+                    <div className={'m-auto text-center my-5'}><Titulo texto={'Não há projetos cadastrados'}/></div>
                 )}
             </div>
         </div>

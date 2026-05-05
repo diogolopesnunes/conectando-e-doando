@@ -19,6 +19,7 @@ export default function EditarOng({ api }) {
     const [nome, setNome] = useState('');
     const [email, setEmail] = useState('');
     const [cpfCnpj, setCpfCnpj] = useState('');
+    const [telefone, setTelefone] = useState('');
     const [senha, setSenha] = useState('');
     const [confirmarSenha, setConfirmarSenha] = useState('');
     const [tipoOng, setTipoOng] = useState('');
@@ -36,6 +37,7 @@ export default function EditarOng({ api }) {
     const [previewBanner, setPreviewBanner] = useState(null);
 
     const { id_usuario } = useParams();
+
     const [idUsuario, setIdUsuario] = useState(id_usuario || localStorage.getItem("id_usuario"));
 
     const navegate = useNavigate();
@@ -161,13 +163,22 @@ export default function EditarOng({ api }) {
 
                         <Form largura="maior" titulo={"Edição da ONG"} onSubmit={editar}>
 
-                            <Input label="Nome" tipoInp="text" value={nome} funcao={(e)=>setNome(e.target.value)} />
+                            <Input obrigatorio={"Sim"} label="Nome" tipoInp="text" value={nome} funcao={(e)=>setNome(e.target.value)} />
 
-                            <Input label="Email" tipoInp="email" value={email} funcao={(e)=>setEmail(e.target.value)} />
+                            <Input obrigatorio={"Sim"} label="Email" tipoInp="email" value={email} funcao={(e)=>setEmail(e.target.value)} />
 
-                            <Input htmlFor={'cnpj'} label={'CNPJ'} tipoInp={'text'}
+                            <Input obrigatorio={"Sim"} htmlFor={'cnpj'} label={'CNPJ'} tipoInp={'text'}
                                    placeholder={'Digite seu CNPJ'} value={cpfCnpj} funcao={(e) => setCpfCnpj(e.target.value.replace(/\D/g, "").slice(0, 14))} inputMode="numeric" maxLength={18} minLength={18} mask={"cnpj"}/>
 
+                            <Input label="Telefone" obrigatorio={"Sim"}
+                                   tipoInp="text"
+                                   value={telefone}
+                                   funcao={(e)=>setTelefone(e.target.value)}
+                                   inputMode="numeric"
+                                   maxLength={15}
+                                   minLength={15}
+                                   mask={"telefone"}
+                            />
 
                             {/*<Input label="Senha" tipoInp="password"*/}
                             {/*       value={senha}*/}
@@ -185,13 +196,13 @@ export default function EditarOng({ api }) {
                                        placeholder={'Digite a senha digitada anteriormente'} classe={'metade'} value={confirmarSenha} funcao={(f) => setConfirmarSenha(f.target.value)} required={false}/>
                             </div>
 
-                            <Input label="Tipo de ONG" tipoInp="select"
+                            <Input obrigatorio={"Sim"} label="Tipo de ONG" tipoInp="select"
                                    value={tipoOng}
                                    opcoes={["Meio ambiente","Educação","Saúde"]}
                                    funcao={(e)=>setTipoOng(e.target.value)}
                             />
 
-                            <Input label="Causa da ONG" tipoInp="textarea"
+                            <Input obrigatorio={"Sim"} label="Causa da ONG" tipoInp="textarea"
                                    value={descricaoCausa}
                                    funcao={(e)=>setDescricaoCausa(e.target.value)}
                             />
@@ -201,13 +212,13 @@ export default function EditarOng({ api }) {
                                 <p>Esses dados serão usados para enviar os valores para suas contas bancárias</p>
                             </div>
 
-                            <Input label="Cidade" tipoInp="text" value={cidadeOng} funcao={(e)=>setCidadeOng(e.target.value)} />
+                            <Input obrigatorio={"Sim"} label="Cidade" tipoInp="text" value={cidadeOng} funcao={(e)=>setCidadeOng(e.target.value)} />
 
-                            <Input label="Banco" tipoInp="text" value={bacoOng} funcao={(e)=>setBacoOng(e.target.value)} />
+                            <Input obrigatorio={"Sim"} label="Banco" tipoInp="text" value={bacoOng} funcao={(e)=>setBacoOng(e.target.value)} />
 
-                            <Input label="Agência" tipoInp="text" value={agenciaOng} funcao={(e)=>setAgenciaOng(e.target.value)} />
+                            <Input obrigatorio={"Sim"} label="Agência" tipoInp="text" value={agenciaOng} funcao={(e)=>setAgenciaOng(e.target.value)} />
 
-                            <Input label="Conta" tipoInp="text" value={contaOng} funcao={(e)=>setContaOng(e.target.value)} />
+                            <Input obrigatorio={"Sim"} label="Conta" tipoInp="text" value={contaOng} funcao={(e)=>setContaOng(e.target.value)} />
 
                             <div className="w-100 flex-column d-flex justify-content-center align-items-center mb-4">
                                 <label className="mb-3 fw-bold">Logo da ONG</label>

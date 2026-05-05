@@ -7,6 +7,7 @@ import css from "./AdicionarPost.module.css";
 import Alerts from "../../components/Alerts/Alerts.jsx";
 import { useNavigate, useParams } from "react-router-dom";
 import Nav from "../../components/Nav/Nav.jsx";
+import CampoObrigatorio from "../../components/CampoObrigatorio/CampoObrigatorio.jsx";
 
 export default function PaginaPost({ api }) {
     const { id_projeto, id_post } = useParams();
@@ -114,14 +115,18 @@ export default function PaginaPost({ api }) {
         <>
             <Nav />
             <div className="container m-auto">
+                <div className={css.acoesCabecalho}>
+                    <Buton background="rosa" tamanho="pequeno" texto="Voltar" onClick={() => navigate(-1)} />
+                </div>
                 <div className="row">
                     <div className="col">
                         {mensagem && <Alerts tipo={tipoMensagem} imagem={`/${tipoMensagem}.png`} duracao={'10000'} descricao={mensagem} />}
                         <div className={'m-auto '}>
                             <Form largura="maior" titulo={editando ? "Editar Post" : "Adicionar Post"} onSubmit={publicar}>
-                                <Input htmlFor="titulo" label="Título do Post:" tipoInp="text" placeholder="Digite o título do Post" value={titulo} funcao={(e) => setTitulo(e.target.value)} />
-                                <Input htmlFor="acao" label="Ação:" tipoInp="textarea" placeholder="Descreva a publicação" value={acao} funcao={(e) => setAcao(e.target.value)} />
+                                <Input obrigatorio={"Sim"} htmlFor="titulo" label="Título do Post:" tipoInp="text" placeholder="Digite o título do Post" value={titulo} funcao={(e) => setTitulo(e.target.value)} />
+                                <Input obrigatorio={"Sim"} htmlFor="acao" label="Ação:" tipoInp="textarea" placeholder="Descreva a publicação" value={acao} funcao={(e) => setAcao(e.target.value)} />
                                 <div className="w-100 flex-column d-flex justify-content-center align-items-center mb-4">
+                                    <CampoObrigatorio />
                                     <label className="mb-3 fw-bold">Imagem Post</label>
                                     <input ref={inputImagemRef} type="file" onChange={colocarImagem} className={css.botao} />
                                     {preview && (
