@@ -590,6 +590,9 @@ def ativar_desativar_usuario(id_usuario):
             return jsonify({'mensagem': {
                 "tipo":"erro",
                 "descricao":'Apenas administradores podem ativar/desativar usuários'}}), 403
+        data = request.get_json() or {}
+        assunto = data.get('assunto') or 'Análise do cadastro da ONG'
+        mensagem = data.get('mensagem') or ''
 
     except Exception as e:
         return jsonify({'message': {
@@ -610,8 +613,18 @@ def ativar_desativar_usuario(id_usuario):
         situacao = cur.fetchone()
 
         if situacao[0] == 1:
+            cur.execute('select tipo_de_usuario, email  from usuario where id_usuario =?', (id_usuario,))
+            info_usuario = cur.fetchone()
+            tipo_usuario = info_usuario[0]
+            email = info_usuario[1]
+
+
             cur.execute("""update usuario set situacao = 3 where id_usuario = ?""", (id_usuario,))
             con.commit()
+
+            if tipo_usuario == 0:
+                enviando_email(email,assunto, mensagem, '', '')
+
             return jsonify({"mensagem": {
                 "tipo":"sucesso",
                 "descricao":"Usuário desativado com sucesso",
@@ -1858,10 +1871,17 @@ def excluir_projeto(id_usuario, id_projeto):
         if not cur.fetchone():
             return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Projeto não encontrado'}})
 
+        cur.execute('SELECT id_post from post_projeto where fk_projeto =?', (id_projeto,))
+        id_post = cur.fetchone()[0]
+
         if e_admin:
+            cur.execute('delete from mensagem_postagem where id_post =?', (id_post,))
+            cur.execute('delete from curtida_postagem where id_post =?', (id_post,))
             cur.execute('DELETE FROM post_projeto WHERE fk_projeto = ?', (id_projeto,))
             cur.execute('DELETE FROM projeto_ong WHERE id_projeto = ?', (id_projeto,))
         else:
+            cur.execute('delete from mensagem_postagem where id_post =?', (id_post,))
+            cur.execute('delete from curtida_postagem where id_post =?', (id_post,))
             cur.execute('DELETE FROM post_projeto WHERE fk_projeto = ?', (id_projeto,))
             cur.execute('DELETE FROM projeto_ong WHERE id_projeto = ? AND fk_usuario_ong = ?', (id_projeto, id_token))
 
@@ -2015,6 +2035,8 @@ def excluir_post(id_usuario, id_projeto, id_post):
                 'descricao': 'Não é possível excluir um post de atividade'
             }})
         if tipo_usuario == 2:
+            cur.execute('delete from mensagem_postagem where id_post =?', (id_post,))
+            cur.execute('delete from curtida_postagem where id_post =?', (id_post,))
             cur.execute('delete from post_projeto where ID_POST_PROJETO = ? and fk_projeto = ?', (id_post, id_projeto))
             con.commit()
             return jsonify({'mensagem': {
@@ -2023,6 +2045,8 @@ def excluir_post(id_usuario, id_projeto, id_post):
             }})
         elif id_projeto_verificado:
             if tipo_usuario == 1 and id_usuario == id_token :
+                cur.execute('delete from mensagem_postagem where id_post =?',(id_post,))
+                cur.execute('delete from curtida_postagem where id_post =?',(id_post,))
                 cur.execute('delete from post_projeto where ID_POST_PROJETO = ? and fk_projeto = (select id_projeto from projeto_ong where fk_usuario_ong = ? and id_projeto = ?)',
                     (id_post,id_usuario, id_projeto))
                 con.commit()
@@ -2392,6 +2416,7 @@ def permitir_recusar_ong(id_usuario, id_ong):
 
         cur.execute('select email, situacao, nome from usuario where id_usuario = ? and tipo_de_usuario = 1', (id_ong,))
         ong = cur.fetchone()
+
         if not ong:
             return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'ONG não encontrada'}}), 404
 
@@ -2429,13 +2454,14 @@ def permitir_recusar_ong(id_usuario, id_ong):
     finally:
         cur.close()
 
-@app.route('/excluir_usuario/<int:id_usuario>/<int:id_ong>', methods=['DELETE'])
-def excluir_usuario(id_usuario, id_ong):
+@app.route('/excluir_usuario/<int:id_usuario>/<int:id_excluir>', methods=['DELETE'])
+def excluir_usuario(id_usuario, id_excluir):
     token = request.cookies.get('access_token')
     if not token:
         return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Token de autenticação necessário'}}), 401
 
     cur = con.cursor()
+
     try:
         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
         id_token = dados['id_usuario']
@@ -2447,51 +2473,63 @@ def excluir_usuario(id_usuario, id_ong):
         if not admin or admin[0] != 2:
             return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Você não tem permissão'}}), 403
 
-        cur.execute('select situacao from usuario where id_usuario = ?', (id_ong,))
-        situacao = cur.fetchone()[0]
-
-        cur.execute('select id_usuario from usuario where id_usuario = ?', (id_ong,))
+        cur.execute('select id_usuario from usuario where id_usuario = ?', (id_excluir,))
         existe = cur.fetchone()
 
         if not existe:
             return jsonify({
                 'mensagem':{
                     'tipo':"erro",
-                    "descricao":"Essa Ong não foi encontrada"
+                    "descricao":"Esse Usuario não foi encontrada"
                 }
             })
-        
-        if situacao not in [5,2,3]:
-            return  jsonify({
-                'mensagem':{
-                    'tipo':"erro",
-                    "descricao":"Essa Ong não pode ser excluida pois não foi recusada ou bloqueada"
-                }
-            })
-        else:
-            cur.execute('select id_projeto from projeto_ong where fk_usuario_ong = ?',(id_ong,))
-            id_projetos = cur.fetchall()
-            if id_projetos:
-                for (id_proj,) in id_projetos:
-                    cur.execute('delete from post_projeto where fk_projeto = ?', (id_proj,))
-                    con.commit()
-                    cur.execute('delete from projeto_ong where id_projeto = ?', (id_proj,))
-                    con.commit()
-                cur.execute('delete from usuario where id_usuario =?', (id_ong,))
-                con.commit()
-            else:
-                cur.execute('delete from usuario where id_usuario =?', (id_ong,))
-                con.commit()
+
+        cur.execute('select situacao from usuario where id_usuario = ?', (id_excluir,))
+        situacao = cur.fetchone()[0]
+
+        cur.execute('select TIPO_DE_USUARIO from usuario where id_usuario = ?',(id_excluir,))
+        tipo_excluir = cur.fetchone()[0]
+
+        if tipo_excluir == 1:
+            if situacao not in [5,2,3]:
+                return  jsonify({
+                    'mensagem':{
+                        'tipo':"erro",
+                        "descricao":"Essa Ong não pode ser excluida pois não foi recusada ou bloqueada"
+                    }
+                })
+
+            cur.execute('delete from usuario where id_usuario =?', (id_excluir,))
+            con.commit()
 
             return jsonify({'mensagem': {
                 "tipo": "sucesso",
                 "descricao": "Ong excluida com sucesso"
             }})
+        else:
+            if situacao not in [2,3]:
+                return jsonify({
+                    'mensagem': {
+                        'tipo': "erro",
+                        "descricao": "Esse Doador não pode ser excluida pois não foi bloqueado"
+                    }
+                })
+            else:
+                cur.execute('delete from usuario where id_usuario =?', (id_excluir,))
+                con.commit()
+
+                return jsonify({'mensagem': {
+                    "tipo":"sucesso",
+                    "descricao":'Doador deletado com sucesso'
+                }})
 
     except Exception as e:
-        if con:
-            con.rollback()
-        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': f'Erro ao Excluir ONG: {e}'}}), 500
+        if 335544466 in e.gds_codes:
+            return jsonify({'mensagem':{
+                'tipo':'erro',
+                'descricao':"Não é possível excluir! Este registro está sendo usado em outras partes do sistema."}})
+        else:
+            return jsonify({'mensagem':{'tipo':"erro",'descricao':f" Ocorreu um erro ao tentar excluir: {e}"}}),500
     finally:
         cur.close()
 
@@ -2758,95 +2796,6 @@ def pagina_feed_favoritas(pagina):
             cur.close()
 
 
-@app.route('/postar_mensagem/<int:id_usuario>/<int:id_post>', methods=['POST'])
-def postar_mensagem(id_usuario, id_post):
-    token = request.cookies.get('access_token')
-
-    if not token:
-        return jsonify({'mensagem': {
-            'tipo': 'erro',
-            'descricao': 'Token necessário'
-        }}), 401
-
-    cur = con.cursor()
-
-    try:
-        dados_token = jwt.decode(token, senha_secreta, algorithms=['HS256'])
-        id_token = dados_token['id_usuario']
-   
-        cur.execute(
-            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
-            (id_token,)
-        )
-        res_usuario = cur.fetchone()
-
-        if not res_usuario:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Usuário não encontrado'
-            }}), 404
-
-        tipo_usuario = res_usuario
-
-
-        if tipo_usuario not in (0, 2):
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Apenas Doadores ou ADMs podem acessar esta página'
-            }}), 403
-
-        # Captura da mensagem vinda do JSX (React)
-        dados_corpo = request.get_json()
-        mensagem_front = dados_corpo.get('mensagem') if dados_corpo else None
-
-        if not mensagem_front or not str(mensagem_front).strip():
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Mensagem obrigatória'
-            }}), 400
-
-        # Conversão de Emoji para Shortcode (:rocket:)
-        mensagem_banco = emoji.demojize(mensagem_front)
-
-        # Verifica se o post existe na tabela de posts (ajuste o nome da coluna/tabela se necessário)
-        cur.execute(
-            'SELECT ID_POST_projeto FROM POST_PROJETO WHERE ID_POST_projeto = ?',
-            (id_post,)
-        )
-        if not cur.fetchone():
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'O post não existe'
-            }}), 404
-
-        # Inserção da Mensagem (Sintaxe SQL Corrigida)
-        cur.execute("""
-                    INSERT INTO MENSAGENS_POSTAGEM (FK_POST, FK_USUARIO_DOADOR, MENSAGEM)
-                    VALUES (?, ?, ?) RETURNING ID_MENSAGEM
-                    """, (id_post, id_token, mensagem_banco.strip()))
-
-        id_mensagem = cur.fetchone()[0]
-        con.commit()
-
-        return jsonify({
-            'mensagem': {
-                'tipo': 'sucesso',
-                'descricao': 'Mensagem realizada com sucesso'
-            },
-            'id_mensagem': id_mensagem
-        }), 201
-
-    except jwt.ExpiredSignatureError:
-        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Token expirado'}}), 401
-    except Exception as e:
-        con.rollback()
-        return jsonify({'mensagem': {
-            'tipo': 'erro',
-            'descricao': f'Erro ao processar mensagem: {str(e)}'
-        }}), 500
-    finally:
-        cur.close()
-
 @app.route('/deseguir_seguir_ong/<int:id_ong>', methods=['POST'])
 def deseguir_seguir_ong(id_ong):
     token = request.cookies.get('access_token')
@@ -3013,8 +2962,97 @@ def descurtir_curtir_post(id_post):
         cur.close()
 
 
-@app.route('/listar_mensagem/<int:id_post>', methods=['GET'])
-def listar_mensagem(id_post):
+@app.route('/postar_comentario/<int:id_usuario>/<int:id_post>', methods=['POST'])
+def postar_comentario(id_usuario, id_post):
+    token = request.cookies.get('access_token')
+
+    if not token:
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': 'Token necessário'
+        }}), 401
+
+    cur = con.cursor()
+
+    try:
+        dados_token = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+        id_token = dados_token['id_usuario']
+
+        cur.execute(
+            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
+            (id_token,)
+        )
+        res_usuario = cur.fetchone()
+
+        if not res_usuario:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Usuário não encontrado'
+            }}), 404
+
+        tipo_usuario = res_usuario
+
+        if tipo_usuario not in (0, 2):
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Apenas Doadores ou ADMs podem acessar esta página'
+            }}), 403
+
+        # Captura da mensagem vinda do JSX (React)
+        dados_corpo = request.get_json()
+        mensagem_front = dados_corpo.get('comentario') if dados_corpo else None
+
+        if not mensagem_front or not str(mensagem_front).strip():
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'comentario obrigatória'
+            }}), 400
+
+        # Conversão de Emoji para Shortcode (:rocket:)
+        mensagem_banco = emoji.demojize(mensagem_front)
+
+        # Verifica se o post existe na tabela de posts (ajuste o nome da coluna/tabela se necessário)
+        cur.execute(
+            'SELECT ID_POST_projeto FROM POST_PROJETO WHERE ID_POST_projeto = ?',
+            (id_post,)
+        )
+        if not cur.fetchone():
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'O post não existe'
+            }}), 404
+
+        # Inserção da Mensagem (Sintaxe SQL Corrigida)
+        cur.execute("""
+                    INSERT INTO MENSAGENS_POSTAGEM (FK_POST, FK_USUARIO_DOADOR, MENSAGEM)
+                    VALUES (?, ?, ?) RETURNING ID_MENSAGEM
+                    """, (id_post, id_token, mensagem_banco.strip()))
+
+        id_mensagem = cur.fetchone()[0]
+        con.commit()
+
+        return jsonify({
+            'mensagem': {
+                'tipo': 'sucesso',
+                'descricao': 'comentario realizado com sucesso'
+            },
+            'id_mensagem': id_mensagem
+        }), 201
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Token expirado'}}), 401
+    except Exception as e:
+        con.rollback()
+        return jsonify({'mensagem': {
+            'tipo': 'erro',
+            'descricao': f'Erro ao processar comentario: {str(e)}'
+        }}), 500
+    finally:
+        cur.close()
+
+
+@app.route('/listar_comentario/<int:id_post>', methods=['GET'])
+def listar_comentario(id_post):
     token = request.cookies.get('access_token')
 
     if not token:
@@ -3046,8 +3084,8 @@ def listar_mensagem(id_post):
         mensagens = []
         for m in mensagens_db:
             mensagens.append({
-                'id_mensagem': m[0],
-                'mensagem': emoji.emojize(m[1]),
+                'id_comentario': m[0],
+                'comentario': emoji.emojize(m[1]),
                 'data_hora': m[2].strftime("%d/%m/%Y %H:%M"),
                 'usuario': m[3]
             })
@@ -3077,8 +3115,8 @@ def listar_mensagem(id_post):
     finally:
         cur.close()
 
-@app.route('/excluir_mensagem/<int:id_mensagem>', methods=['DELETE'])
-def excluir_mensagem(id_mensagem):
+@app.route('/excluir_comentario/<int:id_comentario>', methods=['DELETE'])
+def excluir_comentario(id_mensagem):
     token = request.cookies.get('access_token')
 
     if not token:
@@ -3118,14 +3156,14 @@ def excluir_mensagem(id_mensagem):
         if cur.rowcount == 0:
             return jsonify({'mensagem': {
                 'tipo': 'erro',
-                'descricao': 'Mensagem não encontrada ou você não tem permissão para excluí-la'
+                'descricao': 'comentario não encontrado ou você não tem permissão para excluí-lo'
             }}), 404
 
         con.commit()
 
         return jsonify({'mensagem': {
             'tipo': 'sucesso',
-            'descricao': 'Mensagem excluída com sucesso'
+            'descricao': 'comentario excluído com sucesso'
         }}), 200 # 200 é mais comum para DELETE bem-sucedido que 201
 
     except jwt.ExpiredSignatureError:
@@ -3137,8 +3175,8 @@ def excluir_mensagem(id_mensagem):
         cur.close()
 
 
-@app.route('/editar_mensagem/<int:id_mensagem>', methods=['PUT'])
-def editar_mensagem(id_mensagem):
+@app.route('/editar_comentario/<int:id_comentario>', methods=['PUT'])
+def editar_comentario(id_mensagem):
     token = request.cookies.get('access_token')
 
     if not token:
@@ -3163,7 +3201,7 @@ def editar_mensagem(id_mensagem):
         if not resultado:
             return jsonify({'mensagem': {
                 'tipo': 'erro',
-                'descricao': 'Mensagem não encontrada'
+                'descricao': 'comentario não encontrado'
             }}), 404
 
         dono_mensagem = resultado[0]
@@ -3171,7 +3209,7 @@ def editar_mensagem(id_mensagem):
         if dono_mensagem != id_usuario:
             return jsonify({'mensagem': {
                 'tipo': 'erro',
-                'descricao': 'Você não tem permissão para editar essa mensagem'
+                'descricao': 'Você não tem permissão para editar esse comentario'
             }}), 403
 
         dados = request.get_json()
@@ -3180,7 +3218,7 @@ def editar_mensagem(id_mensagem):
         if not nova_mensagem or not str(nova_mensagem).strip():
             return jsonify({'mensagem': {
                 'tipo': 'erro',
-                'descricao': 'Mensagem obrigatória'
+                'descricao': 'comentario obrigatório'
             }}), 400
 
         mensagem_banco = emoji.demojize(nova_mensagem.strip())
@@ -3195,7 +3233,7 @@ def editar_mensagem(id_mensagem):
 
         return jsonify({'mensagem': {
             'tipo': 'sucesso',
-            'descricao': 'Mensagem editada com sucesso'
+            'descricao': 'comentario editada com sucesso'
         }}), 200
 
     except jwt.ExpiredSignatureError:
@@ -3214,7 +3252,7 @@ def editar_mensagem(id_mensagem):
         con.rollback()
         return jsonify({'mensagem': {
             'tipo': 'erro',
-            'descricao': f'Erro ao editar mensagem: {str(e)}'
+            'descricao': f'Erro ao editar comentario: {str(e)}'
         }}), 500
 
     finally:
