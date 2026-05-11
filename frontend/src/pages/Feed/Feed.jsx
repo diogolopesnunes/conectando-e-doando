@@ -1,7 +1,37 @@
 import css from './Feed.module.css';
 import CardPost from "../../components/CardPost/CardPost.jsx";
+import {useState} from "react";
 
-export default function Feed(){
+export default function Feed({api}){
+    const [ongsSeguidas, setOngsSeguidas] = useState(null);
+    const [posts, setPosts] = useState(null);
+    const [novasOngs, setNovasOngs] = useState(null);
+    const [pagina, setPagina] = useState(1);
+    const [proximaPagina, setProximaPagina] = useState(null);
+    const [paginaAnterior, setPaginaAnterior] = useState(null);
+    async function carregarPosts(){
+        const resposta = await fetch(`${api}/pagina_feed/${pagina}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include"
+        });
+
+        if (resposta.status === 500) {
+            return;
+        }
+
+        const retorno = await resposta.json();
+        if (retorno.posts) {
+            setPosts(retorno.posts)
+        }
+        if (retorno.ongs_seguidas){
+            setOngsSeguidas(retorno.ongs_seguidas)
+        }
+        if(retorno.novas_ongs){
+            setNovasOngs(retorno.novas_ongs)
+        }
+
+    }
     return(
         <div className={'container m-auto'}>
             <div className={'row'}>

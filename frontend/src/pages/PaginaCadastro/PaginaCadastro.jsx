@@ -128,7 +128,7 @@ export default function PaginaCadastro({api}) {
             console.log("Erro do servidor:", retorno);
             alert("DEU RUIM DE MAIIIISSSS!!! APAGA, SOCORRO DEUS")
         }
-        if (retorno.usuario){
+        if (retorno.usuario && !idLogado){
             localStorage.setItem('email', retorno.usuario.email);
             setTimeout(function (){navegate('/validar')}, 2000)
 
