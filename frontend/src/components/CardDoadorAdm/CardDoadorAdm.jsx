@@ -18,31 +18,12 @@ export default function CardDoadorAdm({
                                        onMensagem
                                    }) {
 
-    const [loadingAprovar, setLoadingAprovar] = useState(false);
+
     const [loadingBloquear, setLoadingBloquear] = useState(false);
 
     const status = Number(situacao);
 
-    async function aprovar() {
-        setLoadingAprovar(true);
-
-        const resposta = await fetch(`${api}/permitir_recusar_ong/${idAdm}/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ acao: 1 })
-        });
-
-        const retorno = await resposta.json();
-
-        if (retorno.mensagem && onMensagem) {
-            onMensagem(retorno.mensagem);
-        }
-
-        if (onAtualizar) onAtualizar();
-
-        setLoadingAprovar(false);
-    }
+    
 
     async function bloquearDesbloquear() {
         setLoadingBloquear(true);
@@ -139,17 +120,6 @@ export default function CardDoadorAdm({
 
             <div className={'col-12 col-sm-4 d-flex align-items-center justify-content-end gap-1 flex-row flex-sm-row'}>
 
-                {(status === 4 || status === 0) && (
-                    <>
-                        <Buton
-                            texto={loadingAprovar ? 'Validando...' : 'Validar'}
-                            tamanho={'pequeno'}
-                            background={'verde'}
-                            onClick={aprovar}
-                            disabled={loadingAprovar}
-                        />
-                    </>
-                )}
 
                 {status !== 4 && status !== 0 && (
                     <>
@@ -175,9 +145,8 @@ export default function CardDoadorAdm({
                                 texto={loadingBloquear ? 'Bloqueando...' : 'Bloquear'}
                                 background={'rosa'}
                                 tamanho={'pequeno'}
-                                onClick={bloquearDesbloquear}
                                 disabled={loadingBloquear}
-                                rota={`/enviar_email/${id}`}
+                                rota={`/enviar_email_bloquear/${id}`}
                             />
                         ) : (status === 2 || status === 3) ? (
                             <Buton

@@ -4,13 +4,8 @@
     min-height: 350px;
 }
 
-.cardPost2{
-    border-radius: 15px 0 0 15px;
-}
-
 .cardComentario{
-    border-radius: 0 15px 15px 0;
-    border-left: none;
+    overflow: scroll;
 }
 
 .logoOng{
@@ -70,4 +65,17 @@
 
 .bordaCabecalho{
     border-radius: 0 0 15px 15px;
+    z-index: 25;
+}
+
+.comentario{
+    min-height: 500px;
+    z-index: 20;
+}
+
+.div{
+    min-height: 100px;
+}
+
+@media (max-width: 426px){
 }
