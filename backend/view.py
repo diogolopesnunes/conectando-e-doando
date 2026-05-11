@@ -571,8 +571,8 @@ def editar_usuario(id_usuario):
             cur.close()
 
 
-@app.route('/ativar_desativar_usuario/<int:id_usuario>', methods=['PUT'])
-def ativar_desativar_usuario(id_usuario):
+@app.route('/ativar_desativar_usuario/<int:id_usuario_doador>', methods=['PUT'])
+def ativar_desativar_usuario(id_usuario_doador):
     token = request.cookies.get('access_token')
     if not token:
         return jsonify({'mensagem': {
@@ -585,64 +585,76 @@ def ativar_desativar_usuario(id_usuario):
         cur = con.cursor()
         cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
         tipo_usuario = cur.fetchone()[0]
+
         if tipo_usuario != 2:
             cur.close()
             return jsonify({'mensagem': {
                 "tipo":"erro",
                 "descricao":'Apenas administradores podem ativar/desativar usuários'}}), 403
-        data = request.get_json() or {}
-        assunto = data.get('assunto') or 'Análise do cadastro da ONG'
+
+        data = request.get_json(silent=True) or {}
         mensagem = data.get('mensagem') or ''
 
     except Exception as e:
-        return jsonify({'message': {
+        return jsonify({'mensagem': {
             "tipo":"erro",
-            "mensagem":f'Erro ao verificar token {e}'}}), 401
+            "descricao":f'Erro ao verificar token {e}'}}), 401
 
     try:
         cur = con.cursor()
 
-        cur.execute('select id_usuario from usuario where id_usuario= ?', (id_usuario,))
+        cur.execute('select id_usuario from usuario where id_usuario= ?', (id_usuario_doador,))
 
         if not cur.fetchone():
             return jsonify({"mensagem": {
                 "tipo":"erro",
                 "mensagem":"Usuário não encontrado"}}), 404
 
-        cur.execute('select situacao from usuario where id_usuario =?',(id_usuario,))
-        situacao = cur.fetchone()
+        cur.execute('select situacao from usuario where id_usuario =?',(id_usuario_doador,))
+        situacao = cur.fetchone()[0]
 
-        if situacao[0] == 1:
-            cur.execute('select tipo_de_usuario, email  from usuario where id_usuario =?', (id_usuario,))
-            info_usuario = cur.fetchone()
-            tipo_usuario = info_usuario[0]
-            email = info_usuario[1]
+        cur.execute('select tipo_de_usuario, email, nome  from usuario where id_usuario =?', (id_usuario_doador,))
+        info_usuario = cur.fetchone()
+        tipo_usuario_select = info_usuario[0]
+        email = info_usuario[1]
+        nome = info_usuario[2]
 
+        print(situacao)
+        print(info_usuario)
 
-            cur.execute("""update usuario set situacao = 3 where id_usuario = ?""", (id_usuario,))
+        if situacao == 1:
+            assunto = 'Conta Bloqueada'
+
+            cur.execute("""update usuario set situacao = 3 where id_usuario = ?""", (id_usuario_doador,))
             con.commit()
 
-            if tipo_usuario == 0:
-                enviando_email(email,assunto, mensagem, '', '')
+            if tipo_usuario_select == 0:
+                enviando_email(email,assunto, mensagem, "", nome)
 
             return jsonify({"mensagem": {
                 "tipo":"sucesso",
                 "descricao":"Usuário desativado com sucesso",
-                'id_usuario':id_usuario}})
+                'id_usuario':id_usuario_doador}})
 
-        if situacao[0] == 3 or situacao[0] == 2:
-            cur.execute("""update usuario set situacao = 1 where id_usuario = ?""", (id_usuario,))
+        if situacao == 3 or situacao == 2:
+            assunto = 'Conta Desbloqueada'
+            mensagem_email = 'Sua conta foi reativada e pode ser usada novamente'
+
+            print(nome)
+
+
+            cur.execute("""update usuario set situacao = 1 where id_usuario = ?""", (id_usuario_doador,))
             con.commit()
+            enviando_email(email,assunto, mensagem_email, "", nome)
             return jsonify({"mensagem": {
                 "tipo":"sucesso",
                 "descricao":"Usuário Ativado com sucesso",
-                'id_usuario':id_usuario}})
-
+                'id_usuario':id_usuario_doador}})
 
     except Exception as e:
         return jsonify({'mensagem': {
             "tipo":"erro",
-            "descricao":f'Erro ao desativar usuário {e}'}}), 500
+            "descricao":f'Erro ao ativar/desativar usuário {e}'}}), 500
     finally:
         cur.close()
 
@@ -1332,12 +1344,6 @@ def postar(id_usuario, id_projeto):
     try:
         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
         id_token = dados['id_usuario']
-        if id_usuario != id_token:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Você não tem permissão'
-            }}), 403
-
         cur.execute(
             'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
             (id_token,)
@@ -1351,12 +1357,21 @@ def postar(id_usuario, id_projeto):
             }}), 404
         tipo_usuario = usuario[0]
 
+        if tipo_usuario == 2:
+            pass
+        elif tipo_usuario == 1 and id_token != id_usuario:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Você não tem permissão'
+            }}), 403
         #  1 = ONG (ajuste se necessário)
-        if tipo_usuario not in (1,2):
+        if tipo_usuario not in (1, 2):
             return jsonify({'mensagem': {
                 'tipo': 'erro',
                 'descricao': 'Apenas por ONGs ou ADMs podem acessar esta página'
             }}), 403
+
+        
         cur.execute(
             'SELECT ID_PROJETO FROM PROJETO_ONG WHERE ID_PROJETO = ?', (id_projeto,)
         )
@@ -1373,34 +1388,34 @@ def postar(id_usuario, id_projeto):
                 'tipo': 'erro',
                 'descricao': f'Não foi possível fazer o post {e}'
             }})
+    try:
+        titulo = request.form.get('titulo')
+        acao = request.form.get('acao')
+        atividade = request.form.get('atividade', 1)
+        imagem = request.files.get('imagem')
+        cur.execute("""select fk_usuario_ong 
+                       from projeto_ong
+                       where id_projeto = ?""", (id_projeto,))
+        idOngProjeto = cur.fetchone()[0]
 
-    titulo = request.form.get('titulo')
-    acao = request.form.get('acao')
-    atividade = request.form.get('atividade', 1)
-    imagem = request.files.get('imagem')
-    cur.execute("""select fk_usuario_ong 
-                   from projeto_ong
-                   where id_projeto = ?""", (id_projeto,))
-    idOngProjeto = cur.fetchone()[0]
-    if usuario == 1:
-        if idOngProjeto != id_usuario:
+        if usuario[0] == 1:
+            if idOngProjeto != id_token:
+                return jsonify({'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'O projeto pertence a outra ong'
+                }})
+        if not titulo or not str(titulo).strip():
             return jsonify({'mensagem': {
                 'tipo': 'erro',
-                'descricao': 'O projeto pertence a outra ong'
-            }})
-    if not titulo or not str(titulo).strip():
-        return jsonify({'mensagem': {
-            'tipo': 'erro',
-            'descricao': 'Título obrigatório'
-        }}), 400
-    if not acao or not str(acao).strip():
-        return jsonify({'mensagem': {
-            'tipo': 'erro',
-            'descricao': 'Ação obrigatória'
-        }}), 400
+                'descricao': 'Título obrigatório'
+            }}), 400
+        if not acao or not str(acao).strip():
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Ação obrigatória'
+            }}), 400
 
 
-    try:
         cur.execute("""
                     INSERT INTO POST_PROJETO (FK_PROJETO,
                                              TITULO,
@@ -2105,6 +2120,11 @@ def ativar_desativar_post(id_usuario, id_projeto, id_post):
                 'tipo': 'erro',
                 'descricao': 'Apenas administradores e ONGs podem acessar esta página'
             }}), 403
+        elif tipo_usuario == 0:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Apenas administradores e ONGs podem acessar esta página'
+            }}), 403
     except jwt.ExpiredSignatureError:
         return jsonify({'mensagem': {
         'tipo': 'erro',
@@ -2153,65 +2173,6 @@ def ativar_desativar_post(id_usuario, id_projeto, id_post):
         }}), 500
     finally:
         cur.close()
-
-
-# @app.route('/li/<int:pagina>/<int:filtro>', methods=['GET'])
-# def listar_ong_adm_paginado(pagina, filtro):
-#     token = request.cookies.get('access_token')
-#     if not token:
-#         return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Token de autenticação necessário'}}), 401
-#
-#     cur = con.cursor()
-#     try:
-#         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
-#         id_token = dados['id_usuario']
-#         cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
-#         usuario = cur.fetchone()
-#         if not usuario or usuario[0] != 2:
-#             return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Apenas administradores podem acessar esta página'}}), 403
-#
-#         where_filtro = 'and situacao in (0, 4)' if filtro == 0 else 'and situacao not in (0, 4)'
-#         cur.execute(f"""select count(id_usuario)
-#                         from usuario
-#                         where tipo_de_usuario = 1 {where_filtro}""")
-#         quantidade = cur.fetchone()[0]
-#         numeroPaginas = math.ceil(quantidade / quantidadePorPagina) if quantidade else 0
-#         if pagina < 1:
-#             pagina = 1
-#         if numeroPaginas and pagina > numeroPaginas:
-#             pagina = numeroPaginas
-#
-#         minimo = ((pagina - 1) * quantidadePorPagina) + 1
-#         maximo = pagina * quantidadePorPagina
-#         nome = request.args.get('nome', '')
-#
-#         cur.execute(f"""select id_usuario, nome, descricao_causa, situacao, cpf_cnpj, telefone, data_hora_registro
-#                         from usuario
-#                         where tipo_de_usuario = 1 {where_filtro}
-#                         AND UPPER(nome) LIKE
-#                         order by data_hora_registro desc rows ? to ?""", (minimo, maximo))
-#         resultado = cur.fetchall()
-#         ongs_lista = []
-#         for ong in resultado:
-#             ongs_lista.append({
-#                 'id_usuario': ong[0],
-#                 'nome': ong[1],
-#                 'descricao_causa': ong[2],
-#                 'situacao': ong[3],
-#                 'cpf_cnpj': ong[4],
-#                 'telefone': ong[5],
-#                 'data_hora_registro': ong[6].strftime('%d/%m/%Y %H:%M') if ong[6] else ''
-#             })
-#
-#         proximaPagina = pagina + 1
-#         if proximaPagina > numeroPaginas:
-#             proximaPagina = 0
-#         return jsonify({'mensagem': 'Lista de Ongs', 'ongs': ongs_lista, 'numeroPaginas': numeroPaginas, 'proximaPagina': proximaPagina, 'paginaAnterior': pagina - 1}), 200
-#     except Exception as e:
-#         return jsonify({'mensagem': {'tipo': 'erro', 'descricao': f'Erro ao listar ONGs: {e}'}}), 500
-#     finally:
-#         cur.close()
-
 
 @app.route('/buscar_ong/<int:id_ong>/<int:pagina>', methods=['GET'])
 def buscar_ong(id_ong, pagina):
@@ -2291,7 +2252,7 @@ def detalhar_projeto(id_projeto, pagina):
     cur = con.cursor()
     try:
         cur.execute("""select p.id_projeto, p.nome, p.descricao, p.meta_doacao, p.atividade,
-                              u.id_usuario, u.nome, u.descricao_causa
+                              p.fk_usuario_ong, u.nome, u.descricao_causa
                        from projeto_ong p
                        join usuario u on u.id_usuario = p.fk_usuario_ong
                        where p.id_projeto = ?""", (id_projeto,))
@@ -2411,7 +2372,6 @@ def permitir_recusar_ong(id_usuario, id_ong):
 
         data = request.get_json() or {}
         acao = int(data.get('acao')) if data.get('acao') is not None else None
-        assunto = data.get('assunto') or 'Análise do cadastro da ONG'
         mensagem = data.get('mensagem') or ''
 
         cur.execute('select email, situacao, nome from usuario where id_usuario = ? and tipo_de_usuario = 1', (id_ong,))
@@ -2434,12 +2394,10 @@ def permitir_recusar_ong(id_usuario, id_ong):
             return jsonify({'mensagem': {'tipo': 'sucesso', 'descricao': 'ONG aprovada com sucesso'}}), 200
 
         if acao == 0:
-            if not assunto or not mensagem:
-                return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Assunto e motivo são obrigatórios'}}), 400
             cur.execute('update usuario set situacao = 5 where id_usuario = ?', (id_ong,))
             con.commit()
             try:
-                enviando_email(email, assunto, mensagem, '', nome_ong)
+                enviando_email(email, "Sua Ong foi recusada", mensagem, '', nome_ong)
             except Exception:
                 pass
             return jsonify({'mensagem': {'tipo': 'sucesso', 'descricao': 'ONG recusada e email enviado'}}), 200
@@ -2536,6 +2494,7 @@ def excluir_usuario(id_usuario, id_excluir):
 @app.route('/pagina_feed/<int:pagina>', methods=['GET'])
 def pagina_feed(pagina):
     token = request.cookies.get('access_token')
+    cur = con.cursor()
 
     if not token:
         return jsonify({'mensagem': {
@@ -2547,7 +2506,6 @@ def pagina_feed(pagina):
         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
         id_usuario = dados['id_usuario']
 
-        cur = con.cursor()
 
         nome = request.args.get('nome', '')
         ong = request.args.get('ong', '')
@@ -2559,23 +2517,24 @@ def pagina_feed(pagina):
         maximo = pagina * limite
 
         selectBase = """
-            SELECT 
-                p.id_post_projeto,
-                p.titulo,
-                p.acao,
-                p.data_hora,
-                u.nome,
-                pr.id_projeto,
-                u.tipo_ong,
-                COALESCE(c.SITUACAO_CURTIDA, 0) as curtido
-            FROM post_projeto p
-            JOIN projeto_ong pr ON p.fk_projeto = pr.id_projeto
-            JOIN usuario u ON pr.FK_USUARIO_ONG = u.id_usuario
-           LEFT JOIN CURTIDAS_POSTAGEM c 
-                ON c.FK_POST = p.id_post_projeto 
-                AND c.FK_USUARIO_DOADOR = ?
-            WHERE p.atividade = 1
-        """
+                     SELECT
+                         p.id_post_projeto,
+                         p.titulo,
+                         p.acao,
+                         p.data_hora,
+                         u.nome,
+                         pr.id_projeto,
+                         u.tipo_ong,
+                         u.id_usuario,
+                         COALESCE(c.SITUACAO_CURTIDA, 0) as curtido
+                     FROM post_projeto p
+                              JOIN projeto_ong pr ON p.fk_projeto = pr.id_projeto
+                              JOIN usuario u ON pr.FK_USUARIO_ONG = u.id_usuario
+                              LEFT JOIN CURTIDAS_POSTAGEM c
+                                        ON c.FK_POST = p.id_post_projeto
+                                            AND c.FK_USUARIO_DOADOR = ?
+                     WHERE p.atividade = 1
+                     """
 
         filtros = [id_usuario]
 
@@ -2595,8 +2554,10 @@ def pagina_feed(pagina):
             selectBase += " AND CAST(p.data_hora AS DATE) = ?"
             filtros.append(data)
 
-        selectBase += " ORDER BY p.data_hora DESC ROWS ? TO ?"
-        filtros.extend([minimo, maximo])
+        selectBase += f"""
+            ORDER BY p.data_hora DESC, p.id_post_projeto DESC
+            ROWS {minimo} TO {maximo}
+            """
 
         cur.execute(selectBase, tuple(filtros))
         posts_db = cur.fetchall()
@@ -2604,10 +2565,10 @@ def pagina_feed(pagina):
         posts = []
         for p in posts_db:
             cur.execute("""
-                SELECT COUNT(*)
-                FROM curtidas_postagem
-                WHERE FK_POST = ? AND SITUACAO_CURTIDA = 1
-            """, (p[0],))
+                        SELECT COUNT(*)
+                        FROM curtidas_postagem
+                        WHERE FK_POST = ? AND SITUACAO_CURTIDA = 1
+                        """, (p[0],))
             total_curtidas = cur.fetchone()[0]
 
             posts.append({
@@ -2618,16 +2579,17 @@ def pagina_feed(pagina):
                 'ong_nome': p[4],
                 'id_projeto': p[5],
                 'tema': p[6],
-                'curtido': bool(p[7]),
+                'id_ong': p[7],
+                'curtido': bool(p[8]),
                 'total_curtidas': total_curtidas
             })
 
         cur.execute("""
-            SELECT u.id_usuario, u.nome
-            FROM seguidores s
-            JOIN usuario u ON s.FK_USUARIO_ONG = u.id_usuario
-            WHERE s.FK_USUARIO_DOADOR = ?
-        """, (id_usuario,))
+                    SELECT u.id_usuario, u.nome
+                    FROM seguidores s
+                             JOIN usuario u ON s.FK_USUARIO_ONG = u.id_usuario
+                    WHERE s.FK_USUARIO_DOADOR = ?
+                    """, (id_usuario,))
 
         ongs_seguidas = [{
             'id': o[0],
@@ -2635,16 +2597,16 @@ def pagina_feed(pagina):
         } for o in cur.fetchall()]
 
         cur.execute("""
-            SELECT FIRST 5 id_usuario, nome, tipo_ong
-            FROM usuario
-            WHERE tipo_de_usuario = 1
-              AND id_usuario NOT IN (
-                  SELECT FK_USUARIO_ONG 
-                  FROM seguidores 
-                  WHERE FK_USUARIO_DOADOR = ?
-              )
-            ORDER BY data_hora_registro DESC
-        """, (id_usuario,))
+                    SELECT FIRST 5 id_usuario, nome, tipo_ong
+                    FROM usuario
+                    WHERE tipo_de_usuario = 1 AND situacao = 1
+                      AND id_usuario NOT IN (
+                        SELECT FK_USUARIO_ONG
+                        FROM seguidores
+                        WHERE FK_USUARIO_DOADOR = ?
+                        )
+                    ORDER BY data_hora_registro DESC
+                    """, (id_usuario,))
 
         novas_ongs = [{
             'id': o[0],
