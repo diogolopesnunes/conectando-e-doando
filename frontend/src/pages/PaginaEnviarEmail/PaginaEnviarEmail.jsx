@@ -70,7 +70,6 @@ export default function PaginaEnviarEmail({ api }) {
                     <div className="col align-self-center">
                         {mensagem && <Alerts tipo={tipoMensagem} imagem={`/public/${tipoMensagem}.png`} duracao={10000} descricao={mensagem} />}
                         <Form largura="maior" titulo={rotaReprovar ? 'Motivo da reprova' : 'Motivo do bloqueio'} onSubmit={enviar}>
-                            <Input tipoInp={"text"} label={"Assunto:"} htmlFor={"assunto"} placeholder={"Digite o Assunto"} value={assunto} funcao={(e) => setAssunto(e.target.value)} />
                             <Input tipoInp={"textarea"} label={"Mensagem:"} htmlFor={"mensagem"} placeholder={"Digite a mensagem"} value={mensagemEmail} funcao={(e) => setMensagemEmail(e.target.value)} />
                             <div className="my-3">
                                 <Buton texto={loading ? "Enviando..." : "Enviar"} tamanho={"medio"} background={"laranja"} tipo={"submit"} disabled={loading} />

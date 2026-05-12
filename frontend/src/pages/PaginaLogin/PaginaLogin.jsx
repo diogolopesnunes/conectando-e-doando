@@ -69,7 +69,9 @@ export default function Login({ setLogado, api }) {
             localStorage.setItem('tipo_usuario', retorno.usuario.tipoUsuario);
 
             setTimeout(() => {
-                if (localStorage.getItem('tipo_usuario') == 1){
+                if (localStorage.getItem('tipo_usuario') == 0) {
+                    navegate('/feed');
+                } else if (localStorage.getItem('tipo_usuario') == 1){
                     navegate('/previa_ong');
                 } else if(localStorage.getItem('tipo_usuario') == 2){
                     navegate('/dashboard_adm_ong');

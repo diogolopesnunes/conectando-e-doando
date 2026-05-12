@@ -19,6 +19,7 @@ export function PaginaPreviaOng({api}) {
     const [paginaAnterior, setPaginaAnterior] = useState(0);
     const [quantidade, setQuantidade] = useState(0);
     const [mensagem, setMensagem] = useState(null)
+    const [idOng, setIdOng] = useState('');
 
     useEffect(() => {
         if (!localStorage.getItem("email") || !localStorage.getItem("id_usuario")) {
@@ -42,6 +43,7 @@ export function PaginaPreviaOng({api}) {
             setPaginaAnterior(retorno.paginaAnterior);
             setQuantidade(retorno.numeroPaginas);
             setProximaPagina(retorno.proximaPagina);
+            setIdOng(retorno.ong.id_usuario)
         }
     }
 
@@ -122,6 +124,7 @@ export function PaginaPreviaOng({api}) {
                     <>
                         <InfoOng info={ong} texto={"Doar Agora"} api={api}/>
                         <SecaoProjetos
+                            idOng={idOng}
                             projetos={ong.projetos}
                             api={api}
                             excluir={excluirProjeto}

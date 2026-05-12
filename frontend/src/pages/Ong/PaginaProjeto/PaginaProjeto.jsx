@@ -22,7 +22,8 @@ export default function PaginaProjeto({ api, info }) {
     const [loadingExcluir, setLoadingExcluir] = useState(false);
     const [loadingAtivarDesativar, setLoadingAtivarDesativar] = useState(false);
     const [mensagem, setMensagem] = useState(null)
-    const[quantidadePost, setQuantidadePost] = useState(0)
+    const [quantidadePost, setQuantidadePost] = useState(0)
+    const [idOng, setIdOng] = useState('')
 
     useEffect(() => {
         if (!localStorage.getItem("email") || !localStorage.getItem("id_usuario")) {
@@ -45,6 +46,7 @@ export default function PaginaProjeto({ api, info }) {
             setPaginaAnterior(retorno.paginaAnterior);
             setQuantidade(retorno.numeroPaginas);
             setQuantidadePost(retorno.quantidade)
+            setIdOng(retorno.projeto.id_ong)
         } else if (retorno.mensagem) {
             alert(retorno.mensagem.descricao || retorno.mensagem.mensagem);
         }
@@ -160,6 +162,7 @@ export default function PaginaProjeto({ api, info }) {
                                     atualizacoes={projeto.atualizacoes || []}
                                     instituicao={projeto.instituicao}
                                     idProjeto={id_projeto}
+                                    idOng={idOng}
                                     onExcluir={excluirPost}
                                     onAtivarDesativar={ativarDesativarPost}
                                     quantidade={quantidadePost}

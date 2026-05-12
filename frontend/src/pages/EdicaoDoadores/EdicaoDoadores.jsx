@@ -105,8 +105,12 @@ export default function EdicaoDoadores({ api }) {
             setTipoMensagem(res.mensagem.tipo);
 
             if (res.mensagem.tipo === 'sucesso') {
+                if (localStorage.getItem('tipo_usuario') != 2){
+                    localStorage.setItem('nome', nome);
+                    localStorage.setItem('email', email);
+                }
                 setTimeout(() => {
-                    navigate(localStorage.getItem("tipo_usuario") == 2 ? "/dashboard_adm_doador" : "/dashboard_usuario")
+                    navigate(localStorage.getItem("tipo_usuario") == 2 ? "/dashboard_adm_doador" : "/feed")
                 }, 1500);
             }
         }

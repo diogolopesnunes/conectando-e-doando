@@ -111,7 +111,7 @@ export default function DashboardAdmOng({ api }) {
                             </div>
                             <div className={'d-block d-sm-none'}>
                                 <Buton texto={'Aprovação'} background={'branco'} tamanho={'medio'} onClick={() => trocarFiltro(0)} />
-                                <Buton texto={'Recusadas'} background={'rosa'} tamanho={'medio'} onClick={() => trocarFiltro(1)} />
+                                <Buton texto={'Aprovadas'} background={'rosa'} tamanho={'medio'} onClick={() => trocarFiltro(1)} />
                             </div>
 
                         </div>
@@ -123,7 +123,7 @@ export default function DashboardAdmOng({ api }) {
                             </div>
                             <div className={'d-block d-sm-none'}>
                                 <Buton texto={'Aprovação'} background={'rosa'} tamanho={'medio'} onClick={() => trocarFiltro(0)} />
-                                <Buton texto={'Recusadas'} background={'branco'} tamanho={'medio'} onClick={() => trocarFiltro(1)} />
+                                <Buton texto={'Aprovadas'} background={'branco'} tamanho={'medio'} onClick={() => trocarFiltro(1)} />
                             </div>
                         </div>
                     )}

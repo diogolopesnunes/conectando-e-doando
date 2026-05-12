@@ -26,7 +26,7 @@ import EdicaoDoadores from "./pages/EdicaoDoadores/EdicaoDoadores.jsx";
 
 export default function App() {
 
-    const api = 'http://10.92.3.135:5000'
+    const api = 'http://10.92.3.158:5000'
 
     const quemSomos = useRef(null);
     const doacoes = useRef(null);
