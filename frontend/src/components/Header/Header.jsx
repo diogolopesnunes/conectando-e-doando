@@ -9,7 +9,7 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
     const pagina = useLocation().pathname;
 
     const [email, setEmail] = useState("");
-    const [nome, setNome] = useState("");
+    const nome = localStorage.getItem("nome");
     const navegate = useNavigate();
     if (logado == true && localStorage.getItem("id_usuario") == null) {
         setLogado(false);
@@ -121,6 +121,9 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
                     {!logado ? (
                         <>
                             <span></span>
+                            <Link to={"/feed"}>
+                                Feed
+                            </Link>
                             <Link to="/" onClick={scrollQuemSomos}>Quem somos</Link>
                             <Link to="/" onClick={scrollDoacoes}>Doações</Link>
                             {/*<Link to="/" onClick={scrollOngs}>Depoimentos</Link>*/}
@@ -131,17 +134,33 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
                         </>
                     ) : (
                         <>
+                            <p>{nome}</p>
+
                             <Buton onClick={logout} background="rosa" tamanho="pequeno" texto="Sair" />
                             {localStorage.getItem('tipo_usuario') == 1 ?(
-                                <Link to={"/previa_ong"}>
-                                    Dashboard
+                                <>
+                                    <Link to={"/previa_ong"}>
+                                        Dashboard
+                                    </Link>
+                                    <Link to={"/feed"}>
+                                        Feed
+                                    </Link>
+                                </>
+                            ): localStorage.getItem('tipo_usuario') == 2 ? (
+                                <>
+                                    <Link to={"/dashboard_adm_ong"}>
+                                        Dashboard
+                                    </Link>
+                                    <Link to={"/feed"}>
+                                        Feed
+                                    </Link>
+                                </>
+                            ): localStorage.getItem('tipo_usuario') == 0 ? (
+                                <Link to={"/feed"}>
+                                    Feed
                                 </Link>
-                            ): localStorage.getItem('tipo_usuario') == 2 && (
-                                <Link to={"/dashboard_adm_ong"}>
-                                    Dashboard
-                                </Link>
-                            )}
-
+                                ) : null
+                            }
                         </>
                     )}
                 </nav>

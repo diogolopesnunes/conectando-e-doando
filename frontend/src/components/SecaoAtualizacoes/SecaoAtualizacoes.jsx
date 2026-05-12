@@ -11,11 +11,13 @@ export default function SecaoAtualizacoes({
                                               onAtivarDesativar,
                                               quantidade,
                                               api,
-                                              logoOng
+                                              logoOng,
+                                              idOng
                                           }) {
 
 
     const [filtro, setFiltro] = useState('');
+    const [tipoUsuario, setTipoUsuario] = useState(localStorage.getItem('tipo_usuario'));
 
     const atualizacoesFiltradas = atualizacoes.filter((update) => {
         const texto = `${update.titulo} ${update.descricao || update.acao}`.toLowerCase();
@@ -30,12 +32,21 @@ export default function SecaoAtualizacoes({
                 <h2 className={css.titulo + ' col'}>Atualizações</h2>
 
                 <div className={'col d-flex justify-content-sm-end justify-content-center'}>
-                    <Buton
-                        background="laranja"
-                        tamanho="pequeno"
-                        texto="Adicionar"
-                        rota={`/adicionar_post/${idProjeto}`}
-                    />
+                    {localStorage.getItem('id_usuario') == idOng ? (
+                        <Buton
+                            background="laranja"
+                            tamanho="pequeno"
+                            texto="Adicionar"
+                            rota={`/adicionar_post/${idProjeto}`}
+                        />
+                    ):tipoUsuario == 2 && (
+                        <Buton
+                            background="laranja"
+                            tamanho="pequeno"
+                            texto="Adicionar"
+                            rota={`/adicionar_post/${idProjeto}`}
+                        />
+                    )}
                 </div>
             </div>
 
@@ -110,31 +121,32 @@ export default function SecaoAtualizacoes({
                                 </p>
 
                             </div>
+                            {(tipoUsuario == 2 || localStorage.getItem('id_usuario') == idOng) && (
+                                <div className={css.acoesAtualizacao + ' flex-column flex-sm-row mt-2'}>
 
-                            <div className={css.acoesAtualizacao + ' flex-column flex-sm-row mt-2'}>
+                                    <Buton
+                                        background="rosa"
+                                        tamanho="pequeno"
+                                        texto="Excluir"
+                                        onClick={() => onExcluir(update.id_post || update.id)}
+                                    />
 
-                                <Buton
-                                    background="rosa"
-                                    tamanho="pequeno"
-                                    texto="Excluir"
-                                    onClick={() => onExcluir(update.id_post || update.id)}
-                                />
+                                    <Buton
+                                        background="laranja"
+                                        tamanho="pequeno"
+                                        texto="Editar"
+                                        rota={`/edicao_post/${idProjeto}/${update.id_post || update.id}`}
+                                    />
 
-                                <Buton
-                                    background="laranja"
-                                    tamanho="pequeno"
-                                    texto="Editar"
-                                    rota={`/edicao_post/${idProjeto}/${update.id_post || update.id}`}
-                                />
+                                    <Buton
+                                        background={Number(update.atividade) === 1 ? "vermelho" : "verde"}
+                                        tamanho="pequeno"
+                                        texto={Number(update.atividade) === 1 ? "Desativar" : "Ativar"}
+                                        onClick={() => onAtivarDesativar(update.id_post || update.id)}
+                                    />
 
-                                <Buton
-                                    background={Number(update.atividade) === 1 ? "vermelho" : "verde"}
-                                    tamanho="pequeno"
-                                    texto={Number(update.atividade) === 1 ? "Desativar" : "Ativar"}
-                                    onClick={() => onAtivarDesativar(update.id_post || update.id)}
-                                />
-
-                            </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 ))}

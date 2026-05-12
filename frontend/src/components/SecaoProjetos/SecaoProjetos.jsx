@@ -1,14 +1,19 @@
 import css from "./SecaoProjetos.module.css";
-import {Link, useParams} from "react-router-dom";
+import {Link, useLocation, useParams} from "react-router-dom";
 import Buton from "../Buton/Buton.jsx";
 import {useState} from "react";
 
-export default function SecaoProjetos({ projetos, api, excluir, alternarStatus, idUsuario }) {
+export default function SecaoProjetos({ projetos, api, excluir, alternarStatus, idUsuario, idOng}) {
     const [tipoUsuario, setTipoUsuario] = useState(localStorage.getItem('tipo_usuario'))
+    const local = useLocation();
     return (
         <div className={css.container}>
             <h2>Projetos</h2>
-            <Buton texto={'Adicionar projeto'} tamanho={'medio'} background={'laranja'} rota={`/adicionar_projetos/${idUsuario}`}/>
+            {localStorage.getItem('id_usuario') == idOng ? (
+                <Buton texto={'Adicionar projeto'} tamanho={'medio'} background={'laranja'} rota={`/adicionar_projetos/${idUsuario}`}/>
+            ):tipoUsuario == 2 && (
+                <Buton texto={'Adicionar projeto'} tamanho={'medio'} background={'laranja'} rota={`/adicionar_projetos/${idUsuario}`}/>
+            )}
 
             {projetos?.length === 0 && (
                 <p>Nenhum projeto cadastrado.</p>
@@ -35,30 +40,32 @@ export default function SecaoProjetos({ projetos, api, excluir, alternarStatus, 
                             </div>
                         </Link>
 
-                        <div className={'d-flex align-items-center gap-1'}>
-                            <Buton
-                                texto={statusAtividade === 1 ? 'Desativar' : 'Ativar'}
-                                background={statusAtividade === 1 ? 'vermelho' : "bege"}
-                                tamanho={'pequeno'}
-                                onClick={() => alternarStatus(idProjeto)}
-                            />
-
-                            {statusAtividade !== 1 && (
+                        {(tipoUsuario == 2 || localStorage.getItem('id_usuario') == idOng) && (
+                            <div className={'d-flex align-items-center gap-1'}>
                                 <Buton
+                                    texto={statusAtividade === 1 ? 'Desativar' : 'Ativar'}
+                                    background={statusAtividade === 1 ? 'vermelho' : "bege"}
                                     tamanho={'pequeno'}
-                                    texto={'Excluir'}
-                                    background={'roxo'}
-                                    onClick={() => excluir(idProjeto)}
+                                    onClick={() => alternarStatus(idProjeto)}
                                 />
-                            )}
 
-                            <Buton
-                                texto={'Editar'}
-                                background={'laranja'}
-                                tamanho={'pequeno'}
-                                rota={`/edicao_projetos/${idProjeto}`}
-                            />
-                        </div>
+                                {statusAtividade !== 1 && (
+                                    <Buton
+                                        tamanho={'pequeno'}
+                                        texto={'Excluir'}
+                                        background={'roxo'}
+                                        onClick={() => excluir(idProjeto)}
+                                    />
+                                )}
+
+                                <Buton
+                                    texto={'Editar'}
+                                    background={'laranja'}
+                                    tamanho={'pequeno'}
+                                    rota={`/edicao_projetos/${idProjeto}`}
+                                />
+                            </div>
+                        )}
                     </div>
                 );
             })}

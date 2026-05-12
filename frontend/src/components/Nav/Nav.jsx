@@ -61,6 +61,14 @@ export default function Nav() {
         return doadores;
     }
 
+    function doadoresDashboard({ isActive }) {
+        var doadores = cssAtivado({ isActive });
+        if (local.pathname.includes('/feed/')) {
+            doadores += " active";
+        }
+        return doadores;
+    }
+
     useEffect(() => {
         if (!localStorage.getItem("email") || !localStorage.getItem("email") || !localStorage.getItem("id_usuario") || !localStorage.getItem("tipo_usuario")) {
             navegate('/login')
@@ -74,6 +82,21 @@ export default function Nav() {
 
     return (
         <div className={'m-auto justify-content-center w-75 '+ css.nav_container + "" }>
+            {tipoUsuario == 0 && (
+                <>
+                <NavLink
+                    to={"/feed"}
+                    className={doadoresDashboard}>
+                    Feed
+                </NavLink>
+
+                <NavLink
+                    to={"/edicao_doadores"}
+                    className={doadoresDashboard}>
+                    Editar
+                </NavLink>
+                </>
+            )}
             {tipoUsuario == 1 && (
                 <>
                     <NavLink
