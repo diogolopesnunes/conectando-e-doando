@@ -188,7 +188,7 @@ export default function CardPost({logo, nomeOng, bannerPost, postImagem, ongImag
                                     <img
                                         className={css.logoOng}
                                         alt={`Logo da ONG ${nomeOng}`}
-                                        src={`${api}${postImagem}?t=${Date.now()}`}
+                                        src={`${api}${ongImagem}?t=${Date.now()}`}
                                     />
                                     <p className={`${css.linkRosa} d-inline`}>
                                         {nomeOng}
@@ -213,7 +213,7 @@ export default function CardPost({logo, nomeOng, bannerPost, postImagem, ongImag
                     <div className={'col-6 m-auto justify-content-center align-items-center ' + css.divImagemPost}>
                         <img
                             className={`w-100 ${css.imagemPost}`}
-                            src={bannerPost}
+                            src={postImagem}
                             alt={'Imagem sobre ' + descricao}
                         />
                     </div>
