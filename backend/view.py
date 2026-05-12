@@ -2496,17 +2496,19 @@ def pagina_feed(pagina):
     token = request.cookies.get('access_token')
     cur = con.cursor()
 
-    if not token:
-        return jsonify({'mensagem': {
-            'tipo': 'erro',
-            'descricao': 'Token necessário'
-        }}), 401
+    # Valor padrão para usuários não logados
+    id_usuario = None
+
+    # Tenta decodificar o token apenas se ele existir
+    if token:
+        try:
+            dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+            id_usuario = dados['id_usuario']
+        except jwt.InvalidTokenError:
+            # Se o token for inválido, trata como usuário não logado
+            id_usuario = None
 
     try:
-        dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
-        id_usuario = dados['id_usuario']
-
-
         nome = request.args.get('nome', '')
         ong = request.args.get('ong', '')
         tema = request.args.get('tema', '')
@@ -2516,27 +2518,39 @@ def pagina_feed(pagina):
         minimo = ((pagina - 1) * limite) + 1
         maximo = pagina * limite
 
-        selectBase = """
-                     SELECT
-                         p.id_post_projeto,
-                         p.titulo,
-                         p.acao,
-                         p.data_hora,
-                         u.nome,
-                         pr.id_projeto,
-                         u.tipo_ong,
-                         u.id_usuario,
-                         COALESCE(c.SITUACAO_CURTIDA, 0) as curtido
-                     FROM post_projeto p
-                              JOIN projeto_ong pr ON p.fk_projeto = pr.id_projeto
-                              JOIN usuario u ON pr.FK_USUARIO_ONG = u.id_usuario
-                              LEFT JOIN CURTIDAS_POSTAGEM c
-                                        ON c.FK_POST = p.id_post_projeto
-                                            AND c.FK_USUARIO_DOADOR = ?
-                     WHERE p.atividade = 1
-                     """
 
-        filtros = [id_usuario]
+        id_usuario_consulta = id_usuario if id_usuario is not None else 0
+
+        selectBase = """
+            SELECT
+                p.id_post_projeto,
+                p.titulo,
+                p.acao,
+                p.data_hora,
+                u.nome,
+                pr.id_projeto,
+                u.tipo_ong,
+                u.id_usuario,
+                COALESCE(c.SITUACAO_CURTIDA, 0) AS curtido,
+                CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM seguidores s
+                        WHERE s.FK_USUARIO_DOADOR = ?
+                          AND s.FK_USUARIO_ONG = u.id_usuario
+                    ) THEN 1
+                    ELSE 0
+                END AS seguindo
+            FROM post_projeto p
+                JOIN projeto_ong pr ON p.fk_projeto = pr.id_projeto
+                JOIN usuario u ON pr.FK_USUARIO_ONG = u.id_usuario
+                LEFT JOIN CURTIDAS_POSTAGEM c
+                    ON c.FK_POST = p.id_post_projeto
+                   AND c.FK_USUARIO_DOADOR = ?
+            WHERE p.atividade = 1
+        """
+
+        filtros = [id_usuario_consulta, id_usuario_consulta]
 
         if nome:
             selectBase += " AND UPPER(p.titulo) LIKE UPPER(?)"
@@ -2557,19 +2571,28 @@ def pagina_feed(pagina):
         selectBase += f"""
             ORDER BY p.data_hora DESC, p.id_post_projeto DESC
             ROWS {minimo} TO {maximo}
-            """
+        """
 
         cur.execute(selectBase, tuple(filtros))
         posts_db = cur.fetchall()
 
         posts = []
         for p in posts_db:
+            # Total de curtidas
             cur.execute("""
-                        SELECT COUNT(*)
-                        FROM curtidas_postagem
-                        WHERE FK_POST = ? AND SITUACAO_CURTIDA = 1
-                        """, (p[0],))
+                SELECT COUNT(*)
+                FROM curtidas_postagem
+                WHERE FK_POST = ? AND SITUACAO_CURTIDA = 1
+            """, (p[0],))
             total_curtidas = cur.fetchone()[0]
+
+            # Total de comentários
+            cur.execute("""
+                SELECT COUNT(*)
+                FROM mensagens_postagem
+                WHERE FK_POST = ?
+            """, (p[0],))
+            total_comentarios = cur.fetchone()[0]
 
             posts.append({
                 'id_post': p[0],
@@ -2580,39 +2603,49 @@ def pagina_feed(pagina):
                 'id_projeto': p[5],
                 'tema': p[6],
                 'id_ong': p[7],
-                'curtido': bool(p[8]),
-                'total_curtidas': total_curtidas
+                'curtido': bool(p[8]),       # False se não estiver logado
+                'seguindo': bool(p[9]),      # False se não estiver logado
+                'total_curtidas': total_curtidas,
+                'total_comentarios': total_comentarios,
+                'imagem_icone_ong': f'/uploads/Usuarios/Post_Ong/{p[7]}.jpg',
+                'imagem_icone_post': f'/uploads/Usuarios/Post_Ong/{p[0]}.jpg'
             })
 
-        cur.execute("""
-                    SELECT u.id_usuario, u.nome
-                    FROM seguidores s
-                             JOIN usuario u ON s.FK_USUARIO_ONG = u.id_usuario
-                    WHERE s.FK_USUARIO_DOADOR = ?
-                    """, (id_usuario,))
+        # Se não estiver logado, não retorna listas personalizadas
+        ongs_seguidas = []
+        novas_ongs = []
 
-        ongs_seguidas = [{
-            'id': o[0],
-            'nome': o[1]
-        } for o in cur.fetchall()]
+        if id_usuario is not None:
+            cur.execute("""
+                SELECT u.id_usuario, u.nome
+                FROM seguidores s
+                    JOIN usuario u ON s.FK_USUARIO_ONG = u.id_usuario
+                WHERE s.FK_USUARIO_DOADOR = ?
+            """, (id_usuario,))
 
-        cur.execute("""
-                    SELECT FIRST 5 id_usuario, nome, tipo_ong
-                    FROM usuario
-                    WHERE tipo_de_usuario = 1 AND situacao = 1
-                      AND id_usuario NOT IN (
-                        SELECT FK_USUARIO_ONG
-                        FROM seguidores
-                        WHERE FK_USUARIO_DOADOR = ?
-                        )
-                    ORDER BY data_hora_registro DESC
-                    """, (id_usuario,))
+            ongs_seguidas = [{
+                'id': o[0],
+                'nome': o[1]
+            } for o in cur.fetchall()]
 
-        novas_ongs = [{
-            'id': o[0],
-            'nome': o[1],
-            'tema': o[2]
-        } for o in cur.fetchall()]
+            cur.execute("""
+                SELECT FIRST 5 id_usuario, nome, tipo_ong
+                FROM usuario
+                WHERE tipo_de_usuario = 1
+                  AND situacao = 1
+                  AND id_usuario NOT IN (
+                      SELECT FK_USUARIO_ONG
+                      FROM seguidores
+                      WHERE FK_USUARIO_DOADOR = ?
+                  )
+                ORDER BY data_hora_registro DESC
+            """, (id_usuario,))
+
+            novas_ongs = [{
+                'id': o[0],
+                'nome': o[1],
+                'tema': o[2]
+            } for o in cur.fetchall()]
 
         proximaPagina = pagina + 1 if len(posts) > 0 else 0
         paginaAnterior = pagina - 1 if pagina > 1 else 0
@@ -2622,26 +2655,17 @@ def pagina_feed(pagina):
             'ongs_seguidas': ongs_seguidas,
             'novas_ongs': novas_ongs,
             'proximaPagina': proximaPagina,
-            'paginaAnterior': paginaAnterior
+            'paginaAnterior': paginaAnterior,
+            'logado': id_usuario is not None
         }), 200
 
-    except jwt.ExpiredSignatureError:
-        return jsonify({'mensagem': {
-            'tipo': 'erro',
-            'descricao': 'Token expirado'
-        }}), 401
-
-    except jwt.InvalidTokenError:
-        return jsonify({'mensagem': {
-            'tipo': 'erro',
-            'descricao': 'Token inválido'
-        }}), 401
-
     except Exception as e:
-        return jsonify({'mensagem': {
-            'tipo': 'erro',
-            'descricao': f'Erro no feed: {e}'
-        }}), 500
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': f'Erro no feed: {e}'
+            }
+        }), 500
 
     finally:
         if cur:
@@ -2763,10 +2787,12 @@ def deseguir_seguir_ong(id_ong):
     token = request.cookies.get('access_token')
 
     if not token:
-        return jsonify({'mensagem': {
-            'tipo': 'erro',
-            'descricao': 'Token necessário'
-        }}), 401
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'É necessário estar logado para seguir uma ONG'
+            }
+        }), 401
 
     try:
         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
@@ -2775,10 +2801,12 @@ def deseguir_seguir_ong(id_ong):
         cur = con.cursor()
 
         if id_usuario == id_ong:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Você não pode seguir a si mesmo'
-            }}), 400
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Você não pode seguir a si mesmo'
+                }
+            }), 400
 
         cur.execute("""
             SELECT tipo_de_usuario
@@ -2788,16 +2816,20 @@ def deseguir_seguir_ong(id_ong):
         resultado = cur.fetchone()
 
         if not resultado:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'ONG não encontrada'
-            }}), 404
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'ONG não encontrada'
+                }
+            }), 404
 
         if resultado[0] != 1:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Só é possível seguir ONGs'
-            }}), 400
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Só é possível seguir ONGs'
+                }
+            }), 400
 
         cur.execute("""
             SELECT ID_SEGUIDORES
@@ -2807,7 +2839,6 @@ def deseguir_seguir_ong(id_ong):
 
         ja_segue = cur.fetchone()
 
-
         if ja_segue:
             cur.execute("""
                 DELETE FROM seguidores
@@ -2816,10 +2847,13 @@ def deseguir_seguir_ong(id_ong):
 
             con.commit()
 
-            return jsonify({'mensagem': {
-                'tipo': 'sucesso',
-                'descricao': 'Você deixou de seguir a ONG'
-            }, 'seguindo': False}), 200
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'sucesso',
+                    'descricao': 'Você deixou de seguir a ONG'
+                },
+                'seguindo': False
+            }), 200
 
         else:
             cur.execute("""
@@ -2829,30 +2863,53 @@ def deseguir_seguir_ong(id_ong):
 
             con.commit()
 
-            return jsonify({'mensagem': {
-                'tipo': 'sucesso',
-                'descricao': 'Agora você segue a ONG'
-            }, 'seguindo': True}), 201
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'sucesso',
+                    'descricao': 'Agora você segue a ONG'
+                },
+                'seguindo': True
+            }), 201
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Sua sessão expirou. Faça login novamente.'
+            }
+        }), 401
+
+    except jwt.InvalidTokenError:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Token inválido. Faça login novamente.'
+            }
+        }), 401
 
     except Exception as e:
-        return jsonify({'mensagem': {
-            'tipo': 'erro',
-            'descricao': f'Erro: {e}'
-        }}), 500
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': f'Erro: {e}'
+            }
+        }), 500
 
     finally:
-        cur.close()
-
+        if 'cur' in locals():
+            cur.close()
 
 @app.route('/descurtir_curtir_post/<int:id_post>', methods=['POST'])
 def descurtir_curtir_post(id_post):
     token = request.cookies.get('access_token')
 
     if not token:
-        return jsonify({'mensagem': {
-            'tipo': 'erro',
-            'descricao': 'Token necessário'
-        }}), 401
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'É necessário estar logado para curtir uma postagem'
+            }
+        }), 401
 
     try:
         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
@@ -2868,18 +2925,15 @@ def descurtir_curtir_post(id_post):
 
         resultado = cur.fetchone()
 
-        print(resultado)
-
         if resultado:
             id_curtida, situacao = resultado
 
             nova_situacao = 0 if situacao == 1 else 1
 
             if nova_situacao == 0:
-                texto = "Você Parou de Seguir"
-            if nova_situacao == 1:
-                texto = "Você Voltou a Seguir"
-
+                texto = "Post descurtido"
+            else:
+                texto = "Post curtido"
 
             cur.execute("""
                 UPDATE curtidas_postagem
@@ -2892,13 +2946,12 @@ def descurtir_curtir_post(id_post):
             return jsonify({
                 'mensagem': {
                     'tipo': 'sucesso',
-                    'descricao': f'{texto}'
+                    'descricao': texto
                 },
-                'curtido': True if nova_situacao == 1 else False
+                'curtido': nova_situacao == 1
             }), 200
 
         else:
-
             cur.execute("""
                 INSERT INTO curtidas_postagem (FK_POST, FK_USUARIO_DOADOR)
                 VALUES (?, ?)
@@ -2914,14 +2967,33 @@ def descurtir_curtir_post(id_post):
                 'curtido': True
             }), 201
 
+    except jwt.ExpiredSignatureError:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Sua sessão expirou. Faça login novamente.'
+            }
+        }), 401
+
+    except jwt.InvalidTokenError:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Token inválido. Faça login novamente.'
+            }
+        }), 401
+
     except Exception as e:
-        return jsonify({'mensagem': {
-            'tipo': 'erro',
-            'descricao': f'Erro ao curtir: {e}'
-        }}), 500
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': f'Erro ao curtir: {e}'
+            }
+        }), 500
 
     finally:
-        cur.close()
+        if 'cur' in locals():
+            cur.close()
 
 
 @app.route('/postar_comentario/<int:id_usuario>/<int:id_post>', methods=['POST'])
