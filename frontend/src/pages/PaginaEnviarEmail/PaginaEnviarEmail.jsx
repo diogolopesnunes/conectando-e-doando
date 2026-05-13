@@ -11,7 +11,7 @@ export default function PaginaEnviarEmail({ api }) {
     const [loading, setLoading] = useState(false);
     const { id_ong } = useParams();
     const navigate = useNavigate();
-    const [assunto, setAssunto] = useState("");
+    const [assunto, setAssunto] = useState(null);
     const [mensagemEmail, setMensagemEmail] = useState("");
     const [mensagem, setMensagem] = useState("");
     const [tipoMensagem, setTipoMensagem] = useState("");
@@ -30,7 +30,7 @@ export default function PaginaEnviarEmail({ api }) {
 
     async function enviar(e) {
         e.preventDefault();
-        if (!assunto.trim() || !mensagemEmail.trim()) {
+        if (!mensagemEmail.trim()) {
             setMensagem("Por favor, preencha o assunto e a mensagem.");
             setTipoMensagem("erro");
             return;

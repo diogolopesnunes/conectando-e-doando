@@ -5,10 +5,11 @@ import Alerts from "../../components/Alerts/Alerts.jsx";
 import Nav from "../../components/Nav/Nav.jsx";
 import OngsFavoritas from "../../components/OngsFavoritas/OngsFavoritas.jsx";
 import Buton from "../../components/Buton/Buton.jsx";
+import Input from "../../components/Input/Input.jsx";
 
 export default function Feed({api}){
     const [mensagem, setMensagem] = useState(null)
-    const [ongsSeguidas, setOngsSeguidas] = useState(null);
+    const [ongsSeguidas, setOngsSeguidas] = useState([]);
     const [posts, setPosts] = useState([]);
     const [novasOngs, setNovasOngs] = useState(null);
     const paginaRef = useRef(1);
@@ -17,40 +18,44 @@ export default function Feed({api}){
     const observerRef = useRef(null);
     const carregandoRef = useRef(false);
     const [favoritas, setFavoritas] = useState(false);
+    const [idPost, setIdPost] = useState('');
+    const [comentario, setComentario] = useState('')
+    const [filtro, setFiltro] = useState('');
+    const [ordemData, setOrdemData] = useState('desc');
+    const [comentariosPost, setComentariosPost] = useState(null)
 
-    async function carregarPosts(){
 
+    async function carregarPosts() {
         if (carregandoRef.current || !temMais) return;
 
         carregandoRef.current = true;
         setLoading(true);
 
-        const resposta = await fetch(`${api}/pagina_feed/${paginaRef.current}`, {
-            method: "GET",
-            headers: {"Content-Type": "application/json"},
-            credentials: "include"
-        });
-
-        // if (resposta.status === 500) {
-        //     return;
-        // }
+        const resposta = await fetch(
+            `${api}/pagina_feed/${paginaRef.current}?nome=${encodeURIComponent(filtro)}&ordem=${ordemData}`,
+            {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include"
+            }
+        );
 
         const retorno = await resposta.json();
-        console.log(retorno)
+        console.log(retorno);
 
         if (retorno.mensagem) {
-            setMensagem(retorno.mensagem)
+            setMensagem(retorno.mensagem);
         }
-        if (retorno.ongs_seguidas) {
-            setOngsSeguidas(retorno.ongs_seguidas)
-        }
-        if (retorno.novas_ongs) {
-            setNovasOngs(retorno.novas_ongs)
-        }
-        if (retorno.posts) {
-            if (retorno.posts.length == 0) {
-                setTemMais(false);
 
+        setOngsSeguidas(retorno.ongs_seguidas || []);
+
+        if (retorno.novas_ongs) {
+            setNovasOngs(retorno.novas_ongs);
+        }
+
+        if (retorno.posts) {
+            if (retorno.posts.length === 0) {
+                setTemMais(false);
                 carregandoRef.current = false;
                 setLoading(false);
                 return;
@@ -58,15 +63,23 @@ export default function Feed({api}){
 
             setPosts((prev) => [...prev, ...retorno.posts]);
             paginaRef.current += 1;
-
-            carregandoRef.current = false;
-            setLoading(false);
         }
+
+        carregandoRef.current = false;
+        setLoading(false);
+    }
+
+    function reiniciarFeed() {
+        setPosts([]);
+        setTemMais(true);
+        paginaRef.current = 1;
+        carregandoRef.current = false;
     }
 
     useEffect(() => {
-        carregarPosts()
-    }, [])
+        reiniciarFeed();
+        carregarPosts();
+    }, [filtro, ordemData]);
 
     useEffect(() => {
 
@@ -103,6 +116,7 @@ export default function Feed({api}){
 
     }, []);
 
+
     function atualizarSeguimento(idOng, novoValor) {
         setPosts((postsAnteriores) =>
             postsAnteriores.map((post) =>
@@ -113,9 +127,107 @@ export default function Feed({api}){
         );
     }
 
-    return(
+
+    function atualizarOngsFavoritas(idOng, nomeOng, temaOng, ongImagem, seguindo) {
+        setOngsSeguidas((ongsAnteriores = []) => {
+            if (seguindo) {
+                // Se começou a seguir, adiciona a ONG caso ela ainda não exista
+                const jaExiste = ongsAnteriores.some(
+                    (ong) => ong.id === idOng
+                );
+
+                if (jaExiste) {
+                    return ongsAnteriores;
+                }
+
+                return [
+                    ...ongsAnteriores,
+                    {
+                        id: idOng,
+                        nome: nomeOng,
+                        tema: temaOng,
+                        imagem: ongImagem
+                    }
+                ];
+            } else {
+                return ongsAnteriores.filter(
+                    (ong) => ong.id !== idOng
+                );
+            }
+        });
+    }
+
+    async function listarComentarios(idPostComentario) {
+        const resposta = await fetch(`${api}/listar_comentario/${idPostComentario}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+        });
+
+        const retorno = await resposta.json();
+        console.log(retorno);
+
+        if (retorno.mensagem) {
+            setMensagem(retorno.mensagem);
+        }
+
+        if (retorno.mensagens) {
+            setComentariosPost(retorno.mensagens);
+        }
+    }
+
+    async function comentar(e, idPostComentario) {
+        e.preventDefault();
+
+        if (!comentario.trim()) {
+            setMensagem({
+                tipo: "erro",
+                descricao: "Digite um comentário antes de enviar"
+            });
+            return;
+        }
+
+        const resposta = await fetch(
+            `${api}/postar_comentario/${localStorage.getItem('id_usuario')}/${idPostComentario}`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    comentario: comentario
+                })
+            }
+        );
+
+        const retorno = await resposta.json();
+        console.log(retorno);
+
+        if (retorno.mensagem) {
+            setMensagem(retorno.mensagem);
+
+            if (retorno.mensagem.tipo === 'sucesso') {
+                setComentario('');
+
+                // Recarrega os comentários depois de postar
+                listarComentarios(idPostComentario);
+            }
+        }
+    }
+
+    const postsFiltrados = favoritas
+        ? posts.filter((post) =>
+            ongsSeguidas.some((ong) => ong.id === post.id_ong)
+        )
+        : posts;
+
+
+    return (
         <>
-            {localStorage.getItem('id_usuario') && (<Nav />)}
+            {localStorage.getItem('id_usuario') && (<Nav/>)}
 
             <div className={'container m-auto'}>
                 <div className={'row'}>
@@ -129,47 +241,105 @@ export default function Feed({api}){
                             />
                         </div>
                     )}
-                    {/*<div className={'col-12'}>*/}
-                    {/*    <h1 className={"text-center"}>Título página</h1>*/}
-                    {/*</div>*/}
+
                     {localStorage.getItem('id_usuario') && (
                         <div className={'col-10 m-auto d-flex flex-column'}>
-                            <OngsFavoritas api={api} />
+                                <OngsFavoritas ongs={ongsSeguidas || []} api={api} />
+                            <div className="my-3">
+                                <Input
+                                    tipoInp={'text'}
+                                    htmlFor={'projetos'}
+                                    placeholder={'Digite o nome para o filtro'}
+                                    value={filtro}
+                                    funcao={(e) => {
+                                        setFiltro(e.target.value);
+                                    }}
+                                />
+
+                                <select
+                                    className="form-select"
+                                    value={ordemData}
+                                    onChange={(e) => {
+                                        setOrdemData(e.target.value);
+                                    }}>
+                                    <option value="desc">Mais recentes primeiro</option>
+                                    <option value="asc">Mais antigos primeiro</option>
+                                </select>
+                            </div>
                             <div className={'d-none justify-content-center align-items-center d-sm-flex'}>
                                 {favoritas ? (
                                     <>
-                                        <Buton texto={'Todas as postagens'} background={'branco'} tamanho={'medio'} onClick={() => setFavoritas(false)}/>
-                                        <Buton texto={'Postagens das ongs favoritadas'} background={'roxo'} tamanho={'medio'} onClick={() => setFavoritas(true)}/>
+                                        <Buton texto={'Todas as postagens'} background={'branco'}
+                                               tamanho={'medio'} onClick={() => setFavoritas(false)}/>
+                                        <Buton texto={'Postagens das ongs favoritadas'} background={'roxo'}
+                                               tamanho={'medio'} onClick={() => setFavoritas(true)}/>
                                     </>
-                                ):(
+                                ) : (
                                     <>
-                                        <Buton texto={'Todas as postagens'} background={'roxo'} tamanho={'medio'} onClick={() => setFavoritas(false)}/>
-                                        <Buton texto={'Postagens das ongs favoritadas'} background={'branco'} tamanho={'medio'} onClick={() => setFavoritas(true)}/>
+                                        <Buton texto={'Todas as postagens'} background={'roxo'}
+                                               tamanho={'medio'} onClick={() => setFavoritas(false)}/>
+                                        <Buton texto={'Postagens das ongs favoritadas'} background={'branco'}
+                                               tamanho={'medio'} onClick={() => setFavoritas(true)}/>
                                     </>
                                 )}
                             </div>
                             <div className={'justify-content-center align-items-center d-flex d-sm-none'}>
                                 {favoritas ? (
                                     <>
-                                        <Buton texto={'Todas'} background={'branco'} tamanho={'medio'} onClick={() => setFavoritas(false)}/>
-                                        <Buton texto={'Favoritadas'} background={'roxo'} tamanho={'medio'} onClick={() => setFavoritas(true)}/>
+                                        <Buton texto={'Todas'} background={'branco'} tamanho={'pequeno'}
+                                               onClick={() => setFavoritas(false)}/>
+                                        <Buton texto={'Favoritadas'} background={'roxo'} tamanho={'pequeno'}
+                                               onClick={() => setFavoritas(true)}/>
                                     </>
-                                ):(
+                                ) : (
                                     <>
-                                        <Buton texto={'Todas'} background={'roxo'} tamanho={'medio'} onClick={() => setFavoritas(false)}/>
-                                        <Buton texto={'Favoritadas'} background={'branco'} tamanho={'medio'} onClick={() => setFavoritas(true)}/>
+                                        <Buton texto={'Todas'} background={'roxo'} tamanho={'pequeno'}
+                                               onClick={() => setFavoritas(false)}/>
+                                        <Buton texto={'Favoritadas'} background={'branco'} tamanho={'pequeno'}
+                                               onClick={() => setFavoritas(true)}/>
                                     </>
                                 )}
                             </div>
                         </div>
                     )}
 
-                    {posts.length > 0 ? (
-                        posts.map((post) => (
-                            <CardPost key={post.id_post} postImagem={post.imagem_icone_ong} ongImagem={post.imagem_icone_ong} idPost={post.id_post} api={api} idOng={post.id_ong} idProjeto={post.id_projeto} logo={'/public/favicon.png'} bannerPost={'/public/SemImagemDisponivel.png'} descricao={post.acao} tituloPost={post.titulo} nomeOng={post.ong_nome} dataHora={post.data_hora} totalCurtidas={post.total_curtidas} totalComentarios={post.total_comentarios} curtidoInicial={post.curtido} seguindoInicial={post.seguindo} aoAlterarSeguimento={atualizarSeguimento}/>
+                    {postsFiltrados.length > 0 ? (
+                        postsFiltrados.map((post) => (
+                            <CardPost
+                                key={post.id_post}
+                                postImagem={post.imagem_icone_post}
+                                ongImagem={post.imagem_icone_ong}
+                                idPost={post.id_post}
+                                setIdPost={setIdPost}
+                                api={api}
+                                idOng={post.id_ong}
+                                idProjeto={post.id_projeto}
+                                logo={'/public/favicon.png'}
+                                bannerPost={'/public/SemImagemDisponivel.png'}
+                                descricao={post.acao}
+                                tituloPost={post.titulo}
+                                nomeOng={post.ong_nome}
+                                dataHora={post.data_hora}
+                                totalCurtidas={post.total_curtidas}
+                                totalComentarios={post.total_comentarios}
+                                curtidoInicial={post.curtido}
+                                seguindoInicial={post.seguindo}
+                                aoAlterarSeguimento={atualizarSeguimento}
+                                aoAlterarOngsFavoritas={atualizarOngsFavoritas}
+                                temaOng={post.tema}
+                                comentario={comentario}
+                                setComentario={setComentario}
+                                comentar={comentar}
+                                listarComentarios={listarComentarios}
+                                comentariosPost={comentariosPost}
+                            />
                         ))
-                    ):(
-                        <p className={"text-center"}>Nenhum post adicionado</p>
+                    ) : (
+                        <p className={"text-center"}>
+                            {favoritas
+                                ? "Você não segue nenhuma ONG com posts"
+                                : "Nenhum post adicionado"}
+                        </p>
                     )}
                     <div className={css.divObservado} ref={observerRef}></div>
                     {loading && (
