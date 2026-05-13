@@ -10,6 +10,14 @@
     max-width: 52%;
 }
 
+.comentario {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+}
 
 
 @media (max-width: 426px) {

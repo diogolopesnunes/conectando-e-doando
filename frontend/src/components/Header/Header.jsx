@@ -8,7 +8,7 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
     const [open, setOpen] = useState(false);
     const pagina = useLocation().pathname;
 
-    const [email, setEmail] = useState("");
+    const idUsuario = localStorage.getItem("id_usuario");
     const nome = localStorage.getItem("nome");
     const navegate = useNavigate();
     if (logado == true && localStorage.getItem("id_usuario") == null) {
@@ -134,9 +134,6 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
                         </>
                     ) : (
                         <>
-                            <p>{nome}</p>
-
-                            <Buton onClick={logout} background="rosa" tamanho="pequeno" texto="Sair" />
                             {localStorage.getItem('tipo_usuario') == 1 ?(
                                 <>
                                     <Link to={"/previa_ong"}>
@@ -159,8 +156,16 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
                                 <Link to={"/feed"}>
                                     Feed
                                 </Link>
-                                ) : null
+                            ) : null
                             }
+
+                            <div className={"d-flex flex-row align-items-center gap-2 "}>
+                                <img className={css.imagemUsuario} src={idUsuario ? `${api}/uploads/Usuarios/Icone_Perfil/${idUsuario}.jpg` : "/public/SemImagemDisponivel.png"} ></img>
+
+                                <p className={"fs-6 "}>{nome}</p>
+                            </div>
+
+                            <Buton onClick={logout} background="rosa" tamanho="pequeno" texto="Sair" />
                         </>
                     )}
                 </nav>

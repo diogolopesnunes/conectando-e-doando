@@ -52,7 +52,7 @@ export default function Input({tipoInp, label, htmlFor, placeholder, classe = ''
         )
     } else if (tipoInp == 'select') {
         return (
-            <div className={"d-flex w-75 m-auto my-3 flex-column"}>
+            <div className={`d-flex w-75 m-auto my-3 flex-column`}>
                 {obrigatorio == "Sim" && (
                     <span className={css.campoObrigatorio}>* Campo Obrigatório</span>
                 )}
@@ -67,7 +67,7 @@ export default function Input({tipoInp, label, htmlFor, placeholder, classe = ''
         )
     } else if (tipoInp == 'textarea') {
         return (
-            <div className={"d-flex flex-column w-75 m-auto my-3"} >
+            <div className={`d-flex flex-column w-75 m-auto my-3`} >
                 {obrigatorio == "Sim" && (
                     <span className={css.campoObrigatorio}>* Campo Obrigatório</span>
                 )}
@@ -78,7 +78,7 @@ export default function Input({tipoInp, label, htmlFor, placeholder, classe = ''
     }
 
     return (
-        <div className={"d-flex flex-column w-75 m-auto my-3"} >
+        <div className={`d-flex flex-column w-75 m-auto my-3`} >
             {obrigatorio == "Sim" && (
                 <span className={css.campoObrigatorio}>* Campo Obrigatório</span>
             )}
@@ -140,7 +140,7 @@ export default function Input({tipoInp, label, htmlFor, placeholder, classe = ''
                     name={htmlFor}
                 />
                 ): (<input type={tipoInp} placeholder={placeholder} id={htmlFor} name={htmlFor}
-                       className={"w-100 d-block rounded px-2 py-1 " + css.input}
+                       className={`w-100 d-block rounded px-2 py-1 ` + css.input}
                        value={value}
                        onChange={funcao}
                        maxLength={maxlength}

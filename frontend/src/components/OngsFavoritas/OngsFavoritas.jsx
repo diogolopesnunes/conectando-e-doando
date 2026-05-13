@@ -1,49 +1,41 @@
-import { useEffect, useState } from "react";
-import styles from "./OngsFavoritas.module.css";
+import css from "./OngsFavoritas.module.css";
+import { Link } from "react-router-dom";
 
-function OngsFavoritas({ api }) {
-    const [ongs, setOngs] = useState([]);
+export default function OngsFavoritas({ ongs = [], api }) {
 
-    useEffect(() => {
-        fetch(`${api}/pagina_feed_favoritas/1`, {
-            credentials: "include",
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                const favoritas = data.posts.map((post) => ({
-                    nome: post.ong_nome,
-                    tema: post.tema,
-                }));
-
-                const unicas = favoritas.filter(
-                    (ong, index, self) =>
-                        index === self.findIndex((o) => o.nome === ong.nome)
-                );
-
-                setOngs(unicas);
-            })
-            .catch((err) => console.error(err));
-    }, [api]);
+    console.log(ongs)
 
     return (
-        <div className={styles.favoritasContainer}>
-            <h3 className={styles.tituloFavoritas}>
+        <div className={css.favoritasContainer}>
+            <h3 className={css.tituloFavoritas}>
                 Suas ONGs favoritas
             </h3>
 
-            <div className={styles.favoritasLista}>
-                {ongs.map((ong, index) => (
-                    <div key={index} className={styles.favoritaCard}>
-                        <img
-                            src={`/img/${ong.tema}.png`}
-                            alt={ong.nome}
-                            className={styles.favoritaLogo}
-                        />
-                    </div>
-                ))}
+            <div className={css.favoritasLista}>
+                {ongs.length > 0 ? (
+                    ongs.map((ong) => (
+                        <Link
+                            key={ong.id}
+                            to={`/previa_ong/${ong.id}`}
+                            className={css.linkFavorita}
+                            title={ong.nome}
+                        >
+                            <img
+                                src={ong.imagem ? `${api}${ong.imagem}` : "/public/SemImagemDisponivel.png"}
+                                alt={ong.nome}
+                                className={`${css.favoritaLogo} m-1`}
+                                onError={(e) => {
+                                    e.currentTarget.onerror = null;
+                                }}
+                            />
+                        </Link>
+                    ))
+                ) : (
+                    <p className={`${css.semFavoritas} m-3`}>
+                        Você ainda não segue uma ONG.
+                    </p>
+                )}
             </div>
         </div>
     );
 }
-
-export default OngsFavoritas;

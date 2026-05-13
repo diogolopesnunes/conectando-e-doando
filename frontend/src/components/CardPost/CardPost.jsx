@@ -4,8 +4,12 @@ import Buton from "../Buton/Buton.jsx";
 import Titulo from "../Titulo/Titulo.jsx";
 import {Link, useNavigate} from "react-router-dom";
 import Alerts from "../Alerts/Alerts.jsx";
+import Comentario from "../Comentario/Comentario.jsx";
+import Input from "../Input/Input.jsx";
+import Form from "../Form/Form.jsx";
 
-export default function CardPost({logo, nomeOng, bannerPost, postImagem, ongImagem, descricao, dataHora, tituloPost, idProjeto, idOng, idPost, api,  totalCurtidas = 0, totalComentarios = 0, curtidoInicial = false, seguindoInicial = false, aoAlterarSeguimento}){
+export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, bannerPost, postImagem, ongImagem, descricao, dataHora, tituloPost, idProjeto, idOng, comentario, setComentario, comentar, listarComentarios, idPost, api,  totalCurtidas = 0, totalComentarios = 0, curtidoInicial = false, seguindoInicial = false, aoAlterarSeguimento, aoAlterarCurtida, aoAlterarOngsFavoritas,
+                                     temaOng}){
     const [modalAberto, setModalAberto] = useState(false);
     const [comentarios, setComentarios] = useState(false);
     const [pagina, setPagina] = useState(1);
@@ -26,6 +30,7 @@ export default function CardPost({logo, nomeOng, bannerPost, postImagem, ongImag
     const fimListaRef = useRef(null);
 
     const navigate = useNavigate();
+
 
     // Atualiza os valores quando as props mudarem
     useEffect(() => {
@@ -80,7 +85,6 @@ export default function CardPost({logo, nomeOng, bannerPost, postImagem, ongImag
         if (carregandoCurtida) return;
 
         try {
-
             setCarregandoCurtida(true);
 
             const resposta = await fetch(
@@ -90,26 +94,34 @@ export default function CardPost({logo, nomeOng, bannerPost, postImagem, ongImag
                     credentials: 'include'
                 }
             );
+
             const dados = await resposta.json();
-            if (dados.mensagem){
+
+            // Exibe a mensagem retornada pela API
+            if (dados.mensagem) {
                 setMensagem(dados.mensagem);
             }
+
             if (resposta.ok) {
-                // Atualiza estado de curtida
+                // Atualiza o estado local do card
                 setCurtido(dados.curtido);
 
-                // Se a API retornar o total atualizado, usa ele
-                if (dados.total_curtidas !== undefined) {
-                    setQuantidade(dados.total_curtidas);
-                } else {
-                    // Caso não retorne, atualiza localmente
-                    if (dados.curtido) {
-                        setQuantidade((valorAnterior) => valorAnterior + 1);
-                    } else {
-                        setQuantidade((valorAnterior) =>
-                            Math.max(0, valorAnterior - 1)
+                // Calcula o novo total de curtidas
+                const novoTotal =
+                    dados.total_curtidas !== undefined
+                        ? dados.total_curtidas
+                        : (
+                            dados.curtido
+                                ? quantidade + 1
+                                : Math.max(0, quantidade - 1)
                         );
-                    }
+
+                // Atualiza o número de curtidas no próprio card
+                setQuantidade(novoTotal);
+
+                // Atualiza também o estado no Feed
+                if (aoAlterarCurtida) {
+                    aoAlterarCurtida(idPost, dados.curtido, novoTotal);
                 }
 
                 console.log(dados.mensagem.descricao);
@@ -148,6 +160,15 @@ export default function CardPost({logo, nomeOng, bannerPost, postImagem, ongImag
                 // Atualiza todos os posts da mesma ONG
                 if (aoAlterarSeguimento) {
                     aoAlterarSeguimento(idOng, dados.seguindo);
+                }
+                if (aoAlterarOngsFavoritas) {
+                    aoAlterarOngsFavoritas(
+                        idOng,
+                        nomeOng,
+                        temaOng,
+                        ongImagem,
+                        dados.seguindo
+                    );
                 }
             }
         } catch (erro) {
@@ -189,11 +210,13 @@ export default function CardPost({logo, nomeOng, bannerPost, postImagem, ongImag
                                         className={css.logoOng}
                                         alt={`Logo da ONG ${nomeOng}`}
                                         src={`${api}${ongImagem}?t=${Date.now()}`}
+                                        onError={(e) => {
+                                            e.target.src = "/public/SemImagemDisponivel.png";
+                                        }}
                                     />
                                     <p className={`${css.linkRosa} d-inline`}>
                                         {nomeOng}
                                     </p>
-
                                 </div>
                             </Link>
                             <img
@@ -210,15 +233,18 @@ export default function CardPost({logo, nomeOng, bannerPost, postImagem, ongImag
 
                 <div className={'row w-100 d-flex'}>
 
-                    <div className={'col-6 m-auto justify-content-center align-items-center ' + css.divImagemPost}>
+                    <div className={'col-12 d-flex col-sm-6 m-auto justify-content-center align-items-center ' + css.divImagemPost}>
                         <img
                             className={`w-100 ${css.imagemPost}`}
-                            src={postImagem}
-                            alt={'Imagem sobre ' + descricao}
+                            src={`${api}${postImagem}?t=${Date.now()}`}
+                            alt={'Imagem do post'}
+                            onError={(e) => {
+                                e.target.src = "/public/SemImagemDisponivel.png";
+                            }}
                         />
                     </div>
 
-                    <div className={'col-6'}>
+                    <div className={'col-12 col-sm-6'}>
                         <div className={'row px-2'}>
                             <div className={'col-12 my-3'}>
                                 <h4 className={css.titulo}>{tituloPost}</h4>
@@ -241,12 +267,14 @@ export default function CardPost({logo, nomeOng, bannerPost, postImagem, ongImag
                 </div>
 
                 <div
-                    className={`row w-100 d-flex justify-content-between ${css.clicavel}`}
-                >
-                    {/* Botão de comentários */}
+                    className={`row w-100 d-flex justify-content-between ${css.clicavel}`}>
+
                     <div
                         className={'col d-flex align-items-center'}
-                        onClick={() => setComentarios(!comentarios)}
+                        onClick={() => {
+                            setComentarios(!comentarios)
+                            listarComentarios(idPost)
+                        }}
                     >
                         <img
                             src="/Comentarios.png"
@@ -260,7 +288,6 @@ export default function CardPost({logo, nomeOng, bannerPost, postImagem, ongImag
                         </p>
                     </div>
 
-                    {/* Botão de curtir */}
                     <div
                         className={'col d-flex justify-content-end'}
                         onClick={curtirDescurtirPost}
@@ -277,7 +304,6 @@ export default function CardPost({logo, nomeOng, bannerPost, postImagem, ongImag
                         />
                     </div>
                 </div>
-                {/* </Link> */}
             </div>
 
             {comentarios && (
@@ -294,7 +320,30 @@ export default function CardPost({logo, nomeOng, bannerPost, postImagem, ongImag
                                 X
                             </p>
                         </div>
-
+                        {comentariosPost && comentariosPost.length > 0 ? (
+                            comentariosPost.map((coment) => (
+                                <Comentario
+                                    key={coment.id_comentario}
+                                    comentario={{
+                                        mensagem: coment.comentario,
+                                        data: coment.data_hora,
+                                        usuario: coment.usuario
+                                    }}
+                                />
+                            ))
+                        ) : (
+                            <p className="text-center">Nenhum comentário ainda.</p>
+                        )}
+                        <div>
+                            <Form largura={'comentario'} onSubmit={(e) => comentar(e, idPost)}>
+                                <div className={`d-flex flex-column flex-sm-row justify-content-around align-items-center px-2 py-1 m-auto gap-0 gap-sm-5 ${css.containterInput}`}>
+                                    <input
+                                        className={`w-100 rounded py-3 text-center text-sm-start ${css.inpComentario}`}
+                                        type={'text'} placeholder={'Deixe sua mensagem'} value={comentario} onChange={(e) => setComentario(e.target.value)}/>
+                                    <Buton texto={'Comentar'} background={'laranja'} tamanho={'pequeno'} tipo={'submit'}/>
+                                </div>
+                            </Form>
+                        </div>
                     </div>
                     <div className={`bg-black w-100 position-fixed top-50 start-50 translate-middle opacity-75 ${css.fundoPreto}`}></div>
                 </>
