@@ -233,6 +233,7 @@ def buscar_usuarios():
 @app.route('/login', methods=['POST'])
 def login():
     cur = None
+
     try:
         data = request.get_json()
         email = data.get('email')
@@ -2513,6 +2514,10 @@ def pagina_feed(pagina):
         ong = request.args.get('ong', '')
         tema = request.args.get('tema', '')
         data = request.args.get('data', '')
+        ordem = request.args.get('ordem', 'desc').lower()
+
+        if ordem not in ['asc', 'desc']:
+            ordem = 'desc'
 
         limite = 4
         minimo = ((pagina - 1) * limite) + 1
@@ -2569,7 +2574,7 @@ def pagina_feed(pagina):
             filtros.append(data)
 
         selectBase += f"""
-            ORDER BY p.data_hora DESC, p.id_post_projeto DESC
+            ORDER BY p.data_hora {ordem}, p.id_post_projeto {ordem}
             ROWS {minimo} TO {maximo}
         """
 
@@ -2607,7 +2612,7 @@ def pagina_feed(pagina):
                 'seguindo': bool(p[9]),      # False se não estiver logado
                 'total_curtidas': total_curtidas,
                 'total_comentarios': total_comentarios,
-                'imagem_icone_ong': f'/uploads/Usuarios/Post_Ong/{p[7]}.jpg',
+                'imagem_icone_ong': f'/uploads/Usuarios/Icone_Perfil/{p[7]}.jpg',
                 'imagem_icone_post': f'/uploads/Usuarios/Post_Ong/{p[0]}.jpg'
             })
 
@@ -2617,7 +2622,7 @@ def pagina_feed(pagina):
 
         if id_usuario is not None:
             cur.execute("""
-                SELECT u.id_usuario, u.nome
+                SELECT u.id_usuario, u.nome, u.tipo_ong
                 FROM seguidores s
                     JOIN usuario u ON s.FK_USUARIO_ONG = u.id_usuario
                 WHERE s.FK_USUARIO_DOADOR = ?
@@ -2625,7 +2630,9 @@ def pagina_feed(pagina):
 
             ongs_seguidas = [{
                 'id': o[0],
-                'nome': o[1]
+                'nome': o[1],
+                'tema': o[2],
+                'imagem': f'/uploads/Usuarios/Icone_Perfil/{o[0]}.jpg'
             } for o in cur.fetchall()]
 
             cur.execute("""
@@ -2998,6 +3005,7 @@ def descurtir_curtir_post(id_post):
 
 @app.route('/postar_comentario/<int:id_usuario>/<int:id_post>', methods=['POST'])
 def postar_comentario(id_usuario, id_post):
+    print('wferng')
     token = request.cookies.get('access_token')
 
     if not token:
@@ -3025,12 +3033,6 @@ def postar_comentario(id_usuario, id_post):
             }}), 404
 
         tipo_usuario = res_usuario
-
-        if tipo_usuario not in (0, 2):
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Apenas Doadores ou ADMs podem acessar esta página'
-            }}), 403
 
         # Captura da mensagem vinda do JSX (React)
         dados_corpo = request.get_json()
@@ -3116,11 +3118,22 @@ def listar_comentario(id_post):
         mensagens_db = cur.fetchall()
 
         mensagens = []
+
         for m in mensagens_db:
+            mensagem = m[1]
+
+            if hasattr(mensagem, 'read'):
+                mensagem = mensagem.read()
+
+            if isinstance(mensagem, bytes):
+                mensagem = mensagem.decode('utf-8', errors='ignore')
+
+            mensagem = str(mensagem) if mensagem is not None else ""
+
             mensagens.append({
                 'id_comentario': m[0],
-                'comentario': emoji.emojize(m[1]),
-                'data_hora': m[2].strftime("%d/%m/%Y %H:%M"),
+                'comentario': emoji.emojize(mensagem, language='en'),
+                'data_hora': m[2].strftime("%d/%m/%Y %H:%M") if m[2] else None,
                 'usuario': m[3]
             })
 
@@ -3148,7 +3161,6 @@ def listar_comentario(id_post):
 
     finally:
         cur.close()
-
 @app.route('/excluir_comentario/<int:id_comentario>', methods=['DELETE'])
 def excluir_comentario(id_mensagem):
     token = request.cookies.get('access_token')
