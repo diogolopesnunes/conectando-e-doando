@@ -3102,18 +3102,36 @@ def listar_comentario(id_post):
     try:
         dados_token = jwt.decode(token, senha_secreta, algorithms=['HS256'])
         id_usuario = dados_token['id_usuario']
+        cur.execute("""
+                    SELECT tipo_de_usuario
+                    FROM usuario
+                    WHERE id_usuario = ?
+                    """, (id_usuario,))
+        tipo_usuario = cur.fetchone()
+        if not tipo_usuario:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Usuário não encontrado'
+            }}), 404
+        tipo_usuario = tipo_usuario[0]
 
         cur.execute("""
-            SELECT 
-                m.ID_MENSAGEM,
-                m.MENSAGEM,
-                m.DATA_HORA,
-                u.NOME
-            FROM MENSAGENS_POSTAGEM m
-            JOIN usuario u ON m.FK_USUARIO_DOADOR = u.ID_USUARIO
-            WHERE m.FK_POST = ?
-            ORDER BY m.DATA_HORA ASC
-        """, (id_post,))
+                    SELECT m.ID_MENSAGEM,
+                           m.MENSAGEM,
+                           m.DATA_HORA,
+                           u.NOME,
+                           m.FK_USUARIO_DOADOR,
+                           pr.FK_USUARIO_ONG
+                    FROM MENSAGENS_POSTAGEM m
+                             JOIN usuario u
+                                  ON m.FK_USUARIO_DOADOR = u.ID_USUARIO
+                             JOIN POST_PROJETO p
+                                  ON m.FK_POST = p.ID_POST_PROJETO
+                             JOIN PROJETO_ONG pr
+                                  ON p.FK_PROJETO = pr.ID_PROJETO
+                    WHERE m.FK_POST = ?
+                    ORDER BY m.DATA_HORA ASC
+                    """, (id_post,))
 
         mensagens_db = cur.fetchall()
 
@@ -3134,7 +3152,12 @@ def listar_comentario(id_post):
                 'id_comentario': m[0],
                 'comentario': emoji.emojize(mensagem, language='en'),
                 'data_hora': m[2].strftime("%d/%m/%Y %H:%M") if m[2] else None,
-                'usuario': m[3]
+                'usuario': m[3],
+                'acoes': (
+                m[4] == id_usuario or
+                tipo_usuario == 2 or
+                (tipo_usuario == 1 and m[5] == id_usuario)
+            )
             })
 
         return jsonify({
@@ -3161,7 +3184,7 @@ def listar_comentario(id_post):
 
     finally:
         cur.close()
-@app.route('/excluir_comentario/<int:id_comentario>', methods=['DELETE'])
+@app.route('/excluir_comentario/<int:id_mensagem>', methods=['DELETE'])
 def excluir_comentario(id_mensagem):
     token = request.cookies.get('access_token')
 
@@ -3184,26 +3207,49 @@ def excluir_comentario(id_mensagem):
 
         tipo_usuario = res_usuario[0] # Agora é um inteiro (0, 1 ou 2)
 
-        if tipo_usuario not in (0, 2):
-            return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Permissão negada'}}), 403
-
+        cur.execute("""select FK_USUARIO_DOADOR, FK_POST from MENSAGENS_POSTAGEM where ID_MENSAGEM = ?""", (id_mensagem,))
+        resultado = cur.fetchone()
+        if not resultado:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'comentario não encontrado'
+            }}), 404
         # Verificação de existência e permissão em uma única lógica
         if tipo_usuario == 2:
             # ADM: Deleta qualquer mensagem pelo ID
             cur.execute("DELETE FROM MENSAGENS_POSTAGEM WHERE ID_MENSAGEM = ?", (id_mensagem,))
+        elif tipo_usuario == 1:
+            cur.execute("""select pr.FK_USUARIO_ONG, m.fk_usuario_doador
+                           from MENSAGENS_POSTAGEM m
+                           join post_projeto p on m.fk_post = p.id_post_projeto
+                           join projeto_ong pr on p.fk_projeto = pr.id_projeto
+                           where m.ID_MENSAGEM = ?
+                           """, (id_mensagem,))
+            resultado_ong = cur.fetchone()
+            print(resultado_ong[1], id_token)
+            print(resultado_ong[0], id_token)
+            if resultado_ong[1] == id_token:
+                print('entrou aqui')
+                cur.execute("DELETE FROM MENSAGENS_POSTAGEM WHERE ID_MENSAGEM = ? and FK_USUARIO_DOADOR = ?", (id_mensagem, resultado_ong[1]))
+            elif resultado_ong[0] == id_token:
+                cur.execute("DELETE FROM MENSAGENS_POSTAGEM WHERE ID_MENSAGEM = ?", (id_mensagem,))
+            else:
+                return jsonify({'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Você não tem permissão para excluir esse comentario'
+                }}), 403
         else:
             # DOADOR: Deleta apenas se a mensagem for dele
-            cur.execute("""
-                        DELETE FROM MENSAGENS_POSTAGEM
-                        WHERE ID_MENSAGEM = ? AND FK_USUARIO_DOADOR = ?
-                        """, (id_mensagem, id_token))
-
-        # Verifica se alguma linha foi realmente deletada
-        if cur.rowcount == 0:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'comentario não encontrado ou você não tem permissão para excluí-lo'
-            }}), 404
+            if resultado[0] != id_token:
+                return jsonify({'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Você não tem permissão para excluir esse comentario'
+                }}), 403
+            else:
+                cur.execute("""
+                            DELETE FROM MENSAGENS_POSTAGEM
+                            WHERE ID_MENSAGEM = ? AND FK_USUARIO_DOADOR = ?
+                            """, (id_mensagem, id_token))
 
         con.commit()
 
@@ -3221,7 +3267,7 @@ def excluir_comentario(id_mensagem):
         cur.close()
 
 
-@app.route('/editar_comentario/<int:id_comentario>', methods=['PUT'])
+@app.route('/editar_comentario/<int:id_mensagem>', methods=['PUT'])
 def editar_comentario(id_mensagem):
     token = request.cookies.get('access_token')
 
@@ -3237,11 +3283,28 @@ def editar_comentario(id_mensagem):
         dados_token = jwt.decode(token, senha_secreta, algorithms=['HS256'])
         id_usuario = dados_token['id_usuario']
 
+        # Busca o tipo do usuário logado
         cur.execute("""
-            SELECT FK_USUARIO_DOADOR
-            FROM MENSAGENS_POSTAGEM
-            WHERE ID_MENSAGEM = ?
-        """, (id_mensagem,))
+                    SELECT tipo_de_usuario
+                    FROM usuario
+                    WHERE id_usuario = ?
+                    """, (id_usuario,))
+        tipo_usuario = cur.fetchone()
+        if not tipo_usuario:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Usuário não encontrado'
+            }}), 404
+        tipo_usuario = tipo_usuario[0]
+
+        cur.execute("""
+                    SELECT m.FK_USUARIO_DOADOR,
+                           pr.FK_USUARIO_ONG
+                    FROM MENSAGENS_POSTAGEM m
+                             JOIN POST_PROJETO p ON m.FK_POST = p.ID_POST_PROJETO
+                             JOIN PROJETO_ONG pr ON p.FK_PROJETO = pr.ID_PROJETO
+                    WHERE m.ID_MENSAGEM = ?
+                    """, (id_mensagem,))
         resultado = cur.fetchone()
 
         if not resultado:
@@ -3251,16 +3314,18 @@ def editar_comentario(id_mensagem):
             }}), 404
 
         dono_mensagem = resultado[0]
+        ong_dona_projeto = resultado[1]
 
-        if dono_mensagem != id_usuario:
+
+        if not (tipo_usuario == 2 or dono_mensagem == id_usuario or (tipo_usuario == 1 and ong_dona_projeto == id_usuario)):
             return jsonify({'mensagem': {
                 'tipo': 'erro',
-                'descricao': 'Você não tem permissão para editar esse comentario'
+                'descricao': 'Você não tem permissão para editar esse comentário'
             }}), 403
 
-        dados = request.get_json()
-        nova_mensagem = dados.get('mensagem') if dados else None
 
+        dados = request.get_json()
+        nova_mensagem = dados.get('mensagemEditada') if dados else None
         if not nova_mensagem or not str(nova_mensagem).strip():
             return jsonify({'mensagem': {
                 'tipo': 'erro',
