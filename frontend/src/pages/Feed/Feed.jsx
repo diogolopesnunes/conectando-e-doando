@@ -6,6 +6,7 @@ import Nav from "../../components/Nav/Nav.jsx";
 import OngsFavoritas from "../../components/OngsFavoritas/OngsFavoritas.jsx";
 import Buton from "../../components/Buton/Buton.jsx";
 import Input from "../../components/Input/Input.jsx";
+import Swal from "sweetalert2";
 
 export default function Feed({api}){
     const [mensagem, setMensagem] = useState(null)
@@ -23,7 +24,7 @@ export default function Feed({api}){
     const [filtro, setFiltro] = useState('');
     const [ordemData, setOrdemData] = useState('desc');
     const [comentariosPost, setComentariosPost] = useState(null)
-
+    const [editar, setEditar] = useState(false);
 
     async function carregarPosts() {
         if (carregandoRef.current || !temMais) return;
@@ -41,7 +42,6 @@ export default function Feed({api}){
         );
 
         const retorno = await resposta.json();
-        console.log(retorno);
 
         if (retorno.mensagem) {
             setMensagem(retorno.mensagem);
@@ -81,6 +81,7 @@ export default function Feed({api}){
         carregarPosts();
     }, [filtro, ordemData]);
 
+    // useEffect para scroll infinito
     useEffect(() => {
 
         const observer = new IntersectionObserver(
@@ -167,7 +168,6 @@ export default function Feed({api}){
         });
 
         const retorno = await resposta.json();
-        console.log(retorno);
 
         if (retorno.mensagem) {
             setMensagem(retorno.mensagem);
@@ -204,7 +204,6 @@ export default function Feed({api}){
         );
 
         const retorno = await resposta.json();
-        console.log(retorno);
 
         if (retorno.mensagem) {
             setMensagem(retorno.mensagem);
@@ -224,6 +223,67 @@ export default function Feed({api}){
         )
         : posts;
 
+    async function confirmarExclusao() {
+        const result = await Swal.fire({
+            title: "Você tem certeza?",
+            text: "Você não poderá refazer a ação!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sim, deletar!",
+            cancelButtonText: "Cancelar",
+        });
+
+        return result.isConfirmed;
+    }
+
+    async function excluirComentario(idMensagem, idPostComentario) {
+        const confirmou = await confirmarExclusao();
+        if (!confirmou) return;
+
+        const resposta = await fetch(
+            `${api}/excluir_comentario/${idMensagem}`,
+            {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+            }
+        );
+
+        const retorno = await resposta.json();
+
+        if (retorno.mensagem) {
+            setMensagem(retorno.mensagem);
+            if (retorno.mensagem.tipo === 'sucesso') {
+                listarComentarios(idPostComentario)
+            }
+        }
+    }
+
+    async function editarComentario(e, idMensagem, idPostComentario, mensagemEditada) {
+        e.preventDefault();
+
+        const resposta = await fetch(
+            `${api}/editar_comentario/${idMensagem}`,
+            {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                    mensagemEditada
+                })
+            }
+        );
+
+        const retorno = await resposta.json();
+
+        if (retorno.mensagem) {
+            setMensagem(retorno.mensagem);
+            if (retorno.mensagem.tipo === 'sucesso') {
+                listarComentarios(idPostComentario)
+                setEditar(false)
+            }
+        }
+    }
 
     return (
         <>
@@ -332,6 +392,10 @@ export default function Feed({api}){
                                 comentar={comentar}
                                 listarComentarios={listarComentarios}
                                 comentariosPost={comentariosPost}
+                                excluirComentario={excluirComentario}
+                                editarComentario={editarComentario}
+                                editar={editar}
+                                setEditar={setEditar}
                             />
                         ))
                     ) : (

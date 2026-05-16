@@ -4,7 +4,6 @@ import Buton from "../../components/Buton/Buton.jsx";
 import {Link, useNavigate} from "react-router-dom";
 import Nav from "../../components/Nav/Nav.jsx";
 import IMask from "imask";
-import Swal from "sweetalert2";
 import CardOngAdm from "../../components/CardOngAdm/CardOngAdm.jsx";
 import Titulo from "../../components/Titulo/Titulo.jsx";
 import Alerts from "../../components/Alerts/Alerts.jsx";
