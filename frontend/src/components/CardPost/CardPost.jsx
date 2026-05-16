@@ -8,8 +8,7 @@ import Comentario from "../Comentario/Comentario.jsx";
 import Input from "../Input/Input.jsx";
 import Form from "../Form/Form.jsx";
 
-export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, bannerPost, postImagem, ongImagem, descricao, dataHora, tituloPost, idProjeto, idOng, comentario, setComentario, comentar, listarComentarios, idPost, api,  totalCurtidas = 0, totalComentarios = 0, curtidoInicial = false, seguindoInicial = false, aoAlterarSeguimento, aoAlterarCurtida, aoAlterarOngsFavoritas,
-                                     temaOng}){
+export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, bannerPost, postImagem, ongImagem, descricao, dataHora, tituloPost, idProjeto, idOng, comentario, setComentario, comentar, listarComentarios, idPost, api,  totalCurtidas = 0, totalComentarios = 0, curtidoInicial = false, seguindoInicial = false, aoAlterarSeguimento, aoAlterarCurtida, aoAlterarOngsFavoritas, excluirComentario, temaOng, editarComentario, editar, setEditar}){
     const [modalAberto, setModalAberto] = useState(false);
     const [comentarios, setComentarios] = useState(false);
     const [pagina, setPagina] = useState(1);
@@ -31,6 +30,9 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
 
     const navigate = useNavigate();
 
+
+    const [mensagemEditada, setMensagemEditada] = useState('');
+    const [idMensagemEditada, setIdMensagemEditada] = useState('');
 
     // Atualiza os valores quando as props mudarem
     useEffect(() => {
@@ -320,10 +322,18 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
                                 X
                             </p>
                         </div>
+                        <div className={`${css.listaComentarios}`}></div>
                         {comentariosPost && comentariosPost.length > 0 ? (
                             comentariosPost.map((coment) => (
                                 <Comentario
                                     key={coment.id_comentario}
+                                    idMensagem={coment.id_comentario}
+                                    excluirComentario={excluirComentario}
+                                    idPost={idPost}
+                                    acoes={coment.acoes}
+                                    setEditar={setEditar}
+                                    setMensagemEditada={setMensagemEditada}
+                                    setIdMensagemEditada={setIdMensagemEditada}
                                     comentario={{
                                         mensagem: coment.comentario,
                                         data: coment.data_hora,
@@ -334,13 +344,18 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
                         ) : (
                             <p className="text-center">Nenhum comentário ainda.</p>
                         )}
-                        <div>
-                            <Form largura={'comentario'} onSubmit={(e) => comentar(e, idPost)}>
-                                <div className={`d-flex flex-column flex-sm-row justify-content-around align-items-center px-2 py-1 m-auto gap-0 gap-sm-5 ${css.containterInput}`}>
+                        <div className={`${css.divFormComentario}`}>
+                            <Form largura={'comentario'} onSubmit={!editar ? (e) => comentar(e, idPost) : (e) => editarComentario(e, idMensagemEditada, idPost, mensagemEditada) }>
+                                <div className={`d-flex flex-column flex-lg-row justify-content-around align-items-center px-2 py-1 m-auto gap-0 gap-lg-5 ${css.containterInput}`}>
                                     <input
                                         className={`w-100 rounded py-3 text-center text-sm-start ${css.inpComentario}`}
-                                        type={'text'} placeholder={'Deixe sua mensagem'} value={comentario} onChange={(e) => setComentario(e.target.value)}/>
-                                    <Buton texto={'Comentar'} background={'laranja'} tamanho={'pequeno'} tipo={'submit'}/>
+                                        type={'text'} placeholder={!editar ? 'Deixe sua mensagem' : 'Editar mensagem'} value={!editar ? comentario : mensagemEditada} onChange={!editar ? (e) => setComentario(e.target.value) : (e) => setMensagemEditada(e.target.value)}/>
+                                    <div className={`d-flex gap-3 gap-sm-5 ${css.botoes}`}>
+                                        <Buton texto={!editar ? 'Comentar': 'Editar'} background={'laranja'} tamanho={'pequeno'} tipo={'submit'}/>
+                                        {editar && (
+                                            <Buton onClick={() => setEditar(false)} texto={'Cancelar'} tamanho={'pequeno'} background={'roxo'} tipo={'button'}/>
+                                        )}
+                                    </div>
                                 </div>
                             </Form>
                         </div>

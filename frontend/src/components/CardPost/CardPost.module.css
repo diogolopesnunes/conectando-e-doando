@@ -21,6 +21,20 @@
     border-radius: 15px;
 }
 
+.divFormComentario {
+    margin-top: auto;
+    position: sticky;
+    bottom: 0;
+    background-color: white;
+    padding-top: 10px !important;
+}
+
+.listaComentarios {
+    flex: 1;
+    overflow-y: auto;
+    flex-direction: column-reverse;
+}
+
 .inpComentario{
     border: none;
     width: 100%;
@@ -120,5 +134,11 @@
 @media (max-width: 426px){
     .divImagemPost {
         width: 100% !important;
+    }
+}
+
+@media (max-width: 321px){
+    .botoes{
+        flex-direction: column;
     }
 }

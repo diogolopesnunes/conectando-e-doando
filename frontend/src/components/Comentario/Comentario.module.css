@@ -1,0 +1,28 @@
+.mensagem{
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mensagemInteira {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+.divMenu{
+    position: relative;
+}
+
+.menuAberto{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 80%;
+}
+
+.menu{
+    width: 30px;
+}
+
+@media(max-width:300px){  }
