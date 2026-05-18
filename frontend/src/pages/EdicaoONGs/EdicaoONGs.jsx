@@ -23,6 +23,7 @@ export default function EditarOng({ api }) {
     const [senha, setSenha] = useState('');
     const [confirmarSenha, setConfirmarSenha] = useState('');
     const [tipoOng, setTipoOng] = useState('');
+    const [tiposOng, setTiposOng] = useState([])
     const [descricaoCausa, setDescricaoCausa] = useState('');
 
     const [cidadeOng, setCidadeOng] = useState('');
@@ -68,6 +69,7 @@ export default function EditarOng({ api }) {
                 setBacoOng(res.usuario.banco_ong);
                 setAgenciaOng(res.usuario.agencia_ong);
                 setContaOng(res.usuario.conta_ong);
+                setTelefone(res.usuario.telefone);
             }
             else if (res.mensagem){
                 setMensagem(res.mensagem.descricao);
@@ -145,6 +147,31 @@ export default function EditarOng({ api }) {
         }
     }
 
+    useEffect(() => {
+
+        async function buscarTiposOng() {
+
+            try {
+
+                let resposta = await fetch(`${api}/listar_tipos_ong`, {
+                    method: "GET",
+                    credentials: "include"
+                })
+
+                resposta = await resposta.json()
+                console.log(resposta)
+
+                setTiposOng(resposta.tipos)
+
+            } catch (erro) {
+                console.log(erro)
+            }
+        }
+
+        buscarTiposOng()
+
+    }, [])
+
     return (
         <>
             <Nav />
@@ -196,10 +223,15 @@ export default function EditarOng({ api }) {
                                        placeholder={'Digite a senha digitada anteriormente'} classe={'metade'} value={confirmarSenha} funcao={(f) => setConfirmarSenha(f.target.value)} required={false}/>
                             </div>
 
-                            <Input obrigatorio={"Sim"} label="Tipo de ONG" tipoInp="select"
-                                   value={tipoOng}
-                                   opcoes={["Meio ambiente","Educação","Saúde"]}
-                                   funcao={(e)=>setTipoOng(e.target.value)}
+                            <Input
+                                obrigatorio={"Sim"}
+                                htmlFor={'tipoOng'}
+                                label={'Selecione o tipo de ONG'}
+                                tipoInp={'select'}
+                                value={tipoOng}
+                                opcoeslabel="Selecione o tipo da ONG"
+                                opcoes={tiposOng}
+                                funcao={(f) => setTipoOng(f.target.value)}
                             />
 
                             <Input obrigatorio={"Sim"} label="Causa da ONG" tipoInp="textarea"

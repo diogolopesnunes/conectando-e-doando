@@ -34,6 +34,49 @@
     text-align: right !important;
 }
 
-@media (max-width: 769px){
+.wSelecionarTipo {
+    width: 40% !important;
+}
 
+.wAdicionarTipo {
+    width: 40% !important;
+}
+
+.semMargin {
+    margin: 0px !important;
+}
+
+.wSelecionarTipo,
+.wAdicionarTipo {
+    gap: 10px;
+}
+
+.input {
+    border: 1px solid var(--cor-borda);
+    padding: 3px !important;
+}
+
+.input:focus {
+    border-color: var(--cor-borda);
+    box-shadow: none;
+    outline: none;
+}
+
+@media (max-width: 769px){
+    .wSelecionarTipo {
+        width: 80% !important;
+    }
+
+    .wAdicionarTipo {
+        gap: 6px;
+        width: 80% !important;
+    }
+}
+
+@media (max-width: 768px){
+    .wSelecionarTipo,
+    .wAdicionarTipo {
+        width: 100% !important;
+        flex-direction: column !important;
+    }
 }

@@ -13,8 +13,6 @@ import Nav from "../../components/Nav/Nav.jsx";
 export default function PaginaCadastro({api}) {
 
     const [selecionado, setSelecionado] = useState('0')
-    const [checado1, setChecado1] = useState(true)
-    const [checado2, setChecado2] = useState(false)
     const [mensagem, setMensagem] = useState('')
     const [tipoMensagem, setTipoMensagem] = useState('')
     const emailLogado = localStorage.getItem("email");
@@ -34,18 +32,11 @@ export default function PaginaCadastro({api}) {
     },[mensagem])
 
     function alterar(e) {
-        setSelecionado(e.target.value)
-        if (checado1){
-            setChecado2(true)
-            setChecado1(false)
-            setTipoUsuario('1')
-            setCpfCnpj('')
-        } else{
-            setChecado2(false)
-            setChecado1(true)
-            setTipoUsuario('0')
-            setCpfCnpj('')
-        }
+        const valor = e.target.value;
+
+        setSelecionado(valor);
+        setTipoUsuario(valor);
+        setCpfCnpj('');
     }
 
     const [nome, setNome] = useState('')
@@ -55,6 +46,7 @@ export default function PaginaCadastro({api}) {
     const [tipoUsuario, setTipoUsuario] = useState(0)
     const [cpfCnpj, setCpfCnpj] = useState('')
     const [tipoOng, setTipoOng] = useState('')
+    const [tiposOng, setTiposOng] = useState([])
     const [descricaoCausa, setDescricaoCausa] = useState('')
     const [bacoOng, setBacoOng] = useState('')
     const [agenciaOng, setAgenciaOng] = useState('')
@@ -92,7 +84,7 @@ export default function PaginaCadastro({api}) {
 
     async function cadastro(f) {
         f.preventDefault();
-        
+
         const form = new FormData()
         form.append("nome",nome)
         form.append("email", email)
@@ -139,12 +131,36 @@ export default function PaginaCadastro({api}) {
         }
 
     }
+    useEffect(() => {
+
+        async function buscarTiposOng() {
+
+            try {
+
+                let resposta = await fetch(`${api}/listar_tipos_ong`, {
+                    method: "GET",
+                    credentials: "include"
+                })
+
+                resposta = await resposta.json()
+                console.log(resposta)
+
+                setTiposOng(resposta.tipos)
+
+            } catch (erro) {
+                console.log(erro)
+            }
+        }
+
+        buscarTiposOng()
+
+    }, [])
 
     return (
         <>
             {logado && (
                 <Nav />
-                )}
+            )}
 
             <div className="container m-auto">
                 <div className="row">
@@ -168,12 +184,17 @@ export default function PaginaCadastro({api}) {
                                    mask={"telefone"}/>
                             <div className="w-75 m-auto d-flex justify-content-between flex-lg-row flex-column">
                                 <Input tipoInp={'radio'} label={'Sou doador'} htmlFor={'user'} classe={'metade'}
-                                       value={'0'} funcao={alterar} checado={checado1} />
+                                       value={'0'} funcao={alterar} checado={selecionado === "0"} />
                                 <Input tipoInp={'radio'} label={'Sou ONG'} htmlFor={'user'} classe={'metade'} value={'1'}
-                                       funcao={alterar} checado={checado2} />
+                                       funcao={alterar} checado={ selecionado === "1"} />
+                                {idLogado &&
+                                    <Input tipoInp={'radio'} label={'Sou ADM'} htmlFor={'user'} classe={'metade'} value={'2'}
+                                           funcao={alterar} checado={selecionado === "2"} />
+                                }
+
                             </div>
 
-                            {selecionado == "0" ? (
+                            {selecionado == "0" && (
                                 <div>
                                     <Input obrigatorio={"Sim"} htmlFor={'cpf'} label={'CPF'} tipoInp={'text'} placeholder={'Digite seu CPF'} value={cpfCnpj} funcao={(e) => setCpfCnpj(e.target.value.replace(/\D/g, "").slice(0, 11))} inputMode="numeric" maxLength={14} minLength={14} mask={"cpf"}/>
 
@@ -193,11 +214,23 @@ export default function PaginaCadastro({api}) {
                                         )}
                                     </div>
                                 </div>
-                            ) : (
+                            )}
+                            {selecionado == "1" && (
                                 <>
                                     <Input obrigatorio={"Sim"} htmlFor={'cnpj'} label={'CNPJ'} tipoInp={'text'}
                                            placeholder={'Digite seu CNPJ'} value={cpfCnpj} funcao={(e) => setCpfCnpj(e.target.value.replace(/\D/g, "").slice(0, 14))} inputMode="numeric" maxLength={18} minLength={18} mask={"cnpj"}/>
-                                    <Input obrigatorio={"Sim"} htmlFor={'tipoOng'} label={'Selecione o tipo de ONG'} tipoInp={'select'} value={tipoOng} opcoeslabel="Selecione o tipo da ONG" opcoes={["Meio ambiente", "Educação", "Saúde"]} funcao={(f) => setTipoOng(f.target.value)}/>
+
+                                    <Input
+                                        obrigatorio={"Sim"}
+                                        htmlFor={'tipoOng'}
+                                        label={'Selecione o tipo de ONG'}
+                                        tipoInp={'select'}
+                                        value={tipoOng}
+                                        opcoeslabel="Selecione o tipo da ONG"
+                                        opcoes={tiposOng}
+                                        funcao={(f) => setTipoOng(f.target.value)}
+                                    />
+
                                     <Input obrigatorio={"Sim"} htmlFor={'causaOng'} label={'Causa da ONG'} tipoInp={'textarea'}
                                            placeholder={'Digite a causa da ONG'} value={descricaoCausa} funcao={(f) => setDescricaoCausa(f.target.value)}/>
                                     <div className={"d-flex justify-content-center"}>
@@ -239,6 +272,24 @@ export default function PaginaCadastro({api}) {
                                     </div>
 
                                 </>
+                            )}
+                            {selecionado == "2" && (
+                                <div>
+                                    <Input obrigatorio={"Sim"} htmlFor={'cpf'} label={'CPF'} tipoInp={'text'} placeholder={'Digite seu CPF'} value={cpfCnpj} funcao={(e) => setCpfCnpj(e.target.value.replace(/\D/g, "").slice(0, 11))} inputMode="numeric" maxLength={14} minLength={14} mask={"cpf"}/>
+                                    <div className="w-100 flex-column d-flex justify-content-center align-items-center mb-3">
+                                        <label className={"mb-3 fw-bold"}>Imagem de perfil</label>
+                                        <input obrigatorio={"Sim"} ref={inputImagemRef} type="file" onChange={colocarImagem} className={' ' + css.botao}/>
+                                        {preview && (
+                                            <>
+                                                <img className={'mt-3 ' + css.preview + ' ' + css.circulo}
+                                                     src={preview}
+                                                     alt="Preview"
+                                                />
+                                                <Buton tipo={"button"} onClick={() => { inputImagemRef.current.value = null;setPreview(null); setImagem(null)}} background={'vermelho'} tamanho={'pequeno'} texto={"Remover"} />
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
                             )}
 
                             <Buton texto={'Cadastrar'} background={'laranja'} tamanho={'medio'}  tipo={"submit"} />

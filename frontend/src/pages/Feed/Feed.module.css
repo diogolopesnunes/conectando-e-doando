@@ -1,3 +1,10 @@
 .divObservado {
     height: 10px;
 }
+
+.selectTipo{
+    width: 13em;
+    height: 2em;
+    border: 1px solid var(--cor-borda);
+    padding: 3px !important;
+}

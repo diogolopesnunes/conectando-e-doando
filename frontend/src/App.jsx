@@ -17,11 +17,13 @@ import EdicaoProjetos from "./pages/EdicaoProjetos/EdicaoProjetos.jsx";
 import EdicaoONGS from "./pages/EdicaoONGs/EdicaoONGs.jsx";
 import PaginaProjeto from "./pages/Ong/PaginaProjeto/PaginaProjeto.jsx";
 import DashboardAdmOng from "./pages/DashboardAdmOng/DashboardAdmOng.jsx"
+import DashboardAdmAdm from "./pages/DashboardAdmAdm/DashboardAdmAdm.jsx"
 import {PaginaPreviaOng} from "./pages/PaginaPreviaOng/PaginaPreviaOng.jsx";
 import PaginaEnviarEmail from "./pages/PaginaEnviarEmail/PaginaEnviarEmail.jsx";
 import DashboardAdmDoador from "./pages/DashboardAdmDoador/DashboardAdmDoador.jsx";
 import Feed from "./pages/Feed/Feed.jsx";
 import EdicaoDoadores from "./pages/EdicaoDoadores/EdicaoDoadores.jsx";
+import CadastroAdm from "./pages/PaginaCadastro/PaginaCadastro.jsx";
 
 
 export default function App() {
@@ -123,11 +125,14 @@ export default function App() {
                 <Route path={"/edicao_doadores"} element={<EdicaoDoadores api={api}/>} />
                 <Route path={'/projeto/:id_projeto'} element={<PaginaProjeto api={api}/>} />
                 <Route path={'/dashboard_adm_ong'} element={<DashboardAdmOng api={api}/>} />
+                <Route path={'/dashboard_adm_adm'} element={<DashboardAdmAdm api={api}/>} />
                 <Route path={'/previa_ong/:id'} element={<PaginaPreviaOng api={api}/>} />
                 <Route path={'/previa_ong'} element={<PaginaPreviaOng api={api}/>} />
                 <Route path={'/enviar_email/:id_ong'} element={<PaginaEnviarEmail api={api}/>} />
                 <Route path={'/enviar_email_bloquear/:id_ong'} element={<PaginaEnviarEmail api={api}/>} />
                 <Route path={'/dashboard_adm_doador'} element={<DashboardAdmDoador api={api}/>} />
+                <Route path="/cadastroadm" element={<CadastroAdm api={api}/>}/>
+
                 <Route path={'/feed'} element={<Feed api={api}/>} />
 
                 <Route path="*" element={<Erro/>} />

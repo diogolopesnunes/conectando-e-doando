@@ -20,6 +20,7 @@ export function PaginaPreviaOng({api}) {
     const [quantidade, setQuantidade] = useState(0);
     const [mensagem, setMensagem] = useState(null)
     const [idOng, setIdOng] = useState('');
+    const [seguindo, setSeguindo] = useState(false);
 
     useEffect(() => {
         if (!localStorage.getItem("email") || !localStorage.getItem("id_usuario")) {
@@ -44,6 +45,8 @@ export function PaginaPreviaOng({api}) {
             setQuantidade(retorno.numeroPaginas);
             setProximaPagina(retorno.proximaPagina);
             setIdOng(retorno.ong.id_usuario)
+            setSeguindo(retorno.ong.seguindo);
+            console.log(retorno.ong.seguindo)
         }
     }
 
@@ -122,7 +125,18 @@ export function PaginaPreviaOng({api}) {
                     <p className="text-center">Carregando ONG...</p>
                 ) : (
                     <>
-                        <InfoOng info={ong} texto={"Doar Agora"} api={api}/>
+                        <InfoOng
+                            info={ong}
+                            texto={"Doar Agora"}
+                            api={api}
+                            atualizarSeguimento={(novoValor) => {
+                                setOng((prev) => ({
+                                    ...prev,
+                                    seguindo: novoValor
+                                }));
+                            }}
+                            seguindo={seguindo}
+                        />
                         <SecaoProjetos
                             idOng={idOng}
                             projetos={ong.projetos}

@@ -33,3 +33,7 @@
 .alinhaDireita{
     text-align: right !important;
 }
+
+@media (max-width: 769px){
+
+}
