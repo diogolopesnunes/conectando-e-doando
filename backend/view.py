@@ -30,12 +30,23 @@ def cadastro():
     try:
         cur = con.cursor()
         if request.method == 'GET':
-            cur.execute('SELECT NOME FROM TIPO_ONG')
-            tipos_ong = cur.fetchall()
 
-            return jsonify({
-                'tipo_ong' : tipos_ong
-            })
+            cur.execute("""
+                        SELECT id_tipo_ong, nome
+                        FROM tipo_ong
+                        """)
+
+            tipos = cur.fetchall()
+
+            lista_tipos = []
+
+            for tipo in tipos:
+                lista_tipos.append({
+                    'id_tipo_ong': tipo[0],
+                    'tipo_ong': tipo[1]
+                })
+
+            return jsonify(lista_tipos), 200
         else:
             nome = request.form.get('nome')
             nome = nome.strip()
@@ -66,6 +77,8 @@ def cadastro():
                         'descricao': 'Todos os campos obrigatórios (Nome, Email, Senha, CPF/CNPJ, Telefone) devem ser preenchidos.'
                     }
                 }), 400
+
+
 
             if tipo_de_usuario == '1':
                 if not tipo_ong or not descricao_causa or not banco_ong or not agencia_ong or not conta_ong or not cidade_ong:
@@ -628,8 +641,7 @@ def ativar_desativar_usuario(id_usuario_doador):
         email = info_usuario[1]
         nome = info_usuario[2]
 
-        print(situacao)
-        print(info_usuario)
+
 
         if situacao == 1:
             assunto = 'Conta Bloqueada'
@@ -648,8 +660,6 @@ def ativar_desativar_usuario(id_usuario_doador):
         if situacao == 3 or situacao == 2:
             assunto = 'Conta Desbloqueada'
             mensagem_email = 'Sua conta foi reativada e pode ser usada novamente'
-
-            print(nome)
 
 
             cur.execute("""update usuario set situacao = 1 where id_usuario = ?""", (id_usuario_doador,))
@@ -863,8 +873,7 @@ def validar_conta():
             }}), 404
         elif infos[1] == 0:
             sucesso, mensagem = verificar_codigo(email, codigo)
-            print(sucesso)
-            print(mensagem)
+
             if tipo_usuario == 0 or tipo_usuario == 2:
                 if sucesso:
                     cur.execute("""UPDATE usuario SET situacao = 1, codigo = NULL WHERE email = ? AND situacao != 1 """, (email,))
@@ -2248,33 +2257,93 @@ def ativar_desativar_post(id_usuario, id_projeto, id_post):
 @app.route('/buscar_ong/<int:id_ong>/<int:pagina>', methods=['GET'])
 def buscar_ong(id_ong, pagina):
     cur = con.cursor()
+
     try:
+        token = request.cookies.get('access_token')
+        id_usuario_logado = None
 
-        cur.execute("""select id_usuario, nome, tipo_ong, descricao_causa, cpf_cnpj, telefone, cidade_ong
-                       from usuario
-                       where id_usuario = ? and tipo_de_usuario = 1""", (id_ong,))
+        if token:
+            try:
+                dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+                id_usuario_logado = dados['id_usuario']
+            except Exception:
+                id_usuario_logado = None
+
+        cur.execute("""
+            SELECT id_usuario,
+                   nome,
+                   tipo_ong,
+                   descricao_causa,
+                   cpf_cnpj,
+                   telefone,
+                   cidade_ong
+            FROM usuario
+            WHERE id_usuario = ?
+              AND tipo_de_usuario = 1
+        """, (id_ong,))
+
         usuario = cur.fetchone()
-        if not usuario:
-            return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'ONG não encontrada'}}), 404
 
-        cur.execute("""select count(id_projeto)
-                       from projeto_ong
-                       where fk_usuario_ong = ?""", (id_ong,))
+        if not usuario:
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'ONG não encontrada'
+                }
+            }), 404
+
+        cur.execute("""select nome from tipo_ong where id_tipo_ong = ?""", (usuario[2],))
+        tipo_ong = cur.fetchone()[0]
+
+        # Verifica se o usuário logado segue a ONG
+        seguindo = False
+        if id_usuario_logado:
+            cur.execute("""
+                SELECT id_seguidores
+                FROM seguidores
+                WHERE fk_usuario_ong = ?
+                  AND fk_usuario_doador = ?
+            """, (id_ong, id_usuario_logado))
+
+            segue = cur.fetchone()
+
+            seguindo = True if segue else False
+
+        # Quantidade de projetos
+        cur.execute("""
+            SELECT COUNT(id_projeto)
+            FROM projeto_ong
+            WHERE fk_usuario_ong = ?
+        """, (id_ong,))
+
         quantidade = cur.fetchone()[0]
 
-        numeroPaginas = math.ceil(quantidade / quantidadePorPagina) if quantidade else 0
+        numeroPaginas = (
+            math.ceil(quantidade / quantidadePorPagina)
+            if quantidade else 0
+        )
 
         minimo = ((pagina - 1) * quantidadePorPagina) + 1
         maximo = pagina * quantidadePorPagina
 
-        cur.execute("""select id_projeto, nome, descricao, atividade
-                               from projeto_ong
-                               where fk_usuario_ong = ?
-                               ORDER BY id_projeto DESC ROWS ? TO ?""", (id_ong, minimo, maximo))
+        # Busca projetos
+        cur.execute("""
+            SELECT id_projeto,
+                   nome,
+                   descricao,
+                   atividade
+            FROM projeto_ong
+            WHERE fk_usuario_ong = ?
+            ORDER BY id_projeto DESC
+            ROWS ? TO ?
+        """, (id_ong, minimo, maximo))
+
         resultado = cur.fetchall()
 
         projetos = []
+
         numeroProjeto = 1
+
         for linha in resultado:
             projetos.append({
                 'numero projeto': numeroProjeto,
@@ -2284,32 +2353,47 @@ def buscar_ong(id_ong, pagina):
                 'atividade': linha[3],
                 'imagem': f'/uploads/Usuarios/Projeto/{linha[0]}.jpg'
             })
+
             numeroProjeto += 1
 
         proximaPagina = pagina + 1
+
         if proximaPagina > numeroPaginas:
             proximaPagina = 0
+        return jsonify({
+            'ong': {
+                'id': usuario[0],
+                'id_usuario': usuario[0],
+                'nome': usuario[1],
+                'instituicao': tipo_ong.capitalize(),
+                'descricao_causa': usuario[3],
+                'cpf_cnpj': usuario[4],
+                'telefone': usuario[5],
+                'cidade_ong': usuario[6],
 
+                # IMPORTANTE
+                'seguindo': seguindo,
 
-        return jsonify({'ong': {
-            'id_usuario': usuario[0],
-            'nome': usuario[1],
-            'instituicao': usuario[2],
-            'descricao_causa': usuario[3],
-            'cpf_cnpj': usuario[4],
-            'telefone': usuario[5],
-            'cidade_ong': usuario[6],
-            'imagem': f'/uploads/Usuarios/Baner_Ong/{usuario[0]}_banner.jpg',
-            'logoInstituicao': f'/uploads/Usuarios/Icone_Perfil/{usuario[0]}.jpg',
-            'projetos': projetos,
+                'imagem': f'/uploads/Usuarios/Baner_Ong/{usuario[0]}_banner.jpg',
 
-        },
+                'logoInstituicao': f'/uploads/Usuarios/Icone_Perfil/{usuario[0]}.jpg',
+
+                'projetos': projetos,
+            },
+
             'numeroPaginas': numeroPaginas,
             'proximaPagina': proximaPagina,
             'paginaAnterior': pagina - 1
         }), 200
+
     except Exception as e:
-        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': f'Erro ao buscar ONG: {e}'}}), 500
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': f'Erro ao buscar ONG: {e}'
+            }
+        }), 500
+
     finally:
         cur.close()
 
@@ -2704,23 +2788,28 @@ def pagina_feed(pagina):
 
         pagina_novas_ongs = int(request.args.get('paginaNovasOngs', 1))
         quantidadePorPaginaNovasOngs = 3
+
+        addSelect = """"""
+        parametros = []
         if id_usuario:
-            cur.execute("""
-                    SELECT COUNT(id_usuario)
-                    FROM usuario
-                    WHERE tipo_de_usuario = 1
-                      AND situacao = 1
-                      AND id_usuario NOT IN (SELECT FK_USUARIO_ONG
-                                             FROM seguidores
-                                             WHERE FK_USUARIO_DOADOR = ?)
-                    """, (id_usuario,))
-        else:
-            cur.execute("""
-                        SELECT COUNT(id_usuario)
+            addSelect += """ AND id_usuario NOT IN (SELECT FK_USUARIO_ONG
+                                                 FROM seguidores
+                                                 WHERE FK_USUARIO_DOADOR = ?)"""
+            parametros.append(id_usuario)
+        if nome:
+            addSelect += """ AND UPPER(nome) LIKE '%' || UPPER(?) || '%'"""
+            parametros.append(nome)
+        if tema:
+            addSelect += " AND tipo_ong = ?"
+            parametros.append(tema)
+
+
+        cur.execute(f"""SELECT COUNT(id_usuario)
                         FROM usuario
                         WHERE tipo_de_usuario = 1
                           AND situacao = 1
-                        """)
+                          {addSelect}
+                    """, tuple(parametros))
         quantidade = cur.fetchone()
         if quantidade:
             quantidade = quantidade[0]
@@ -2735,38 +2824,41 @@ def pagina_feed(pagina):
         minimoNovasOngs = ((pagina_novas_ongs - 1) * quantidadePorPaginaNovasOngs) + 1
         maximoNovasOngs = pagina_novas_ongs * quantidadePorPaginaNovasOngs
 
+        addSelect = """"""
+        parametros = []
         if id_usuario:
-            cur.execute("""
+            addSelect += """ AND id_usuario NOT IN (SELECT FK_USUARIO_ONG
+                                                     FROM seguidores
+                                                     WHERE FK_USUARIO_DOADOR = ?)"""
+            parametros.append(id_usuario)
+        if nome:
+            addSelect += """ AND UPPER(nome) LIKE '%' || UPPER(?) || '%'"""
+            parametros.append(nome)
+        if tema:
+            addSelect += " AND tipo_ong = ?"
+            parametros.append(tema)
+        addSelect += f""" ORDER BY data_hora_registro {ordem}"""
+
+        parametros.append(minimoNovasOngs)
+        parametros.append(maximoNovasOngs)
+
+
+        cur.execute(f"""
                     SELECT id_usuario, nome, tipo_ong, descricao_causa
                     FROM usuario
                     WHERE tipo_de_usuario = 1
                       AND situacao = 1
-                      AND id_usuario NOT IN (
-                        SELECT FK_USUARIO_ONG
-                        FROM seguidores
-                        WHERE FK_USUARIO_DOADOR = ?
-                    )
-                    ORDER BY data_hora_registro DESC
-                        ROWS ? TO ?
-                    """, (id_usuario, minimoNovasOngs, maximoNovasOngs))
-        else:
-            cur.execute("""
-                        SELECT id_usuario, nome, tipo_ong, descricao_causa
-                        FROM usuario
-                        WHERE tipo_de_usuario = 1
-                          AND situacao = 1
-                          AND id_usuario NOT IN (SELECT FK_USUARIO_ONG
-                                                 FROM seguidores
-                                                 WHERE FK_USUARIO_DOADOR = ?)
-                        ORDER BY data_hora_registro DESC ROWS ? TO ?
-                        """, (id_usuario, minimoNovasOngs, maximoNovasOngs))
+                        {addSelect}
+                    ROWS ? TO ?
+                    """, tuple(parametros))
 
         novas_ongs = [{
             'id': o[0],
             'nome': o[1],
             'tema': o[2],
             'imagemPerfilOng': f'/uploads/Usuarios/Icone_Perfil/{o[0]}.jpg',
-            'bannerOng': f'/uploads/Usuarios/Banner_ong/{o[0]}_banner.jpg'
+            'bannerOng': f'/uploads/Usuarios/Baner_ong/{o[0]}_banner.jpg',
+            'descricao': o[3]
         } for o in cur.fetchall()]
 
         proximaPaginaNovasOngs = pagina_novas_ongs + 1 if pagina_novas_ongs+1 <= numeroPaginasNovasOngs else 0
@@ -2938,24 +3030,75 @@ def pagina_feed_favoritas(pagina):
             'imagem': f'/uploads/Usuarios/Icone_Perfil/{o[0]}.jpg'
         } for o in cur.fetchall()]
 
-        cur.execute("""
-            SELECT FIRST 5 id_usuario, nome, tipo_ong
-            FROM usuario
-            WHERE tipo_de_usuario = 1
-              AND situacao = 1
-              AND id_usuario NOT IN (
-                  SELECT FK_USUARIO_ONG
-                  FROM seguidores
-                  WHERE FK_USUARIO_DOADOR = ?
-              )
-            ORDER BY data_hora_registro DESC
-        """, (id_usuario,))
+        pagina_novas_ongs = int(request.args.get('paginaNovasOngs', 1))
+        quantidadePorPaginaNovasOngs = 3
+
+        addSelect = """ AND id_usuario NOT IN (SELECT FK_USUARIO_ONG
+                                                         FROM seguidores
+                                                         WHERE FK_USUARIO_DOADOR = ?)"""
+        parametros = [id_usuario]
+        if nome:
+            addSelect += """ AND UPPER(nome) LIKE '%' || UPPER(?) || '%'"""
+            parametros.append(nome)
+        if tema:
+            addSelect += """ AND tipo_ong = ?"""
+            parametros.append(tema)
+
+        cur.execute(f"""SELECT COUNT(id_usuario)
+                                FROM usuario
+                                WHERE tipo_de_usuario = 1
+                                  AND situacao = 1
+                                  {addSelect}
+                            """, tuple(parametros))
+        quantidade = cur.fetchone()
+        if quantidade:
+            quantidade = quantidade[0]
+        else:
+            quantidade = 0
+
+        numeroPaginasNovasOngs = math.ceil(
+            quantidade / quantidadePorPaginaNovasOngs
+        )
+        print(numeroPaginasNovasOngs)
+
+        minimoNovasOngs = ((pagina_novas_ongs - 1) * quantidadePorPaginaNovasOngs) + 1
+        maximoNovasOngs = pagina_novas_ongs * quantidadePorPaginaNovasOngs
+
+        addSelect = """ AND id_usuario NOT IN (SELECT FK_USUARIO_ONG
+                                                                 FROM seguidores
+                                                                 WHERE FK_USUARIO_DOADOR = ?)"""
+        parametros = [id_usuario]
+        if nome:
+            addSelect += """ AND UPPER(nome) LIKE '%' || UPPER(?) || '%'"""
+            parametros.append(nome)
+        if tema:
+            addSelect += """ AND tipo_ong = ?"""
+            parametros.append(tema)
+        parametros.append(minimoNovasOngs)
+        parametros.append(maximoNovasOngs)
+
+        addSelect += f""" ORDER BY data_hora_registro {ordem}"""
+
+        cur.execute(f"""
+                            SELECT id_usuario, nome, tipo_ong, descricao_causa
+                            FROM usuario
+                            WHERE tipo_de_usuario = 1
+                              AND situacao = 1
+                                {addSelect}
+                            ROWS ? TO ?
+                            """, tuple(parametros))
 
         novas_ongs = [{
             'id': o[0],
             'nome': o[1],
-            'tema': o[2]
+            'tema': o[2],
+            'imagemPerfilOng': f'/uploads/Usuarios/Icone_Perfil/{o[0]}.jpg',
+            'bannerOng': f'/uploads/Usuarios/Baner_ong/{o[0]}_banner.jpg',
+            'descricao': o[3]
         } for o in cur.fetchall()]
+
+        proximaPaginaNovasOngs = pagina_novas_ongs + 1 if pagina_novas_ongs + 1 <= numeroPaginasNovasOngs else 0
+        paginaAnteriorNovasOngs = pagina_novas_ongs - 1 if pagina_novas_ongs > 1 else 0
 
 
         proximaPagina = pagina + 1 if len(posts) > 0 else 0
@@ -2968,8 +3111,13 @@ def pagina_feed_favoritas(pagina):
             'proximaPagina': proximaPagina,
             'paginaAnterior': paginaAnterior,
             'logado': True,
-            'favoritadas': True
+            'favoritadas': True,
+            'quantidadeNovasOngs': quantidade,
+            'numeroPaginasNovasOngs': numeroPaginasNovasOngs,
+            'proximaPaginaNovasOngs': proximaPaginaNovasOngs,
+            'paginaAnteriorNovasOngs': paginaAnteriorNovasOngs
         }), 200
+
 
     except jwt.ExpiredSignatureError:
         return jsonify({
@@ -3446,7 +3594,6 @@ def excluir_comentario(id_mensagem):
                            """, (id_mensagem,))
             resultado_ong = cur.fetchone()
             if resultado_ong[1] == id_token:
-                print('entrou aqui')
                 cur.execute("DELETE FROM MENSAGENS_POSTAGEM WHERE ID_MENSAGEM = ? and FK_USUARIO_DOADOR = ?", (id_mensagem, resultado_ong[1]))
             elif resultado_ong[0] == id_token:
                 cur.execute("DELETE FROM MENSAGENS_POSTAGEM WHERE ID_MENSAGEM = ?", (id_mensagem,))
@@ -3585,92 +3732,35 @@ def editar_comentario(id_mensagem):
 
     finally:
         cur.close()
-        
-        
+
+
 
 @app.route('/adicionar_tipo_ong', methods=['POST'])
 def adicionar_tipo_ong():
-
-    token = request.cookies.get('access_token')
-
-    if not token:
-        return jsonify({
-            'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Token necessário'
-            }
-        }), 401
 
     cur = con.cursor()
 
     try:
 
-        dados_token = jwt.decode(
-            token,
-            senha_secreta,
-            algorithms=['HS256']
-        )
-
-        id_token = dados_token['id_usuario']
-
-        cur.execute(
-            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
-            (id_token,)
-        )
-
-        usuario = cur.fetchone()
-
-        if not usuario:
-            return jsonify({
-                'mensagem': {
-                    'tipo': 'erro',
-                    'descricao': 'Usuário não encontrado'
-                }
-            }), 404
-
-        res_usuario = usuario[0]
-
-        if res_usuario != 2:
-            return jsonify({
-                'mensagem': {
-                    'tipo': 'erro',
-                    'descricao': 'Apenas ADMs podem adicionar novos tipos de ONG'
-                }
-            }), 403
-
         dados = request.get_json()
 
         novo_tipo = dados.get('novo_tipo')
 
-        if not novo_tipo:
+        if not novo_tipo or len(novo_tipo.strip()) <= 0:
             return jsonify({
                 'mensagem': {
                     'tipo': 'erro',
-                    'descricao': 'Nome do tipo é obrigatório'
+                    'descricao': 'Digite um nome válido'
                 }
             }), 400
 
-        novo_tipo = novo_tipo.upper()
+        cur.execute("""
+                    INSERT INTO tipo_ong (nome)
+                    VALUES (?)
+                        RETURNING id_tipo_ong
+                    """, (novo_tipo.strip().upper(),))
 
-        cur.execute(
-            'SELECT 1 FROM TIPO_ONG WHERE NOME = ?',
-            (novo_tipo,)
-        )
-
-        tem = cur.fetchone()
-
-        if tem:
-            return jsonify({
-                'mensagem': {
-                    'tipo': 'erro',
-                    'descricao': 'Não pode ter dois tipos de ONG com o mesmo nome'
-                }
-            }), 400
-
-        cur.execute(
-            'INSERT INTO TIPO_ONG (NOME) VALUES (?)',
-            (novo_tipo,)
-        )
+        id_tipo_ong = cur.fetchone()[0]
 
         con.commit()
 
@@ -3678,17 +3768,16 @@ def adicionar_tipo_ong():
             'mensagem': {
                 'tipo': 'sucesso',
                 'descricao': 'Tipo de ONG adicionado com sucesso'
-            }
-        }), 200
+            },
+            'id_tipo_ong': id_tipo_ong
+        }), 201
 
-    except Exception as e:
-
-        con.rollback()
+    except Exception as erro:
 
         return jsonify({
             'mensagem': {
                 'tipo': 'erro',
-                'descricao': f'Erro ao adicionar tipo de ONG: {str(e)}'
+                'descricao': str(erro)
             }
         }), 500
 
@@ -3788,68 +3877,21 @@ def excluir_tipo_ong(id_tipo_ong):
     finally:
         cur.close()
 
-
 @app.route('/listar_tipos_ong', methods=['GET'])
 def listar_tipos_ong():
-    token = request.cookies.get('access_token')
-
-    if not token:
-        return jsonify({
-            'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Token necessário'
-            }
-        }), 401
 
     cur = con.cursor()
 
     try:
-        dados_token = jwt.decode(
-            token,
-            senha_secreta,
-            algorithms=['HS256']
-        )
 
-        id_token = dados_token['id_usuario']
-
-        # Verifica se o usuário existe e se é administrador
-        cur.execute(
-            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
-            (id_token,)
-        )
-
-        usuario = cur.fetchone()
-
-        if not usuario:
-            return jsonify({
-                'mensagem': {
-                    'tipo': 'erro',
-                    'descricao': 'Usuário não encontrado'
-                }
-            }), 404
-
-        tipo_usuario = usuario[0]
-
-        if tipo_usuario != 2:
-            return jsonify({
-                'mensagem': {
-                    'tipo': 'erro',
-                    'descricao': 'Apenas ADMs podem listar os tipos de ONG'
-                }
-            }), 403
-
-        # Busca todos os tipos cadastrados em ordem alfabética
-        cur.execute('''
-            SELECT
-                id_tipo_ong,
-                nome
-            FROM tipo_ong
-            ORDER BY nome
-        ''')
+        cur.execute("""
+                    SELECT id_tipo_ong, nome
+                    FROM tipo_ong
+                    ORDER BY nome
+                    """)
 
         tipos = cur.fetchall()
 
-        # Formata o retorno em JSON
         lista_tipos = []
 
         for tipo in tipos:
@@ -3858,19 +3900,17 @@ def listar_tipos_ong():
                 'nome': tipo[1]
             })
 
-        return jsonify({
-            'tipos': lista_tipos
-        }), 200
 
-    except Exception as e:
+        return jsonify({'tipos':lista_tipos}), 200
+
+    except Exception as erro:
         return jsonify({
             'mensagem': {
                 'tipo': 'erro',
-                'descricao': f'Erro ao listar tipos de ONG: {str(e)}'
+                'descricao': str(erro)
             }
         }), 500
 
     finally:
         cur.close()
-
 
