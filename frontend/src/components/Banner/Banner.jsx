@@ -28,7 +28,7 @@ export default function Banner({titulo}) {
                 <Titulo texto={titulo} estilo={'banner'}/>
             </div>
             <div className={'px-4 py-2 d-flex gap-3 gap-sm-5 flex-wrap justify-content-sm-start justify-content-center'}>
-                <Buton background={'laranja'} texto={'Conheça as Ongs'} tamanho={'medio'}/>
+                <Buton background={'laranja'} texto={'Conheça as Ongs'} tamanho={'medio'} rota={'/feed'}/>
                 <Buton rota={"/login"} background={'roxo'} texto={'Fazer doação'} tamanho={'medio'}/>
             </div>
         </div>

@@ -61,6 +61,16 @@ export default function Nav() {
         return doadores;
     }
 
+    function admAdms({ isActive }) {
+        var adms = cssAtivado({ isActive });
+
+        if (local.pathname.includes('/edicao_adms/')) {
+            adms += " active";
+        }
+
+        return adms;
+    }
+
     function doadoresDashboard({ isActive }) {
         var doadores = cssAtivado({ isActive });
         if (local.pathname.includes('/feed/')) {
@@ -146,12 +156,11 @@ export default function Nav() {
                         Doadores
                     </NavLink>
 
-
-                    {/*<NavLink*/}
-                    {/*    to="/adms"*/}
-                    {/*    className={cssAtivado}>*/}
-                    {/*    ADMs*/}
-                    {/*</NavLink>*/}
+                    <NavLink
+                        to="/dashboard_adm_adm"
+                        className={cssAtivado}>
+                        ADMs
+                    </NavLink>
 
                     {/*<NavLink to={"/doacoes"} className={cssAtivado} >Doações</NavLink>*/}
 

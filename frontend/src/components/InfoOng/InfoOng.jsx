@@ -1,7 +1,8 @@
 import Buton from "../Buton/Buton.jsx";
 import css from "./InfoOng.module.css";
+import SeguirOng from "../SeguirOng/SeguirOng.jsx";
 
-export default function InfoOng({ info, texto, api }) {
+export default function InfoOng({ info, texto, api, atualizarSeguimento, seguindo}) {
 
     return (
         <>
@@ -16,10 +17,16 @@ export default function InfoOng({ info, texto, api }) {
                         }}
                     />
                 </div>
+
                 <div className={css.envolverDetalhesProjeto}>
                     <div className={"mb-5"}>
-                        <h1 className={css.nomeProjeto}>{info.nome}</h1>
-                        <p className={css.nomeInstituicao}>{info.instituicao}</p>
+                        <h1 className={css.nomeProjeto}>
+                            {info.nome}
+                        </h1>
+
+                        <p className={css.nomeInstituicao}>
+                            {info.instituicao}
+                        </p>
                     </div>
 
                     <div className={"mt-2 " + css.secaoChamadaAcao}>
@@ -31,7 +38,24 @@ export default function InfoOng({ info, texto, api }) {
                                 e.target.src = "/public/SemImagemDisponivel.png";
                             }}
                         />
-                        <Buton background="laranja" tamanho="medio" texto={texto} />
+
+                        <SeguirOng
+                            api={api}
+                            idOng={info.id}
+                            nomeOng={info.nome}
+                            temaOng={info.tema}
+                            ongImagem={info.logoInstituicao}
+                            seguindoInicial={seguindo}
+                            aoAlterarSeguimento={(idOng, novoValor) => {
+                                atualizarSeguimento(novoValor);
+                            }}
+                        />
+
+                        <Buton
+                            background="laranja"
+                            tamanho="medio"
+                            texto={texto}
+                        />
                     </div>
                 </div>
             </section>

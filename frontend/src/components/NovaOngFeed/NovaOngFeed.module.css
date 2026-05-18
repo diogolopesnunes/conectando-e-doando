@@ -1,0 +1,20 @@
+.iconeOng{
+    width: 50px;
+    height: 50px;
+    border-radius: 100%;
+}
+
+.borda{
+    border-radius: 15px;
+    overflow: hidden;
+    max-width: 30%;
+}
+
+.tamanho{
+    width: 50px;
+    height: 50px;
+}
+
+.altura{
+    height: 200px;
+}

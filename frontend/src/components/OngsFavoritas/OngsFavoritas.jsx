@@ -26,6 +26,7 @@ export default function OngsFavoritas({ ongs = [], api }) {
                                 className={`${css.favoritaLogo} m-1`}
                                 onError={(e) => {
                                     e.currentTarget.onerror = null;
+                                    e.currentTarget.src="/public/SemImagemDisponivel.png"
                                 }}
                             />
                         </Link>

@@ -2,7 +2,7 @@ import css from "./Comentario.module.css"
 import Buton from "../Buton/Buton.jsx";
 import {useEffect, useRef, useState} from "react";
 
-export default function Comentario({comentario, idMensagem, excluirComentario, idPost, acoes, setEditar, setMensagemEditada, setIdMensagemEditada}){
+export default function Comentario({comentario, idMensagem, excluirComentario, idPost, acoes, setEditar, setMensagemEditada, setIdMensagemEditada, idUsuario}){
     const [comentarioInteiro, setComentarioInteiro] = useState(false);
     const [tem3Pontos, setTem3Pontos] = useState(false);
     const [menuAberto, setMenuAberto] = useState(false);
@@ -24,6 +24,8 @@ export default function Comentario({comentario, idMensagem, excluirComentario, i
 
     return (
         <div className={'border p-2 rounded my-1'}>
+            {/*<img className={css.imagemUsuario} src={idUsuario ? `${api}/uploads/Usuarios/Icone_Perfil/${idUsuario}.jpg` : "/public/SemImagemDisponivel.png"} ></img>*/}
+
             <div className={'d-flex justify-content-between'}>
                 <p className={'fw-bold'}>{comentario.usuario}</p>
                 <div className={`d-flex justify-content-between align-items-center ${css.divMenu}`}>

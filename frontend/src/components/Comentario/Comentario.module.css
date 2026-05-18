@@ -25,4 +25,10 @@
     width: 30px;
 }
 
+.imagemUsuario {
+    height: 50px;
+    width: 50px;
+    border-radius: 100%;
+}
+
 @media(max-width:300px){  }

@@ -32,7 +32,7 @@ export default function OngCausa() {
                     Ajude a salvar vidas, e a mudar o futuro dessas pessoas
                 </p>
 
-                <Buton background={'roxo'} texto={'Descobrir ONGs'} tamanho={'medio'} />
+                <Buton background={'roxo'} texto={'Descobrir ONGs'} tamanho={'medio'} rota={'/feed'}/>
             </section>
         </div>
     );

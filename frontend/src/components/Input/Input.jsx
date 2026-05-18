@@ -1,31 +1,5 @@
 import css from './Input.module.css'
 import {IMaskInput} from "react-imask";
-//
-// // 1. Dicionário de máscaras (fora da função para performance)
-// const MASKS = {
-//     cpf: (v) => {
-//         const n = v.replace(/\D/g, "");
-//         if (n.length <= 3) return n;
-//         if (n.length <= 6) return `${n.slice(0, 3)}.${n.slice(3)}`;
-//         if (n.length <= 9) return `${n.slice(0, 3)}.${n.slice(3, 6)}.${n.slice(6)}`;
-//         return `${n.slice(0, 3)}.${n.slice(3, 6)}.${n.slice(6, 9)}-${n.slice(9, 11)}`;
-//     },
-//     cnpj: (v) => {
-//         const n = v.replace(/\D/g, "");
-//         if (n.length <= 2) return n;
-//         if (n.length <= 5) return `${n.slice(0, 2)}.${n.slice(2)}`;
-//         if (n.length <= 8) return `${n.slice(0, 2)}.${n.slice(2, 5)}.${n.slice(5)}`;
-//         if (n.length <= 12) return `${n.slice(0, 2)}.${n.slice(2, 5)}.${n.slice(5, 8)}/${n.slice(8)}`;
-//         return `${n.slice(0, 2)}.${n.slice(2, 5)}.${n.slice(5, 8)}/${n.slice(8, 12)}-${n.slice(12, 14)}`;
-//     },
-//     telefone: (v) => {
-//
-//         const n = v.replace(/\D/g, "");
-//         if (n.length <= 2) return n.length > 0 ? `(${n}` : n;
-//         if (n.length <= 7) return `(${n.slice(0, 2)}) ${n.slice(2)}`;
-//         return `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7, 11)}`;
-//     }
-// };
 
 export default function Input({tipoInp, label, htmlFor, placeholder, classe = '', value, funcao, maxlength, checado, opcoeslabel, opcoes, disabled=false, minLength, mask, required=true, obrigatorio="Nao"}) {
 
@@ -57,11 +31,27 @@ export default function Input({tipoInp, label, htmlFor, placeholder, classe = ''
                     <span className={css.campoObrigatorio}>* Campo Obrigatório</span>
                 )}
                 <label htmlFor={htmlFor}>{label}</label>
-                <select id={htmlFor} onChange={funcao} className={"d-block w-100 rounded px-2 py-1 " + css.input} required={obrigatorio == "Sim"} value={value}>
-                    <option value="" disabled>{opcoeslabel}</option>
-                    {opcoes.map((opcao, i) => (
-                        <option key={i} value={opcao}>{opcao}</option>
-                    ))}
+                <select
+                    id={htmlFor}
+                    onChange={funcao}
+                    className={"d-block w-100 rounded px-2 py-1 " + css.input}
+                    required={obrigatorio == "Sim"}
+                    value={value || ""}
+                >
+                    <option value="" disabled>
+                        {opcoeslabel}
+                    </option>
+
+                    {Array.isArray(opcoes) &&
+                        opcoes.map((opcao) => (
+                            <option
+                                key={opcao.id_tipo_ong}
+                                value={opcao.id_tipo_ong}
+                            >
+                                {opcao.nome}
+                            </option>
+                        ))
+                    }
                 </select>
             </div>
         )

@@ -160,7 +160,12 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
                             }
 
                             <div className={"d-flex flex-row align-items-center gap-2 "}>
-                                <img className={css.imagemUsuario} src={idUsuario ? `${api}/uploads/Usuarios/Icone_Perfil/${idUsuario}.jpg` : "/public/SemImagemDisponivel.png"} ></img>
+                                <img className={css.imagemUsuario}
+                                     src={idUsuario ? `${api}/uploads/Usuarios/Icone_Perfil/${idUsuario}.jpg` : "/public/SemImagemDisponivel.png"}
+                                     onError={(e) => {
+                                         e.target.src = "/public/SemImagemDisponivel.png";
+                                     }}
+                                ></img>
 
                                 <p className={"fs-6 "}>{nome}</p>
                             </div>

@@ -42,12 +42,6 @@ export default function SecaoProjetos({ projetos, api, excluir, alternarStatus, 
 
                         {(tipoUsuario == 2 || localStorage.getItem('id_usuario') == idOng) && (
                             <div className={'d-flex align-items-center gap-1'}>
-                                <Buton
-                                    texto={statusAtividade === 1 ? 'Desativar' : 'Ativar'}
-                                    background={statusAtividade === 1 ? 'vermelho' : "bege"}
-                                    tamanho={'pequeno'}
-                                    onClick={() => alternarStatus(idProjeto)}
-                                />
 
                                 {statusAtividade !== 1 && (
                                     <Buton
@@ -57,6 +51,13 @@ export default function SecaoProjetos({ projetos, api, excluir, alternarStatus, 
                                         onClick={() => excluir(idProjeto)}
                                     />
                                 )}
+
+                                <Buton
+                                    texto={statusAtividade === 1 ? 'Desativar' : 'Ativar'}
+                                    background={statusAtividade === 1 ? 'vermelho' : "bege"}
+                                    tamanho={'pequeno'}
+                                    onClick={() => alternarStatus(idProjeto)}
+                                />
 
                                 <Buton
                                     texto={'Editar'}

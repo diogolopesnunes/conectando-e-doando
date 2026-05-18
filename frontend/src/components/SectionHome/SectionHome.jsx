@@ -22,7 +22,7 @@ export default function SectionHome({Titulo, Texto, imagem, alt, estilo, estilo2
         <div className={'px-5 py-5 py-sm-2 d-flex flex-column justify-content-center gap-2 ' + css[estilo] + " " + css.tamanhoSection}>
             <h1 className={'text-white mb-3 text-center text-sm-start'}>{Titulo}</h1>
             <p className={"tamanhoTexto mb-3 text-white text-center text-sm-start"}>{Texto}</p>
-            <Buton texto={"Conheça Mais"} background={"laranja"} tamanho={'medio'}/>
+            <Buton texto={"Conheça Mais"} background={"laranja"} tamanho={'medio'} rota={'/feed'}/>
         </div>
     )
 }

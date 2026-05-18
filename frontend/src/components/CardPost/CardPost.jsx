@@ -7,6 +7,7 @@ import Alerts from "../Alerts/Alerts.jsx";
 import Comentario from "../Comentario/Comentario.jsx";
 import Input from "../Input/Input.jsx";
 import Form from "../Form/Form.jsx";
+import SeguirOng from "../SeguirOng/SeguirOng.jsx";
 
 export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, bannerPost, postImagem, ongImagem, descricao, dataHora, tituloPost, idProjeto, idOng, comentario, setComentario, comentar, listarComentarios, idPost, api,  totalCurtidas = 0, totalComentarios = 0, curtidoInicial = false, seguindoInicial = false, aoAlterarSeguimento, aoAlterarCurtida, aoAlterarOngsFavoritas, excluirComentario, temaOng, editarComentario, editar, setEditar}){
     const [modalAberto, setModalAberto] = useState(false);
@@ -20,9 +21,10 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
     const [curtido, setCurtido] = useState(curtidoInicial);
     const [carregandoCurtida, setCarregandoCurtida] = useState(false);
 
-    const [seguindo, setSeguindo] = useState(seguindoInicial);
-    const [carregandoSeguir, setCarregandoSeguir] = useState(false);
+    const [quantidadeComentarios, setQuantidadeComentarios] = useState(totalComentarios);
+
     const [mensagem, setMensagem] = useState(null)
+    const [idUsuario, setIdUsuario] = useState(localStorage.getItem("id_usuario"));
 
     const inicioListaRef = useRef(null);
     const listaComentariosRef = useRef(null);
@@ -38,8 +40,8 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
     useEffect(() => {
         setQuantidade(totalCurtidas);
         setCurtido(curtidoInicial);
-        setSeguindo(seguindoInicial);
-    }, [totalCurtidas, curtidoInicial, seguindoInicial]);
+        setQuantidadeComentarios(totalComentarios);
+    }, [totalCurtidas, totalComentarios]);
 
     useEffect(() => {
         if (!comentarios) return;
@@ -137,48 +139,6 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
         }
     }
 
-    async function seguirDesseguirOng() {
-        if (carregandoSeguir) return;
-
-        try {
-
-            setCarregandoSeguir(true);
-
-            const resposta = await fetch(
-                `${api}/deseguir_seguir_ong/${idOng}`,
-                {
-                    method: 'POST',
-                    credentials: 'include'
-                }
-            );
-            const dados = await resposta.json();
-            if (dados.mensagem){
-                setMensagem(dados.mensagem);
-            }
-
-            if (resposta.ok) {
-                setSeguindo(dados.seguindo);
-
-                // Atualiza todos os posts da mesma ONG
-                if (aoAlterarSeguimento) {
-                    aoAlterarSeguimento(idOng, dados.seguindo);
-                }
-                if (aoAlterarOngsFavoritas) {
-                    aoAlterarOngsFavoritas(
-                        idOng,
-                        nomeOng,
-                        temaOng,
-                        ongImagem,
-                        dados.seguindo
-                    );
-                }
-            }
-        } catch (erro) {
-            console.error('Erro ao seguir/desseguir ONG:', erro);
-        } finally {
-            setCarregandoSeguir(false);
-        }
-    }
 
     useEffect(() => {
         if (mensagem) {
@@ -221,13 +181,16 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
                                     </p>
                                 </div>
                             </Link>
-                            <img
-                                src={seguindo ? '/seguir.png' : '/deseguir.png'}
-                                className={css.teste}
-                                alt={seguindo ? 'Deixar de seguir ONG' : 'Seguir ONG'}
-                                title={seguindo ? 'Deixar de seguir ONG' : 'Seguir ONG'}
-                                onClick={seguirDesseguirOng}
-                                style={{ cursor: 'pointer' }}/>
+                            <SeguirOng
+                                api={api}
+                                idOng={idOng}
+                                nomeOng={nomeOng}
+                                temaOng={temaOng}
+                                ongImagem={ongImagem}
+                                seguindoInicial={seguindoInicial}
+                                aoAlterarSeguimento={aoAlterarSeguimento}
+                                aoAlterarOngsFavoritas={aoAlterarOngsFavoritas}
+                            />
                         </div>
                         <p>{dataHora}</p>
                     </div>
@@ -286,7 +249,7 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
                         />
 
                         <p className="d-flex align-items-center mb-0">
-                            {totalComentarios}
+                            {quantidadeComentarios}
                         </p>
                     </div>
 
@@ -328,7 +291,17 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
                                 <Comentario
                                     key={coment.id_comentario}
                                     idMensagem={coment.id_comentario}
-                                    excluirComentario={excluirComentario}
+                                    excluirComentario={async (...args) => {
+                                        const sucesso = await excluirComentario(...args);
+
+                                        if (sucesso) {
+                                            setQuantidadeComentarios(prev =>
+                                                Math.max(0, prev - 1)
+                                            );
+
+                                            listarComentarios(idPost);
+                                        }
+                                    }}
                                     idPost={idPost}
                                     acoes={coment.acoes}
                                     setEditar={setEditar}
@@ -337,7 +310,8 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
                                     comentario={{
                                         mensagem: coment.comentario,
                                         data: coment.data_hora,
-                                        usuario: coment.usuario
+                                        usuario: coment.usuario,
+                                        idUsuario: coment.id_usuario
                                     }}
                                 />
                             ))
@@ -345,11 +319,34 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
                             <p className="text-center">Nenhum comentário ainda.</p>
                         )}
                         <div className={`${css.divFormComentario}`}>
-                            <Form largura={'comentario'} onSubmit={!editar ? (e) => comentar(e, idPost) : (e) => editarComentario(e, idMensagemEditada, idPost, mensagemEditada) }>
+                            <Form
+                                largura={'comentario'}
+                                onSubmit={
+                                    !editar
+                                        ? async (e) => {
+                                            const sucesso = await comentar(e, idPost);
+
+                                            if (sucesso) {
+                                                setQuantidadeComentarios(prev => prev + 1);
+
+                                                if (listarComentarios) {
+                                                    listarComentarios(idPost);
+                                                }
+                                            }
+                                        }
+                                        : (e) =>
+                                            editarComentario(
+                                                e,
+                                                idMensagemEditada,
+                                                idPost,
+                                                mensagemEditada
+                                            )
+                                }
+                            >
                                 <div className={`d-flex flex-column flex-lg-row justify-content-around align-items-center px-2 py-1 m-auto gap-0 gap-lg-5 ${css.containterInput}`}>
                                     <input
                                         className={`w-100 rounded py-3 text-center text-sm-start ${css.inpComentario}`}
-                                        type={'text'} placeholder={!editar ? 'Deixe sua mensagem' : 'Editar mensagem'} value={!editar ? comentario : mensagemEditada} onChange={!editar ? (e) => setComentario(e.target.value) : (e) => setMensagemEditada(e.target.value)}/>
+                                        type={'text'} placeholder={!editar ? 'Deixe sua mensagem' : 'Editar mensagem'} value={!editar ? comentario : mensagemEditada} onChange={!editar ? (e) => setComentario(e.target.value) : (e) => setMensagemEditada(e.target.value)} disabled={!idUsuario ? true : false}/>
                                     <div className={`d-flex gap-3 gap-sm-5 ${css.botoes}`}>
                                         <Buton texto={!editar ? 'Comentar': 'Editar'} background={'laranja'} tamanho={'pequeno'} tipo={'submit'}/>
                                         {editar && (
