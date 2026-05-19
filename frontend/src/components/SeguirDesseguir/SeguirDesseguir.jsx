@@ -1,10 +1,12 @@
 import css from "../CardPost/CardPost.module.css";
 import {useState, useEffect} from "react";
+import Alerts from "../Alerts/Alerts.jsx";
 
 export default function SeguirDesseguir( {seguindoInicial, api, idOng, setMensagem, aoAlterarSeguimento, aoAlterarOngsFavoritas, nomeOng, temaOng, ongImagem} ) {
 
     const [seguindo, setSeguindo] = useState(seguindoInicial);
     const [carregandoSeguir, setCarregandoSeguir] = useState(false);
+    const [mensagem, setMensagem] = useState(null);
 
     useEffect(() => {
         setSeguindo(seguindoInicial);
@@ -45,6 +47,9 @@ export default function SeguirDesseguir( {seguindoInicial, api, idOng, setMensag
                         dados.seguindo
                     );
                 }
+                if (resposta.mensagem) {
+                    setMensagem(resposta.mensagem);
+                }
             }
         } catch (erro) {
             console.error('Erro ao seguir/desseguir ONG:', erro);
@@ -54,12 +59,15 @@ export default function SeguirDesseguir( {seguindoInicial, api, idOng, setMensag
     }
 
     return (
-        <img
-            src={seguindo ? '/seguir.png' : '/deseguir.png'}
-            className={css.teste}
-            alt={seguindo ? 'Deixar de seguir ONG' : 'Seguir ONG'}
-            title={seguindo ? 'Deixar de seguir ONG' : 'Seguir ONG'}
-            onClick={seguirDesseguirOng}
-            style={{cursor: 'pointer'}}/>
+        <>
+
+            <img
+                src={seguindo ? '/seguir.png' : '/deseguir.png'}
+                className={css.teste}
+                alt={seguindo ? 'Deixar de seguir ONG' : 'Seguir ONG'}
+                title={seguindo ? 'Deixar de seguir ONG' : 'Seguir ONG'}
+                onClick={seguirDesseguirOng}
+                style={{cursor: 'pointer'}}/>
+        </>
     )
 }

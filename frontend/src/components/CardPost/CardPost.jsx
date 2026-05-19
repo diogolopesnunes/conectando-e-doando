@@ -9,7 +9,7 @@ import Input from "../Input/Input.jsx";
 import Form from "../Form/Form.jsx";
 import SeguirOng from "../SeguirOng/SeguirOng.jsx";
 
-export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, bannerPost, postImagem, ongImagem, descricao, dataHora, tituloPost, idProjeto, idOng, comentario, setComentario, comentar, listarComentarios, idPost, api,  totalCurtidas = 0, totalComentarios = 0, curtidoInicial = false, seguindoInicial = false, aoAlterarSeguimento, aoAlterarCurtida, aoAlterarOngsFavoritas, excluirComentario, temaOng, editarComentario, editar, setEditar}){
+export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, bannerPost, postImagem, ongImagem, descricao, dataHora, tituloPost, idProjeto, idOng, comentario, setComentario, comentar, listarComentarios, idPost, api,  totalCurtidas = 0, totalComentarios = 0, curtidoInicial = false, seguindoInicial = false, aoAlterarSeguimento, aoAlterarCurtida, aoAlterarOngsFavoritas, excluirComentario, temaOng, editarComentario, editar, setEditar, carregarPosts}){
     const [modalAberto, setModalAberto] = useState(false);
     const [comentarios, setComentarios] = useState(false);
     const [pagina, setPagina] = useState(1);
@@ -190,6 +190,7 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
                                 seguindoInicial={seguindoInicial}
                                 aoAlterarSeguimento={aoAlterarSeguimento}
                                 aoAlterarOngsFavoritas={aoAlterarOngsFavoritas}
+                                carregarPosts={carregarPosts}
                             />
                         </div>
                         <p>{dataHora}</p>

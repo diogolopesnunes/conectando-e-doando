@@ -18,3 +18,18 @@
 .altura{
     height: 200px;
 }
+
+.descricao{
+    width: 100%;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* quantidade de linhas */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+
+@media (max-width: 769px) {
+    .borda{
+        max-width: 100%;
+    }
+}

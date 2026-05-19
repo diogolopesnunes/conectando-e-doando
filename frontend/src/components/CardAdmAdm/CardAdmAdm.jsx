@@ -1,4 +1,4 @@
-import css from "./CardOngAdm.module.css";
+import css from "./CardAdmAdm.module.css";
 import Buton from "../Buton/Buton.jsx";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -146,20 +146,7 @@ export default function CardAdmAdm({
 
                 {(status === 4 || status === 0) && (
                     <>
-                        <Buton
-                            texto={loadingAprovar ? 'Aprovando...' : 'Aprovar'}
-                            tamanho={'pequeno'}
-                            background={'verde'}
-                            onClick={aprovar}
-                            disabled={loadingAprovar}
-                        />
-
-                        <Buton
-                            texto={'Reprovar'}
-                            tamanho={'pequeno'}
-                            background={'vermelho'}
-                            rota={`/enviar_email/${id}`}
-                        />
+                        
                     </>
                 )}
 
@@ -178,7 +165,7 @@ export default function CardAdmAdm({
                             texto={'Editar'}
                             background={'roxo'}
                             tamanho={'pequeno'}
-                            rota={`/edicao_ongs/${id}`}
+                            rota={`/edicao_adm/${id}`}
                         />
 
                         {status === 1 ? (

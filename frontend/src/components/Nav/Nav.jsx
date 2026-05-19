@@ -64,7 +64,11 @@ export default function Nav() {
     function admAdms({ isActive }) {
         var adms = cssAtivado({ isActive });
 
-        if (local.pathname.includes('/edicao_adms/')) {
+        if (local.pathname.includes('/edicao_adm/')) {
+            adms += " active";
+        }
+
+        if (local.pathname.includes('/dashboard_adm_adms/')) {
             adms += " active";
         }
 
@@ -158,7 +162,7 @@ export default function Nav() {
 
                     <NavLink
                         to="/dashboard_adm_adm"
-                        className={cssAtivado}>
+                        className={admAdms}>
                         ADMs
                     </NavLink>
 

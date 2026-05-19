@@ -36,6 +36,10 @@
     transform: scale(1.08);
 }
 
+.semFavoritas {
+    color: var(--preto);
+}
+
 .favoritaLogo {
     width: 55px;
     height: 55px;

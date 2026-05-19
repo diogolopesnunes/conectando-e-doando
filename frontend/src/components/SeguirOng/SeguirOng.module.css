@@ -3,3 +3,18 @@
     height: 60px;
     cursor: pointer;
 }
+
+.containerSeguir{
+    text-align: center;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.textoSeguir{
+    text-align: center;
+    margin: 5px !important;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}

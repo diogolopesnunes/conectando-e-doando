@@ -124,6 +124,9 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
                             <Link to={"/feed"}>
                                 Feed
                             </Link>
+                            <Link to={"/novas_ongs"}>
+                                Descobrir ONGs
+                            </Link>
                             <Link to="/" onClick={scrollQuemSomos}>Quem somos</Link>
                             <Link to="/" onClick={scrollDoacoes}>Doações</Link>
                             {/*<Link to="/" onClick={scrollOngs}>Depoimentos</Link>*/}
@@ -142,6 +145,9 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
                                     <Link to={"/feed"}>
                                         Feed
                                     </Link>
+                                    <Link to={"/novas_ongs"}>
+                                        Descobrir ONGs
+                                    </Link>
                                 </>
                             ): localStorage.getItem('tipo_usuario') == 2 ? (
                                 <>
@@ -151,11 +157,19 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
                                     <Link to={"/feed"}>
                                         Feed
                                     </Link>
+                                    <Link to={"/novas_ongs"}>
+                                        Descobrir ONGs
+                                    </Link>
                                 </>
                             ): localStorage.getItem('tipo_usuario') == 0 ? (
-                                <Link to={"/feed"}>
-                                    Feed
-                                </Link>
+                                <>
+                                    <Link to={"/feed"}>
+                                        Feed
+                                    </Link>
+                                    <Link to={"/novas_ongs"}>
+                                        Descobrir ONGs
+                                    </Link>
+                                </>
                             ) : null
                             }
 
