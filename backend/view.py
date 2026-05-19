@@ -5,10 +5,11 @@ from flask import Flask, jsonify, request, send_file, Response, make_response, s
 import jwt
 from flask_bcrypt import check_password_hash, bcrypt
 import math
-from funcoes import validar_senha, criptografar, checar_senha, enviando_email, gerar_token, verificar_codigo, email_verificacao, valida_nova_senha
+from funcoes import validar_senha, criptografar, checar_senha, enviando_email, gerar_token, verificar_codigo, email_verificacao, valida_nova_senha, validaCpfCnpj
 from main import app, con
 from datetime import datetime
 import emoji
+from fpdf import FPDF
 
 senha_secreta = app.config['SECRET_KEY']
 
@@ -77,9 +78,24 @@ def cadastro():
                         'descricao': 'Todos os campos obrigatórios (Nome, Email, Senha, CPF/CNPJ, Telefone) devem ser preenchidos.'
                     }
                 }), 400
-
-
-
+            if int(tipo_de_usuario) == 0 or int(tipo_de_usuario) == 2:
+                cpfValido = validaCpfCnpj(cpf_cnpj)
+                if not cpfValido:
+                    return jsonify({
+                        'mensagem': {
+                            'tipo': 'erro',
+                            'descricao': 'Insira um cpf valido'
+                        }
+                    })
+            elif int(tipo_de_usuario) == 1:
+                cnpjValido = validaCpfCnpj(cpf_cnpj)
+                if not cnpjValido:
+                    return jsonify({
+                        'mensagem': {
+                            'tipo': 'erro',
+                            'descricao': 'Insira um cnpj valido'
+                        }
+                    })
             if tipo_de_usuario == '1':
                 if not tipo_ong or not descricao_causa or not banco_ong or not agencia_ong or not conta_ong or not cidade_ong:
                     return jsonify({
@@ -100,11 +116,9 @@ def cadastro():
             if cur.fetchone():
                 cur.execute('select situacao from usuario where email = ?', (email,))
                 resultado = cur.fetchone()
-                print(resultado)
             else:
                 resultado = None
             if resultado is not None and resultado != 5:
-                print(resultado)
                 return jsonify({'mensagem': {
                     'tipo': 'erro',
                     'descricao': 'Usuário já cadastrado'
@@ -2445,7 +2459,7 @@ def buscar_ong(id_ong, pagina):
             proximaPagina = 0
         return jsonify({
             'ong': {
-                'id': usuario[0],
+                'id_ong': usuario[0],
                 'id_usuario': usuario[0],
                 'nome': usuario[1],
                 'instituicao': tipo_ong.capitalize(),
@@ -3014,7 +3028,6 @@ def pagina_feed(pagina):
         numeroPaginasNovasOngs = math.ceil(
             quantidade / quantidadePorPaginaNovasOngs
         )
-        print(numeroPaginasNovasOngs)
 
         minimoNovasOngs = ((pagina_novas_ongs - 1) * quantidadePorPaginaNovasOngs) + 1
         maximoNovasOngs = pagina_novas_ongs * quantidadePorPaginaNovasOngs
@@ -3257,7 +3270,6 @@ def pagina_feed_favoritas(pagina):
         numeroPaginasNovasOngs = math.ceil(
             quantidade / quantidadePorPaginaNovasOngs
         )
-        print(numeroPaginasNovasOngs)
 
         minimoNovasOngs = ((pagina_novas_ongs - 1) * quantidadePorPaginaNovasOngs) + 1
         maximoNovasOngs = pagina_novas_ongs * quantidadePorPaginaNovasOngs
@@ -4103,3 +4115,104 @@ def listar_tipos_ong():
     finally:
         cur.close()
 
+@app.route('/relatorio_doacoes', methods=['GET'])
+def relatorio_doacoes():
+    token = request.cookies.get('access_token')
+
+    if not token:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Token necessário'
+            }
+        }), 401
+
+    cur = con.cursor()
+
+    try:
+
+        dados_token = jwt.decode(
+            token,
+            senha_secreta,
+            algorithms=['HS256']
+        )
+
+        id_token = dados_token['id_usuario']
+
+        cur.execute(
+            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
+            (id_token,)
+        )
+
+        usuario = cur.fetchone()
+
+        if not usuario:
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Usuário não encontrado'
+                }
+            }), 404
+
+        res_usuario = usuario[0]
+
+        if res_usuario != 2:
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Apenas ADMs podem excluir tipos de ONG'
+                }
+            }), 403
+
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font('Times', style='B', size=16)
+        #        W, H,  txt,                    border,   wrap,    align
+        # pdf.cell(0, 10, 'Relatório de doações', border=1, ln=True, align='C')
+
+        # Cor do fundo do header
+        # pdf.set_fill_color(189, 13, 89)
+        # Desenha o retângulo do header
+        # pdf.rect(0, 0, 190, 25, 'F')
+
+        # x=0, y=0, largura=210, altura=25, 'F' = preenchido  # 'D'  só contorno/borda  # 'DF'  borda + preenchimento
+        pdf.set_draw_color(189, 13, 89)  # cor da borda
+        pdf.set_line_width(0.8)
+
+        pdf.rect(5, 5, 200, 30, 'D')
+
+
+        pdf.cell(0, 20, 'Relatório de doações', align='C', ln=True)
+        cur.execute('select nome from usuario where tipo_de_usuario = 0')
+        doadores = cur.fetchall()
+        cur.execute('select nome from usuario where tipo_de_usuario = 1')
+        ongs = cur.fetchall()
+        pdf.add_page()
+        pdf.cell(40,10,'Nomes', ln=True)
+        pdf.set_font(size=12)
+        for doador in doadores:
+            pdf.cell(30, 10, f'{doador[0]}', ln=True)
+            for ong in ongs:
+                pdf.set_x(30)
+                pdf.cell(30, 10, f'{ong[0]}', ln=True)
+
+        caminho_pdf = 'relatorio_doacoes.pdf'
+        pdf.output(caminho_pdf)
+
+        return send_file(
+            caminho_pdf,
+            mimetype='application/pdf',
+            as_attachment=False,
+            download_name='relatorio_doacoes.pdf'
+        )
+
+
+    except Exception as e:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': f'Erro ao gerar relatório {e}'
+            }
+        })
+    finally:
+        cur.close()

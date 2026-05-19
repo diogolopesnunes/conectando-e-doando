@@ -6,6 +6,7 @@ import jwt
 import datetime
 import random
 import threading
+from validate_docbr import CPF, CNPJ
 
 from main import app, con
 
@@ -174,3 +175,14 @@ def valida_nova_senha(senha, id_usuario, cur):
         return (mensagem, senha_criptografada)
     else:
         return (None, senha_criptografada)
+
+def validaCpfCnpj(cpf_cnpj):
+    cpfV = CPF().validate(cpf_cnpj)
+    cnpjV = CNPJ().validate(cpf_cnpj)
+    if cpfV == cnpjV:
+        return False
+    elif cpfV:
+        return cpfV
+    elif cnpjV:
+        return cnpjV
+    return 'Não foi possível verificar o CPF ou CNPJ'
