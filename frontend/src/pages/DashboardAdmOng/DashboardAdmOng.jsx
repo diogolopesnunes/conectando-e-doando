@@ -411,8 +411,7 @@ export default function DashboardAdmOng({ api }) {
 
                 {/* GERENCIAR TIPOS ONG */}
 
-                <div className="my-4 d-flex flex-column flex-md-row justify-content-center align-items-center gap-5">
-
+                <div className="my-4 d-flex flex-row justify-content-center align-items-center gap-5">
                     {/* ADICIONAR */}
 
                     <div
@@ -423,6 +422,7 @@ export default function DashboardAdmOng({ api }) {
                     >
 
                         <Input
+                            className={css.inputAdicionar}
                             tipoInp="text"
                             htmlFor="novo_tipo_ong"
                             placeholder="Digite o novo tipo"
@@ -446,13 +446,13 @@ export default function DashboardAdmOng({ api }) {
 
                     <div
                         className={
-                            "d-flex flex-row gap-2 " +
+                            "d-flex justify-content-center align-items-center m-auto flex-row gap-2 " +
                             css.wSelecionarTipo
                         }
                     >
 
                         <select
-                            className={"form-select rounded " + css.input}
+                            className={"m-auto form-select px-2 rounded " + css.input}
                             value={tipoOng}
                             onChange={(e) =>
                                 setTipoOng(
@@ -491,6 +491,7 @@ export default function DashboardAdmOng({ api }) {
                 {/* FILTRO */}
 
                 <Input
+                    className={""}
                     tipoInp="text"
                     htmlFor="projetos"
                     placeholder="Digite o nome para o filtro"

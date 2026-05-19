@@ -30,7 +30,7 @@ import NovasOngs from "./pages/NovasOngs/NovasOngs.jsx";
 
 export default function App() {
 
-    const api = "http://10.92.3.141:5000"
+    const api = "http://10.92.3.146:5000"
 
     const quemSomos = useRef(null);
     const doacoes = useRef(null);

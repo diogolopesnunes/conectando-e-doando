@@ -115,7 +115,8 @@ export default function PaginaCadastro({api}) {
         })
         retorno = await retorno.json()
         console.log(retorno)
-
+        console.log(retorno.mensagem.descricao)
+        console.log(retorno.mensagem.tipo)
         if (!retorno) {
             console.log("Erro do servidor:", retorno);
             alert("DEU RUIM DE MAIIIISSSS!!! APAGA, SOCORRO DEUS")
