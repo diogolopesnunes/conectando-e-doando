@@ -33,12 +33,12 @@ export default function OngsFavoritas({ ongs = [], api }) {
                             </Link>
                         ))
                 ) : (
-                    <>
+                    <div className={'d-flex flex-column flex-sm-row m-auto'}>
                         <p className={`${css.semFavoritas} m-3`}>
                             Você ainda não segue uma ONG.
                         </p>
                         <Buton texto={"Descobrir novas ONGs"} background={"rosa"} tamanho={"medio"} rota={"/novas_ongs"} />
-                    </>
+                    </div>
                 )}
             </div>
         </div>

@@ -3,7 +3,6 @@ import css from "./InfoOng.module.css";
 import SeguirOng from "../SeguirOng/SeguirOng.jsx";
 
 export default function InfoOng({ info, texto, api, atualizarSeguimento, seguindo}) {
-
     return (
         <>
             <section className={css.secaoInfoProjeto}>
@@ -41,7 +40,7 @@ export default function InfoOng({ info, texto, api, atualizarSeguimento, seguind
 
                         <SeguirOng
                             api={api}
-                            idOng={info.id}
+                            idOng={info.id_ong}
                             nomeOng={info.nome}
                             temaOng={info.tema}
                             ongImagem={info.logoInstituicao}
