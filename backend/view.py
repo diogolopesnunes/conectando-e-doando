@@ -100,9 +100,11 @@ def cadastro():
             if cur.fetchone():
                 cur.execute('select situacao from usuario where email = ?', (email,))
                 resultado = cur.fetchone()
+                print(resultado)
             else:
                 resultado = None
             if resultado is not None and resultado != 5:
+                print(resultado)
                 return jsonify({'mensagem': {
                     'tipo': 'erro',
                     'descricao': 'Usuário já cadastrado'
@@ -171,42 +173,6 @@ def cadastro():
     finally:
         cur.close()
 
-
-# @app.route('/listar_usuarios', methods=['GET'])
-# def listar_usuarios():
-#     token = request.cookies.get('access_token')
-#     if not token:
-#         return jsonify({'mensagem': 'Token de autenticação necessário'}), 401
-#     try:
-#         cur = con.cursor()
-#
-#         cur.execute('select id_usuario, nome, cpf_cnpj, email, telefone, tipo_de_usuario from usuario')
-#         usuarios = cur.fetchall()
-#         usuarios_lista = []
-#
-#         for usuario in usuarios:
-#             if usuario[5] == 0:
-#                 tipo = 'Doador'
-#             elif usuario[5] == 1:
-#                 tipo = 'ONG'
-#             elif usuario[5] == 2:
-#                 tipo = 'Administrador'
-#             usuarios_lista.append({
-#                 'id_usuario': usuario[0],
-#                 'nome': usuario[1],
-#                 'cpf_cnpj': usuario[2],
-#                 'email': usuario[3],
-#                 'telefone': usuario[4],
-#                 'tipo_de_usuario': tipo,
-#             })
-#
-#         return jsonify(mensagem='Lista de Usuários', usuarios=usuarios_lista)
-#
-#     except Exception as e:
-#         return jsonify({'message': f'Erro ao consultar banco de dados: {e}'}), 500
-#     finally:
-#         cur.close()
-
 @app.route('/buscar_usuarios', methods=['GET'])
 def buscar_usuarios():
     token = request.cookies.get('access_token')
@@ -250,6 +216,123 @@ def buscar_usuarios():
         return jsonify({'message': f'Erro ao consultar banco de dados: {e}'}), 500
     finally:
         cur.close()
+
+
+
+@app.route('/listar_adm_adm/<int:pagina>/<int:aprovacao>', methods=['GET'])
+def listar_adm_adm(pagina, aprovacao):
+    token = request.cookies.get('access_token')
+    if not token:
+        return jsonify({'mensagem': {
+            "tipo":"erro",
+            "descricao":'Token de autenticação necessário'}}), 401
+    try:
+        dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
+        id_token = dados['id_usuario']
+        cur = con.cursor()
+        cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
+        tipo_usuario = cur.fetchone()[0]
+        if tipo_usuario != 2:
+            cur.close()
+            return jsonify({'mensagem': {
+                "tipo":"erro",
+                "descricao":'Apenas administradores podem acessar esta pagina'}}), 403
+    except Exception as e:
+        return jsonify({'mensagem': {
+            "tipo":"erro",
+            "descricao":f'Erro ao verificar token {e}'}}), 500
+    finally:
+        cur.close()
+
+    try:
+        cur = con.cursor()
+        nome = request.args.get('nome', '')
+
+        if aprovacao == 0:
+            cur.execute("""select count(id_usuario)
+                           from usuario
+                           where tipo_de_usuario = 0
+                            and situacao in (0, 4)
+                            AND UPPER(nome) LIKE UPPER(?)
+                        """, (f"%{nome}%",))
+        elif aprovacao == 1:
+            cur.execute("""select count(id_usuario)
+                           from usuario
+                           where tipo_de_usuario = 0 
+                            and situacao not in (0, 4)
+                            AND UPPER(nome) LIKE UPPER(?)
+                        """, (f"%{nome}%",))
+        else:
+            return jsonify({'mensagem': {
+                "tipo": "erro",
+                "descricao": "Filtro de aprovação inválido"
+            }}), 400
+
+        quantidade = cur.fetchone()[0]
+
+        numeroPaginas = math.ceil(quantidade / quantidadePorPagina)
+
+        minimo = ((pagina - 1) * quantidadePorPagina) + 1
+        maximo = pagina * quantidadePorPagina
+
+        if aprovacao == 0:
+            cur.execute("""
+                        SELECT id_usuario, nome, situacao, cpf_cnpj, telefone, data_hora_registro
+                        FROM usuario
+                        WHERE tipo_de_usuario = 2
+                          AND situacao IN (0, 4)
+                                  AND UPPER(nome) LIKE UPPER(?)
+                        ORDER BY id_usuario DESC ROWS ? TO ?
+                        """, (f"%{nome}%", minimo, maximo))
+        elif aprovacao == 1:
+            cur.execute("""
+                        SELECT id_usuario, nome, situacao, cpf_cnpj, telefone, data_hora_registro
+                        FROM usuario
+                        WHERE tipo_de_usuario = 2
+                          AND situacao NOT IN (0, 4)
+                          AND UPPER(nome) LIKE UPPER(?)
+                        ORDER BY id_usuario DESC ROWS ? TO ?
+                        """, (f"%{nome}%", minimo, maximo))
+        else:
+            return jsonify({'mensagem': {
+                "tipo": "erro",
+                "descricao": "Filtro de aprovação inválido"
+            }}), 400
+
+        adms = cur.fetchall()
+        adms_lista = []
+
+        numeroAdm = 1
+        for adm in adms:
+            adms_lista.append({
+                'id_usuario': adm[0],
+                'nome': adm[1].upper(),
+                'situacao': adm[2],
+                'cpf_cnpj': adm[3],
+                'telefone': adm[4],
+                'data_hora_registro': adm[5].strftime("%d/%m/%Y %H:%M")
+            })
+            numeroAdm += 1
+
+        proximaPagina = pagina + 1
+        if proximaPagina > numeroPaginas:
+            proximaPagina = 0
+
+        return jsonify({
+            'mensagem':'Lista de Doadores',
+            'adms':adms_lista,
+            'numeroPaginas':numeroPaginas,
+            'proximaPagina':proximaPagina,
+            'paginaAnterior':pagina - 1
+        })
+
+    except Exception as e:
+        return jsonify({'message':{
+            "tipo":"erro",
+            "descricao":f'Erro ao consultar banco de dados: {e}'}}), 500
+    finally:
+        cur.close()
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -2400,67 +2483,157 @@ def buscar_ong(id_ong, pagina):
 
 @app.route('/detalhar_projeto/<int:id_projeto>/<int:pagina>', methods=['GET'])
 def detalhar_projeto(id_projeto, pagina):
+
     token = request.cookies.get('access_token')
+
     if not token:
-        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Token de autenticação necessário'}}), 401
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Token de autenticação necessário'
+            }
+        }), 401
 
     cur = con.cursor()
-    try:
-        cur.execute("""select p.id_projeto, p.nome, p.descricao, p.meta_doacao, p.atividade,
-                              p.fk_usuario_ong, u.nome, u.descricao_causa
-                       from projeto_ong p
-                       join usuario u on u.id_usuario = p.fk_usuario_ong
-                       where p.id_projeto = ?""", (id_projeto,))
-        info = cur.fetchone()
-        if not info:
-            return jsonify({'mensagem': {
-                'tipo': 'erro',
-                'descricao': 'Projeto não encontrado'
-            }}), 404
 
-        cur.execute('select count(id_post_projeto) from post_projeto where fk_projeto = ?', (id_projeto,))
+    try:
+        id_usuario_logado = None
+        try:
+
+            payload = jwt.decode(
+                token,
+                senha_secreta,
+                algorithms=["HS256"]
+            )
+
+            id_usuario_logado = payload.get('id_usuario')
+
+        except Exception:
+
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Token inválido'
+                }
+            }), 401
+
+        cur.execute("""
+            SELECT p.id_projeto,
+                   p.nome,
+                   p.descricao,
+                   p.meta_doacao,
+                   p.atividade,
+                   p.fk_usuario_ong,
+                   u.nome,
+                   u.descricao_causa
+            FROM projeto_ong p
+            JOIN usuario u
+                ON u.id_usuario = p.fk_usuario_ong
+            WHERE p.id_projeto = ?
+        """, (id_projeto,))
+
+        info = cur.fetchone()
+
+        if not info:
+
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Projeto não encontrado'
+                }
+            }), 404
+
+        seguindo = False
+
+        if id_usuario_logado:
+
+            cur.execute("""
+                SELECT id_seguidores
+                FROM seguidores
+                WHERE fk_usuario_doador = ?
+                  AND fk_usuario_ong = ?
+            """, (id_usuario_logado, info[5]))
+
+            segue = cur.fetchone()
+
+            seguindo = True if segue else False
+
+        cur.execute("""
+            SELECT COUNT(id_post_projeto)
+            FROM post_projeto
+            WHERE fk_projeto = ?
+        """, (id_projeto,))
+
         quantidade = cur.fetchone()[0]
-        numeroPaginas = math.ceil(quantidade / quantidadePorPagina) if quantidade else 0
-        minimo = ((pagina - 1) * quantidadePorPagina) + 1
+
+        numeroPaginas = (math.ceil(quantidade / quantidadePorPagina)if quantidade else 0)
+
+        minimo = (((pagina - 1) * quantidadePorPagina) + 1)
+
         maximo = pagina * quantidadePorPagina
 
-        cur.execute("""select id_post_projeto, titulo, acao, atividade, data_hora
-                       from post_projeto
-                       where fk_projeto = ?
-                       order by data_hora desc rows ? to ?""", (id_projeto, minimo, maximo))
+        cur.execute("""
+            SELECT id_post_projeto,
+                   titulo,
+                   acao,
+                   atividade,
+                   data_hora
+            FROM post_projeto
+            WHERE fk_projeto = ?
+            ORDER BY data_hora DESC
+            ROWS ? TO ?
+        """, (id_projeto, minimo, maximo))
+
         atualizacoes = []
+
         for post in cur.fetchall():
+
             data = post[4]
+
             atualizacoes.append({
                 'id_post': post[0],
                 'titulo': post[1],
                 'descricao': post[2],
                 'acao': post[2],
                 'atividade': post[3],
-                'data': data.strftime('%d/%m/%Y') if data else '',
-                'hora': data.strftime('%H:%M') if data else '',
-                'imagem': f'/uploads/Usuarios/Post_Ong/{post[0]}.jpg'
-            })
+                'data': (data.strftime('%d/%m/%Y')if data else ''),
+                'hora': (data.strftime('%H:%M')if data else ''),'imagem': f'/uploads/Usuarios/Post_Ong/{post[0]}.jpg'})
 
         proximaPagina = pagina + 1
         if proximaPagina > numeroPaginas:
             proximaPagina = 0
-
-        return jsonify({'projeto': {
-            'id_projeto': info[0],
-            'nome': info[1],
-            'descricao_causa': info[2],
-            'descricao': info[2],
-            'meta_doacao': info[3],
-            'atividade': info[4],
-            'id_ong': info[5],
-            'instituicao': info[6],
-            'imagem': f'/uploads/Usuarios/Projeto/{info[0]}.jpg',
-            'logoInstituicao': f'/uploads/Usuarios/Icone_Perfil/{info[5]}.jpg',
-            'atualizacoes': atualizacoes
-        }, 'numeroPaginas': numeroPaginas, 'proximaPagina': proximaPagina, 'paginaAnterior': pagina - 1, 'quantidade':quantidade}), 200
+            
+        return jsonify({
+            'projeto': {
+                'id_projeto': info[0],
+                'nome': info[1],
+                'descricao_causa': info[2],
+                'descricao': info[2],
+                'meta_doacao': info[3],
+                'atividade': info[4],
+                'id_ong': info[5],
+                'instituicao': info[6],
+                'seguindo': seguindo,
+                'imagem': (f'/uploads/Usuarios/Projeto/{info[0]}.jpg'),
+                'logoInstituicao': (f'/uploads/Usuarios/Icone_Perfil/{info[5]}.jpg'),
+                'atualizacoes': atualizacoes
+            },
+            'numeroPaginas': numeroPaginas,
+            'proximaPagina': proximaPagina,
+            'paginaAnterior': pagina - 1,
+            'quantidade': quantidade
+        }), 200
     except Exception as e:
-        return jsonify({'mensagem': {'tipo': 'erro', 'descricao': f'Erro ao detalhar projeto: {e}'}}), 500
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': (
+                    f'Erro ao detalhar projeto: {e}'
+                )
+            }
+
+        }), 500
+
     finally:
         cur.close()
 
@@ -2567,6 +2740,7 @@ def permitir_recusar_ong(id_usuario, id_ong):
     finally:
         cur.close()
 
+
 @app.route('/excluir_usuario/<int:id_usuario>/<int:id_excluir>', methods=['DELETE'])
 def excluir_usuario(id_usuario, id_excluir):
     token = request.cookies.get('access_token')
@@ -2637,12 +2811,31 @@ def excluir_usuario(id_usuario, id_excluir):
                 }})
 
     except Exception as e:
-        if 335544466 in e.gds_codes:
-            return jsonify({'mensagem':{
-                'tipo':'erro',
-                'descricao':"Não é possível excluir! Este registro está sendo usado em outras partes do sistema."}})
-        else:
-            return jsonify({'mensagem':{'tipo':"erro",'descricao':f" Ocorreu um erro ao tentar excluir: {e}"}}),500
+        con.rollback()
+
+        erro_texto = str(e)
+
+        if (
+                'FK_SEG_ONG' in erro_texto
+                or 'SEGUIDORES' in erro_texto
+                or 'FOREIGN KEY' in erro_texto
+                or '-530' in erro_texto
+                or '335544466' in erro_texto
+        ):
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Não é possível excluir esse usuário, pois ele está vinculado a outros registros do sistema.'
+                }
+            }), 400
+
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': f'Ocorreu um erro ao tentar excluir: {e}'
+            }
+        }), 500
+
     finally:
         cur.close()
 
@@ -2674,6 +2867,8 @@ def pagina_feed(pagina):
         limite = 4
         minimo = ((pagina - 1) * limite) + 1
         maximo = pagina * limite
+        if maximo == 0:
+            maximo = 1
 
 
         id_usuario_consulta = id_usuario if id_usuario is not None else 0
@@ -2823,6 +3018,9 @@ def pagina_feed(pagina):
 
         minimoNovasOngs = ((pagina_novas_ongs - 1) * quantidadePorPaginaNovasOngs) + 1
         maximoNovasOngs = pagina_novas_ongs * quantidadePorPaginaNovasOngs
+        if maximoNovasOngs == 0:
+            maximoNovasOngs = 1
+
 
         addSelect = """"""
         parametros = []
@@ -3448,11 +3646,6 @@ def postar_comentario(id_usuario, id_post):
 def listar_comentario(id_post):
     token = request.cookies.get('access_token')
 
-    # if not token:
-    #     return jsonify({'mensagem': {
-    #         'tipo': 'erro',
-    #         'descricao': 'Token necessário'
-    #     }}), 401
 
     cur = con.cursor()
 
@@ -3468,11 +3661,7 @@ def listar_comentario(id_post):
                         WHERE id_usuario = ?
                         """, (id_usuario,))
             tipo_usuario = cur.fetchone()
-            # if not tipo_usuario:
-            #     return jsonify({'mensagem': {
-            #         'tipo': 'erro',
-            #         'descricao': 'Usuário não encontrado'
-            #     }}), 404
+
             if tipo_usuario:
                 tipo_usuario = tipo_usuario[0]
 
