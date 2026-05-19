@@ -4,14 +4,14 @@ import Buton from "../../components/Buton/Buton.jsx";
 import {Link, useNavigate} from "react-router-dom";
 import Nav from "../../components/Nav/Nav.jsx";
 import IMask from "imask";
-import CardOngAdm from "../../components/CardOngAdm/CardOngAdm.jsx";
 import Titulo from "../../components/Titulo/Titulo.jsx";
 import Alerts from "../../components/Alerts/Alerts.jsx";
 import Input from "../../components/Input/Input.jsx";
+import CardAdmAdm from "../../components/CardAdmAdm/CardAdmAdm.jsx";
 
 export default function DashboardAdmAdm({ api }) {
     const [id, setId] = useState(localStorage.getItem("id_usuario"));
-    const [ongs, setOngs] = useState([]);
+    const [adms, setAdms] = useState([]);
     const [aprovacao, setAprovacao] = useState(1);
     const [pagina, setPagina] = useState(1);
     const [proximaPagina, setProximaPagina] = useState(0);
@@ -40,16 +40,16 @@ export default function DashboardAdmAdm({ api }) {
         }
     }, [navigate]);
 
-    async function listarOngs() {
-        const resposta = await fetch(`${api}/listar_ong_adm/${pagina}/${aprovacao}?nome=${filtro}`, {
+    async function listarAdms() {
+        const resposta = await fetch(`${api}/listar_adm_adm/${pagina}/${aprovacao}?nome=${filtro}`, {
             method: "GET",
             headers: { "Content-Type": "application/json" },
             credentials: "include"
         });
         const retorno = await resposta.json();
         console.log(retorno)
-        if (retorno.ongs) {
-            setOngs(retorno.ongs);
+        if (retorno.adms) {
+            setAdms(retorno.adms);
             setProximaPagina(retorno.proximaPagina);
             setPaginaAnterior(retorno.paginaAnterior);
             setQuantidade(retorno.numeroPaginas);
@@ -84,7 +84,7 @@ export default function DashboardAdmAdm({ api }) {
     }, [mensagem]);
 
     useEffect(() => {
-        listarOngs();
+        listarAdms();
     }, [pagina, aprovacao, filtro, mensagem]);
 
     return (
@@ -104,10 +104,10 @@ export default function DashboardAdmAdm({ api }) {
                 <div className={'d-flex justify-content-center gap-4 align-items-center'}>
                     {aprovacao == 1 ? (
                         <div>
-                            <div className={'d-none d-sm-flex gap-3'}>
-                                <Buton texto={'Ongs para aprovação'} background={'branco'} tamanho={'medio'} onClick={() => trocarFiltro(0)} />
-                                <Buton texto={'Ongs aprovadas/recusadas'} background={'rosa'} tamanho={'medio'} onClick={() => trocarFiltro(1)} />
-                            </div>
+                            {/*<div className={'d-none d-sm-flex gap-3'}>*/}
+                            {/*    <Buton texto={'Adms sem validação'} background={'branco'} tamanho={'medio'} onClick={() => trocarFiltro(0)} />*/}
+                            {/*    <Buton texto={'Adms'} background={'rosa'} tamanho={'medio'} onClick={() => trocarFiltro(1)} />*/}
+                            {/*</div>*/}
                             <div className={'d-block d-sm-none'}>
                                 <Buton texto={'Aprovação'} background={'branco'} tamanho={'medio'} onClick={() => trocarFiltro(0)} />
                                 <Buton texto={'Aprovadas'} background={'rosa'} tamanho={'medio'} onClick={() => trocarFiltro(1)} />
@@ -116,10 +116,10 @@ export default function DashboardAdmAdm({ api }) {
                         </div>
                     ) : (
                         <div>
-                            <div className={'d-none d-sm-flex gap-3'}>
-                                <Buton texto={'Ongs para aprovação'} background={'rosa'} tamanho={'medio'} onClick={() => trocarFiltro(0)} />
-                                <Buton texto={'Ongs aprovadas/recusadas'} background={'branco'} tamanho={'medio'} onClick={() => trocarFiltro(1)} />
-                            </div>
+                            {/*<div className={'d-none d-sm-flex gap-3'}>*/}
+                            {/*    <Buton texto={'Adms sem validação'} background={'rosa'} tamanho={'medio'} onClick={() => trocarFiltro(0)} />*/}
+                            {/*    <Buton texto={'Adms'} background={'branco'} tamanho={'medio'} onClick={() => trocarFiltro(1)} />*/}
+                            {/*</div>*/}
                             <div className={'d-block d-sm-none'}>
                                 <Buton texto={'Aprovação'} background={'rosa'} tamanho={'medio'} onClick={() => trocarFiltro(0)} />
                                 <Buton texto={'Aprovadas'} background={'branco'} tamanho={'medio'} onClick={() => trocarFiltro(1)} />
@@ -142,19 +142,18 @@ export default function DashboardAdmAdm({ api }) {
                 </div>
                 <div className={"formataAltura m-auto col-12 " + css.containerPrevia}>
                     <div className={"row d-flex justify-content-center align-items-center gap-3"}>
-                        {ongs.map((ong) => (
-                            <div key={ong.id_usuario} className={"row m-auto d-flex " + css.cardBonito}>
-                                <CardOngAdm
-                                    id={ong.id_usuario}
-                                    cnpj={formatarCNPJ(ong.cpf_cnpj)}
-                                    telefone={formatarTelefone(ong.telefone)}
-                                    nomeOng={ong.nome}
-                                    registro={ong.data_hora_registro}
-                                    descricao={ong.descricao_causa}
-                                    situacao={ong.situacao}
+                        {adms.map((adm) => (
+                            <div key={adm.id_usuario} className={"row m-auto d-flex " + css.cardBonito}>
+                                <CardAdmAdm
+                                    id={adm.id_usuario}
+                                    cnpj={formatarCNPJ(adm.cpf_cnpj)}
+                                    telefone={formatarTelefone(adm.telefone)}
+                                    nomeAdm={adm.nome}
+                                    registro={adm.data_hora_registro}
+                                    situacao={adm.situacao}
                                     api={api}
                                     idAdm={id}
-                                    onAtualizar={listarOngs}
+                                    onAtualizar={listarAdms}
                                     onMensagem={mostrarMensagem}
                                 />
                             </div>
@@ -182,9 +181,9 @@ export default function DashboardAdmAdm({ api }) {
                         </div>
                     ) : (
                         aprovacao == 1 ?(
-                            <div className={'m-auto text-center mt-5 pt-5'}><Titulo texto={'Não há ongs cadastradas'} /></div>
+                            <div className={'m-auto text-center mt-5 pt-5'}><Titulo texto={'Não há Adms cadastrados'} /></div>
                         ):(
-                            <div className={'m-auto text-center mt-5 pt-5'}><Titulo texto={'Não há ongs para analise'} /></div>
+                            <div className={'m-auto text-center mt-5 pt-5'}><Titulo texto={'Não há Adms não validados'} /></div>
                         )
                     )}
                 </div>

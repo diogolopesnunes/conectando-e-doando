@@ -24,6 +24,7 @@ export default function PaginaProjeto({ api, info }) {
     const [mensagem, setMensagem] = useState(null)
     const [quantidadePost, setQuantidadePost] = useState(0)
     const [idOng, setIdOng] = useState('')
+    const [seguindo, setSeguindo] = useState(false);
 
     useEffect(() => {
         if (!localStorage.getItem("email") || !localStorage.getItem("id_usuario")) {
@@ -47,6 +48,7 @@ export default function PaginaProjeto({ api, info }) {
             setQuantidade(retorno.numeroPaginas);
             setQuantidadePost(retorno.quantidade)
             setIdOng(retorno.projeto.id_ong)
+            setSeguindo(retorno.projeto.seguindo);
         } else if (retorno.mensagem) {
             alert(retorno.mensagem.descricao || retorno.mensagem.mensagem);
         }
@@ -133,7 +135,15 @@ export default function PaginaProjeto({ api, info }) {
                             <p className="text-center">Carregando projeto...</p>
                         ) : (
                             <>
-                                <InfoOng info={projeto} texto={'Fazer doação'} api={api} />
+                                <InfoOng
+                                    info={projeto}
+                                    texto={"Doar Agora"}
+                                    api={api}
+                                    seguindo={seguindo}
+                                    atualizarSeguimento={(novoValor) => {
+                                        setSeguindo(novoValor);
+                                    }}
+                                />
                                 <div className={css.containerProgresso}>
                                     <div className={css.valoresMeta}>
                                         <span>
@@ -158,7 +168,6 @@ export default function PaginaProjeto({ api, info }) {
                                 </div>
 
                                 <SecaoAtualizacoes
-
                                     atualizacoes={projeto.atualizacoes || []}
                                     instituicao={projeto.instituicao}
                                     idProjeto={id_projeto}

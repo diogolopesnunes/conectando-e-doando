@@ -8,6 +8,7 @@ import CardOngAdm from "../../components/CardOngAdm/CardOngAdm.jsx";
 import Titulo from "../../components/Titulo/Titulo.jsx";
 import Alerts from "../../components/Alerts/Alerts.jsx";
 import Input from "../../components/Input/Input.jsx";
+import Swal from "sweetalert2";
 
 export default function DashboardAdmOng({ api }) {
 
@@ -216,7 +217,22 @@ export default function DashboardAdmOng({ api }) {
     // EXCLUIR TIPO ONG
     // =========================
 
+    async function confirmarExclusao() {
+        const result = await Swal.fire({
+            title: "Você tem certeza?",
+            text: "Você não poderá refazer a ação!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sim, deletar!",
+            cancelButtonText: "Cancelar",
+        });
+
+        return result.isConfirmed;
+    }
+
     async function excluirTipoOng() {
+        const confirmou = await confirmarExclusao();
+        if (!confirmou) return;
 
         if (!tipoOng) {
 

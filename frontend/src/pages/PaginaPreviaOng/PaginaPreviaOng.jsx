@@ -143,7 +143,7 @@ export function PaginaPreviaOng({api}) {
                             api={api}
                             excluir={excluirProjeto}
                             alternarStatus={alternarStatusProjeto}
-                            idUsuario={id}
+                            idUsuario={id || localStorage.getItem("id_usuario")}
                         />
                     </>
                 )}
@@ -156,7 +156,14 @@ export function PaginaPreviaOng({api}) {
                                        classe={'pagina'}/>
                             </>
                         )}
-                        <Buton texto={pagina} classe={'paginaSelecionada'}/>
+
+                        {quantidade === 1 ? (
+                            <div className={'m-auto'}>
+                                <Buton texto={pagina} classe={'paginaSelecionada'} />
+                            </div>
+                        ) : (
+                            <Buton texto={pagina} classe={'paginaSelecionada'} />
+                        )}
                         {proximaPagina !== 0 && (
                             <>
                                 <Buton texto={proximaPagina} onClick={() => setPagina(proximaPagina)}

@@ -75,15 +75,6 @@ export default function Feed({ api }) {
                 setOngsSeguidas(retorno.ongs_seguidas);
             }
 
-            // Atualiza novas ONGs (quando disponível)
-            if (retorno.novas_ongs) {
-                setNovasOngs(retorno.novas_ongs);
-                setQuantidadeNovasOngs(retorno.quantidadeNovasOngs);
-                setProximaPaginaNovasOngs(retorno.proximaPaginaNovasOngs)
-                setPaginaAnteriorNovasOngs(retorno.paginaAnteriorNovasOngs)
-                setNumeroPaginasNovasOngs(retorno.numeroPaginasNovasOngs)
-            }
-
             // Processa os posts
             if (retorno.posts) {
                 if (retorno.posts.length === 0) {
@@ -131,9 +122,6 @@ export default function Feed({ api }) {
         }, 0);
     }, [filtro, ordemData, tipoOng]);
 
-    useEffect(() => {
-        carregarPosts();
-    }, [paginaNovasOngs]);
 
     // Scroll infinito
     useEffect(() => {
@@ -159,7 +147,7 @@ export default function Feed({ api }) {
                 observer.unobserve(observerRef.current);
             }
         };
-    }, []);
+    }, [paginaNovasOngs]);
 
     function atualizarSeguimento(idOng, novoValor) {
         setPosts((postsAnteriores) =>
@@ -418,16 +406,6 @@ export default function Feed({ api }) {
                                     }}
                                 />
 
-                                {/*<Input*/}
-                                {/*    obrigatorio={"Sim"}*/}
-                                {/*    htmlFor={'tipoOng'}*/}
-                                {/*    label={'Selecione o tipo de ONG'}*/}
-                                {/*    tipoInp={'select'}*/}
-                                {/*    value={tipoOng}*/}
-                                {/*    opcoeslabel="Selecione o tipo da ONG"*/}
-                                {/*    opcoes={tiposOng}*/}
-                                {/*    funcao={(f) => setTipoOng(f.target.value)}*/}
-                                {/*/>*/}
 
                                 <select
                                     className={`my-3 form-select gap-2 m-auto ${css.selectTipo}`}
@@ -550,16 +528,35 @@ export default function Feed({ api }) {
                                     }}
                                 />
 
-                                <Input
-                                    obrigatorio={"Não"}
-                                    htmlFor={'tipoOng'}
-                                    label={''}
-                                    tipoInp={'select'}
+                                {/*<Input*/}
+                                {/*    obrigatorio={"Não"}*/}
+                                {/*    htmlFor={'tipoOng'}*/}
+                                {/*    label={''}*/}
+                                {/*    tipoInp={'select'}*/}
+                                {/*    value={tipoOng}*/}
+                                {/*    opcoeslabel="Selecione o tipo da ONG"*/}
+                                {/*    opcoes={tiposOng}*/}
+                                {/*    funcao={(f) => setTipoOng(f.target.value)}*/}
+                                {/*/>*/}
+                                <select
+                                    className={`my-3 form-select gap-2 m-auto ${css.selectTipo}`}
                                     value={tipoOng}
-                                    opcoeslabel="Selecione o tipo da ONG"
-                                    opcoes={tiposOng}
-                                    funcao={(f) => setTipoOng(f.target.value)}
-                                />
+                                    onChange={(e) => {
+                                        setTipoOng(e.target.value);
+                                    }}
+                                >
+                                    <option value="">Tipos de ONG</option>
+                                    {Array.isArray(tiposOng) &&
+                                        tiposOng.map((opcao) => (
+                                            <option
+                                                key={opcao.id_tipo_ong}
+                                                value={opcao.id_tipo_ong}
+                                            >
+                                                {opcao.nome}
+                                            </option>
+                                        ))
+                                    }
+                                </select>
 
                                 <select
                                     className={`my-3 form-select gap-2 m-auto ${css.selectTipo}`}
@@ -577,45 +574,6 @@ export default function Feed({ api }) {
                                     </option>
                                 </select>
                             </div>
-                        </div>
-                    )}
-                    {novasOngs && (
-                        <div className={'col-10 m-auto d-flex '}>
-                            <div className={'row w-100 m-auto d-flex justify-content-center justify-content-md-between'}>
-                                {novasOngs.map((novaOng) => (
-                                    <NovaOngFeed api={api} nomeOng={novaOng.nome} idOng={novaOng.id} key={novaOng.id} descricao={novaOng.descricao}
-                                                 banner={novaOng.bannerOng} logoOng={novaOng.imagemPerfilOng} aoAlterarOngsFavoritas={atualizarOngsFavoritas}/>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                    {numeroPaginasNovasOngs >= 1 && (
-                        <div className={'col-12 col-sm-12 m-auto d-flex justify-content-center gap-4 paginas'}>
-                            {paginaAnteriorNovasOngs !== 0 && (
-                                <>
-                                    <Buton texto={"<"} onClick={() => setPaginaNovasOngs(paginaAnteriorNovasOngs)} classe={'pagina'} />
-                                    {paginaNovasOngs === numeroPaginasNovasOngs && paginaAnteriorNovasOngs - 1 !== 0 && (
-                                        <Buton texto={paginaAnteriorNovasOngs - 1} onClick={() => setPaginaNovasOngs(paginaAnteriorNovasOngs - 1)} classe={'pagina'} />
-                                    )}
-                                    <Buton texto={paginaAnteriorNovasOngs} onClick={() => setPaginaNovasOngs(paginaAnteriorNovasOngs)} classe={'pagina'} />
-                                </>
-                            )}
-                            {numeroPaginasNovasOngs === 1 ? (
-                                <div className={'m-auto'}>
-                                    <Buton texto={paginaNovasOngs} classe={'paginaSelecionada'} />
-                                </div>
-                            ) : (
-                                <Buton texto={paginaNovasOngs} classe={'paginaSelecionada'} />
-                            )}
-                            {proximaPaginaNovasOngs !== 0 && (
-                                <>
-                                    <Buton texto={proximaPaginaNovasOngs} onClick={() => setPaginaNovasOngs(proximaPaginaNovasOngs)} classe={'pagina'} />
-                                    {proximaPaginaNovasOngs + 1 <= numeroPaginasNovasOngs && paginaNovasOngs === 1 && (
-                                        <Buton texto={proximaPaginaNovasOngs + 1} onClick={() => setPaginaNovasOngs(proximaPaginaNovasOngs + 1)} classe={'pagina'} />
-                                    )}
-                                    <Buton texto={">"} onClick={() => setPaginaNovasOngs(proximaPaginaNovasOngs)} classe={'pagina'} />
-                                </>
-                            )}
                         </div>
                     )}
 
@@ -653,6 +611,7 @@ export default function Feed({ api }) {
                                 editarComentario={editarComentario}
                                 editar={editar}
                                 setEditar={setEditar}
+                                carregarPosts={carregarPosts}
                             />
                         ))
                     ) : (
@@ -673,7 +632,7 @@ export default function Feed({ api }) {
                     )}
 
                     {!temMais && (
-                        <p className="text-center">
+                        <p className="text-center my-2">
                             Você chegou ao fim
                         </p>
                     )}

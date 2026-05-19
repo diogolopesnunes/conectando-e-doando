@@ -24,11 +24,13 @@ import DashboardAdmDoador from "./pages/DashboardAdmDoador/DashboardAdmDoador.js
 import Feed from "./pages/Feed/Feed.jsx";
 import EdicaoDoadores from "./pages/EdicaoDoadores/EdicaoDoadores.jsx";
 import CadastroAdm from "./pages/PaginaCadastro/PaginaCadastro.jsx";
+import EdicaoAdm from "./pages/EdicaoAdm/EdicaoAdm.jsx"
+import NovasOngs from "./pages/NovasOngs/NovasOngs.jsx";
 
 
 export default function App() {
 
-    const api = "http://192.168.1.18:5000"
+    const api = "http://10.92.3.141:5000"
 
     const quemSomos = useRef(null);
     const doacoes = useRef(null);
@@ -123,6 +125,7 @@ export default function App() {
                 <Route path={"/edicao_ongs"} element={<EdicaoONGS api={api}/>} />
                 <Route path={"/edicao_doadores/:id_usuario"} element={<EdicaoDoadores api={api} />} />
                 <Route path={"/edicao_doadores"} element={<EdicaoDoadores api={api}/>} />
+                <Route path={"/edicao_adm/:id_usuario"} element={<EdicaoAdm api={api}/>} />
                 <Route path={'/projeto/:id_projeto'} element={<PaginaProjeto api={api}/>} />
                 <Route path={'/dashboard_adm_ong'} element={<DashboardAdmOng api={api}/>} />
                 <Route path={'/dashboard_adm_adm'} element={<DashboardAdmAdm api={api}/>} />
@@ -134,6 +137,7 @@ export default function App() {
                 <Route path="/cadastroadm" element={<CadastroAdm api={api}/>}/>
 
                 <Route path={'/feed'} element={<Feed api={api}/>} />
+                <Route path={'/novas_ongs'} element={<NovasOngs api={api}/>}/>
 
                 <Route path="*" element={<Erro/>} />
             </Routes>
