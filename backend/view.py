@@ -11,6 +11,7 @@ from main import app, con
 from datetime import datetime
 import emoji
 from fpdf import FPDF
+# from authlib.integrations.flask_client import OAuth
 
 senha_secreta = app.config['SECRET_KEY']
 
@@ -4367,10 +4368,17 @@ def enviar_pix():
                     }
                 })
 
+            if not chave_pix:
+                    return jsonify(({
+                        'mensagem':{
+                            "tipo":"erro",
+                            'descricao':'Não existe chave Pix'
+                        }
+                    }))
 
             else:
-
                 nome_projeto = projeto_row[0]
+
 
                 cur.execute(
                     'INSERT INTO DOACOES(FK_USUARIO_ONG, FK_USUARIO_DOADOR, FK_PROJETO, VALOR_DOADOR) VALUES (?, ?, ?, ?) RETURNING ID_DOACAO',
@@ -4379,12 +4387,18 @@ def enviar_pix():
                 id_doacao = cur.fetchone()[0]
     
                 arquivo = f"{id_doacao}.png"
-
-                print(arquivo)
     
                 con.commit()
 
         else:
+            if not chave_pix:
+                return jsonify(({
+                    'mensagem':{
+                        "tipo":"erro",
+                        'descricao':'Não existe chave Pix'
+                    }
+                }))
+
             cur.execute(
                 'INSERT INTO DOACOES(FK_USUARIO_ONG, FK_USUARIO_DOADOR, VALOR_DOADOR) VALUES (?, ?, ?) RETURNING ID_DOACAO',
                 (id_ong, id_token, valor_doacao)
@@ -4396,12 +4410,12 @@ def enviar_pix():
             con.commit()
 
         if nome_projeto:
-            gerar_qrcode_pix(chave_pix, nome_projeto, cidade_ong, valor_doacao, arquivo)
+            pay = gerar_qrcode_pix(chave_pix, nome_projeto, cidade_ong, valor_doacao, arquivo)
         
             enviando_email(
                 usuario[2],
                 f"Pagamento efetuado com sucesso",
-                f"Valor enviado de R$:{valor_doacao} para o Projeto {nome_projeto} com sucesso",
+                f"Valor de R$:{valor_doacao} enviado com sucesso para o Projeto: {nome_projeto}",
                 "",
                 usuario[1],
                 "Obrigado pela doação"
@@ -4417,12 +4431,12 @@ def enviar_pix():
             )
 
         else:
-            gerar_qrcode_pix(chave_pix, nome_ong, cidade_ong, valor_doacao, arquivo)
+            pay = gerar_qrcode_pix(chave_pix, nome_ong, cidade_ong, valor_doacao, arquivo)
 
             enviando_email(
                 usuario[2],
                 f"Pagamento efetuado com sucesso",
-                f"Valor enviado de R$:{valor_doacao} para a ONG {nome_ong} com sucesso",
+                f"Valor de R$:{valor_doacao} enviado com sucesso para a ONG: {nome_ong}",
                 "",
                 usuario[1],
                 "Obrigado pela a doação"
@@ -4445,7 +4459,7 @@ def enviar_pix():
             'pix': {
                 'nome_ong': nome_ong,
                 'nome_projeto': nome_projeto,
-                'chave_pix': chave_pix,
+                'chave_pix': pay,
                 'qrcode': arquivo
             }
         }), 200
@@ -4521,6 +4535,7 @@ def historico(pagina):
                 'descricao': 'Usuário não encontrado'
             }})
         tipo_usuario_historico = tipo_usuario_historico[0]
+        print(tipo_usuario_historico)
         filtro = request.args.get('nome', '')
         
         if tipo_usuario_historico == 0:
@@ -4619,6 +4634,9 @@ def historico(pagina):
 
         resultados = cur.fetchall()
 
+        cur.execute('select extract(year from data_hora_registro) from usuario where id_usuario = ?', (id_usuario,))
+        data_hora_registro = cur.fetchone()[0]
+
         historico = []
 
         for doacao in resultados:
@@ -4632,7 +4650,7 @@ def historico(pagina):
                 'hora': doacao[5].strftime('%H:%M'),
                 'id_doador': doacao[6],
                 'id_ong': doacao[7],
-                'tipo_historico': 'doacao_feita' if doacao[6] == id_usuario else 'doacao_recebida'
+                'tipo_historico': 'doacao_feita' if doacao[6] == id_usuario else 'doacao_recebida',
             })
 
         return jsonify({
@@ -4640,7 +4658,8 @@ def historico(pagina):
             'numeroPaginas': numeroPaginas,
             'proximaPagina': proximaPagina,
             'paginaAnterior': paginaAnterior,
-            'quantidade': quantidade
+            'quantidade': quantidade,
+            'data_hora':data_hora_registro
         }), 200
 
     except jwt.ExpiredSignatureError:
@@ -4688,9 +4707,6 @@ def estatisticas_admin():
 
     try:
 
-        # =========================
-        # DECODIFICAR TOKEN
-        # =========================
         dados = jwt.decode(
             token,
             senha_secreta,
@@ -4699,9 +4715,6 @@ def estatisticas_admin():
 
         id_token = dados['id_usuario']
 
-        # =========================
-        # VERIFICAR USUÁRIO
-        # =========================
         cur.execute("""
                     SELECT tipo_de_usuario
                     FROM usuario
@@ -4728,9 +4741,6 @@ def estatisticas_admin():
                 }
             }), 403
 
-        # =========================
-        # ANO
-        # =========================
         ano_atual = request.args.get(
             'ano',
             datetime.now().year,
@@ -4750,9 +4760,6 @@ def estatisticas_admin():
         data_inicio = datetime(ano_atual, 1, 1, 0, 0, 0)
         data_fim = datetime(ano_atual, 12, 31, 23, 59, 59)
 
-        # =========================
-        # TOTAL DE DOAÇÕES ANO
-        # =========================
         cur.execute("""
                     SELECT
                         COUNT(ID_DOACAO),
@@ -4778,9 +4785,6 @@ def estatisticas_admin():
             else 0
         )
 
-        # =========================
-        # NOVOS DOADORES
-        # =========================
         cur.execute("""
                     SELECT CAST(COUNT(ID_USUARIO) AS INTEGER)
                     FROM USUARIO
@@ -4796,9 +4800,6 @@ def estatisticas_admin():
             else 0
         )
 
-        # =========================
-        # NOVAS ONGS
-        # =========================
         cur.execute("""
                     SELECT CAST(COUNT(ID_USUARIO) AS INTEGER)
                     FROM USUARIO
@@ -4995,24 +4996,16 @@ def grafico_ong():
 
         tipo_usuario = cur.fetchone()[0]
 
-        if int(tipo_usuario) != 1:
-            return jsonify({
-                'mensagem': {
-                    'tipo': 'erro',
-                    'descricao': 'Acesso negado'
-                }
-            }), 403
-
         ano_atual = request.args.get(
             'ano',
             datetime.now().year,
             type=int
         )
         
-        if int(ano_atual) > datetime.now().year or int(ano_atual) < 1945:
+        if int(ano_atual) > datetime.now().year:
             return jsonify({'mensagem': {
                 'tipo': 'erro',
-                'descricao': 'O ano não pode ser maior que o atual e menor que 1945'
+                'descricao': 'O ano não pode ser maior que o atual'
             }})
         ano_passado = ano_atual-1
 

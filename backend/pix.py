@@ -43,3 +43,5 @@ def gerar_qrcode_pix(chave, nome, cidade, valor, arquivo, txid="***"):
 
     pay = payload_pix(chave, nome, cidade, valor, txid)
     qrcode.make(pay).save(str(caminho_completo))
+
+    return pay
