@@ -30,3 +30,8 @@
 .maiuscula{
     text-transform: capitalize;
 }
+
+.fundoRoxo{
+    background-color: color-mix(var(--preto) 20%, transparent);
+    border-radius: 15px;
+}

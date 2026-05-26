@@ -165,6 +165,7 @@ export default function PaginaProjeto({ api, info }) {
                                     atualizarSeguimento={(novoValor) => {
                                         setSeguindo(novoValor);
                                     }}
+                                    rota={"/pagamento"}
                                 />
                                 <div className={css.containerProgresso}>
                                     <div className={css.valoresMeta}>

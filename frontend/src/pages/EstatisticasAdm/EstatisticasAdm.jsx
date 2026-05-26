@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import Nav from "../../components/Nav/Nav.jsx";
 import css from "./EstatisticasAdm.module.css";
+import CardEstatistica from "../../components/CardEstatistica/CardEstatistica.jsx";
+import Alerts from "../../components/Alerts/Alerts.jsx";
+import Buton from "../../components/Buton/Buton.jsx";
+import Input from "../../components/Input/Input.jsx";
+import CardOngAdm from "../../components/CardOngAdm/CardOngAdm.jsx";
+import Titulo from "../../components/Titulo/Titulo.jsx";
 
 export default function EstatisticaAdm({api}) {
 
@@ -19,7 +25,7 @@ export default function EstatisticaAdm({api}) {
         try {
 
             const resposta = await fetch(
-                `${api}/estatisticas_admin/`,
+                `${api}/estatisticas_admin`,
                 {
                     method: "GET",
                     credentials: "include"
@@ -43,45 +49,24 @@ export default function EstatisticaAdm({api}) {
         <>
             <Nav />
 
-            <section className={css.containerEstatisticas}>
+            <div className={"row justify-content-center align-items-center m-auto flex-md-row flex-column "}>
+                <section className={"col-4 d-flex justify-content-center align-items-center flex-column " + css.containerEstatisticas}>
 
-                <div className={css.cardEstatistica}>
+                    <CardEstatistica texto={"Total de doações do ano"} valor={Number(estatisticas.valor_total_doacoes).toFixed(2).replace(".", ",")} />
 
-                    <h2 className={css.tituloCard}>
-                        Total de doações do ano
-                    </h2>
+                    <CardEstatistica texto={"Número de doadores novos no ano"} valor={estatisticas.novos_doadores} />
 
-                    <p className={css.valorCard}>
-                        R$ {Number(estatisticas.valor_total_doacoes).toFixed(2)}
-                    </p>
+                    <CardEstatistica texto={"Número de ONGs novas no ano"} valor={estatisticas.novas_ongs} />
 
+                </section>
+
+                <div className={"col-8 d-flex justify-content-center align-items-center m-auto" }>
+                    <div>
+                        <img src={"https://observatorio3setor.org.br/wp-content/uploads/2016/07/grafico-ongs-1.png"}></img>
+                    </div>
+                {/* Remover o style e colocar o gráfico na div */}
                 </div>
-
-                <div className={css.cardEstatistica}>
-
-                    <h2 className={css.tituloCard}>
-                        Número de doadores novos no ano
-                    </h2>
-
-                    <p className={css.valorCard}>
-                        {estatisticas.novos_doadores}
-                    </p>
-
-                </div>
-
-                <div className={css.cardEstatistica}>
-
-                    <h2 className={css.tituloCard}>
-                        Número de ONGs novas no ano
-                    </h2>
-
-                    <p className={css.valorCard}>
-                        {estatisticas.novas_ongs}
-                    </p>
-
-                </div>
-
-            </section>
+            </div>
         </>
     );
 }

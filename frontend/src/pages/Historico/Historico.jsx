@@ -5,6 +5,7 @@ import Doacao from "../../components/Doacao/Doacao.jsx";
 import Input from "../../components/Input/Input.jsx";
 import Buton from "../../components/Buton/Buton.jsx";
 import Alerts from "../../components/Alerts/Alerts.jsx";
+import GraficoHistoricoOng from "../../components/GraficoHistoricoOng/GraficoHistoricoOng.jsx";
 
 export default function Historico({api}){
 
@@ -18,7 +19,9 @@ export default function Historico({api}){
     const [paginaAnterior, setPaginaAnterior] = useState(0);
     const [quantidade, setQuantidade] = useState(0);
     const [mensagem, setMensagem] = useState(null);
-
+    const [estatisticas, setEstatisticas] = useState([]);
+    const [dadosGrafico, setDadosGrafico] = useState([]);
+    const [ano, setAno] = useState(new Date().getFullYear());
 
     // useEffect(() => {
     //
@@ -47,7 +50,6 @@ export default function Historico({api}){
                 }
             );
             const retorno = await resposta.json();
-            console.log(retorno)
             if (retorno.historico){
                 setHistorico(retorno.historico)
                 setQuantidade(retorno.numeroPaginas);
@@ -65,7 +67,62 @@ export default function Historico({api}){
     useEffect(() => {
         setHistorico([])
         listarHistorico();
+        carregarGrafico()
     }, [filtro, pagina])
+
+    async function carregarGrafico(){
+        try {
+            const resposta = await fetch(
+                `${api}/grafico_ong?ano=${ano}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include"
+                }
+            );
+            const retorno = await resposta.json();
+            if (retorno.estatisticas){
+                setEstatisticas(retorno.estatisticas)
+                setDadosGrafico(retorno.estatisticas.dados_grafico)
+            }
+            if (retorno.mensagem){
+                setMensagem(retorno.mensagem)
+            }
+        } catch (erro) {
+            console.log(erro);
+        }
+    }
+
+    const anoAtual = new Date().getFullYear();
+
+    function alterarAno(e) {
+        let valor = e.target.value;
+
+        valor = valor.replace(/\D/g, "");
+
+        valor = valor.slice(0, 4);
+
+        if (Number(valor) > anoAtual) {
+            valor = String(anoAtual);
+        }
+
+        if(valor.length == 4){
+            if(Number(valor) < 1945){
+                setMensagem({
+                    'tipo': 'erro',
+                    'descricao': 'O ano tem que ser maior que 1945'
+                })
+            }
+            else{
+                setAno(valor)
+                carregarGrafico()
+            }
+        }
+
+        setAno(valor);
+    }
 
     return (
         <div className={'container m-auto'}>
@@ -79,6 +136,19 @@ export default function Historico({api}){
                             duracao={10000}
                             descricao={mensagem.descricao}
                         />
+                    </div>
+                )}
+                {tipoUsuario == 1 && (
+                    <div className={'col-12 col-sm-9 m-auto d-flex justify-content-center flex-column'}>
+                        <input
+                            type="text"
+                            value={ano}
+                            onChange={alterarAno}
+                            maxLength={4}
+                            placeholder="Digite o ano"
+                            className="w-50 m-auto px-2"
+                        />
+                        <GraficoHistoricoOng dados={dadosGrafico}/>
                     </div>
                 )}
                 <div className={'d-flex align-items-end'}>
@@ -133,6 +203,7 @@ export default function Historico({api}){
                         )}
                     </div>
                 </div>
+
             </div>
         </div>
     )

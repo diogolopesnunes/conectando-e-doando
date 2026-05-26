@@ -553,6 +553,9 @@ export default function DashboardAdmOng({ api }) {
                                     onMensagem={
                                         mostrarMensagem
                                     }
+                                    email={
+                                        ong.email
+                                    }
                                 />
                             </div>
                         ))}
