@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from pathlib import Path
 import qrcode, unicodedata
 
@@ -44,12 +43,3 @@ def gerar_qrcode_pix(chave, nome, cidade, valor, arquivo, txid="***"):
 
     pay = payload_pix(chave, nome, cidade, valor, txid)
     qrcode.make(pay).save(str(caminho_completo))
-
-# exemplo mínimo:
-if __name__ == "__main__":
-    gerar_qrcode_pix(
-        "7089",
-        "Matheus Gonçalves",
-        "Birigui",
-        1.0
-    )
