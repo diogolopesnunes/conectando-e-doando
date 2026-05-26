@@ -16,6 +16,8 @@ export default function SecaoAtualizacoes({
                                           }) {
 
 
+
+    const [curtidas, setCurtidas] = useState({});
     const [filtro, setFiltro] = useState('');
     const [tipoUsuario, setTipoUsuario] = useState(localStorage.getItem('tipo_usuario'));
 
@@ -23,6 +25,48 @@ export default function SecaoAtualizacoes({
         const texto = `${update.titulo} ${update.descricao || update.acao}`.toLowerCase();
         return texto.includes(filtro.toLowerCase());
     });
+
+    async function curtirDescurtirPost(idPost) {
+
+        try {
+
+            const resposta = await fetch(
+                `${api}/descurtir_curtir_post/${idPost}`,
+                {
+                    method: "POST",
+                    credentials: "include"
+                }
+            );
+
+            const retorno = await resposta.json();
+
+            if (resposta.ok) {
+
+                setCurtidas((prev) => ({
+                    ...prev,
+                    [idPost]: {
+                        curtido: retorno.curtido,
+                        quantidade: retorno.quantidade_curtidas
+                    }
+                }));
+            }
+
+        } catch (erro) {
+            console.log(erro);
+        }
+    }
+
+    function pegarCurtida(update) {
+
+        if (curtidas[update.id_post]) {
+            return curtidas[update.id_post];
+        }
+
+        return {
+            curtido: update.curtido ?? false,
+            quantidade: update.quantidade ?? 0
+        };
+    }
 
     return (
         <section className={css.secaoAtualizacoes + ' px-3 pe-sm-3 px-lg-0'}>
@@ -110,6 +154,34 @@ export default function SecaoAtualizacoes({
                                         <span>{update.hora}</span>
                                         <span>{update.data}</span>
                                     </div>
+
+                                    <div
+                                        className={'col d-flex justify-content-end'}
+                                        onClick={() => curtirDescurtirPost(update.id_post)}>
+                                        <p className="d-flex align-items-center">
+                                            {pegarCurtida(update).quantidade}
+                                        </p>
+
+                                        <img
+                                            src={
+                                                pegarCurtida(update).curtido
+                                                    ? '/like.png'
+                                                    : '/deslike.png'
+                                            }
+                                            className={css.teste}
+                                            alt={
+                                                pegarCurtida(update).curtido
+                                                    ? 'Post curtido'
+                                                    : 'Curtir post'
+                                            }
+                                            title={
+                                                pegarCurtida(update).curtido
+                                                    ? 'Descurtir Post'
+                                                    : 'Curtir Post'
+                                            }
+                                        />
+                                    </div>
+
                                 </div>
 
                                 <h3 className={css.tituloAtualizacao} title={update.titulo}>
@@ -124,12 +196,14 @@ export default function SecaoAtualizacoes({
                             {(tipoUsuario == 2 || localStorage.getItem('id_usuario') == idOng) && (
                                 <div className={css.acoesAtualizacao + ' flex-column flex-sm-row mt-2'}>
 
-                                    <Buton
-                                        background="rosa"
-                                        tamanho="pequeno"
-                                        texto="Excluir"
-                                        onClick={() => onExcluir(update.id_post || update.id)}
-                                    />
+                                    {
+                                        <Buton
+                                            background="rosa"
+                                            tamanho="pequeno"
+                                            texto="Excluir"
+                                            onClick={() => onExcluir(update.id_post || update.id)}
+                                        />
+                                    }
 
                                     <Buton
                                         background="laranja"

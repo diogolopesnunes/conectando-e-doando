@@ -3,8 +3,6 @@ import {IMaskInput} from "react-imask";
 
 export default function Input({tipoInp, label, htmlFor, placeholder, classe = '', value, funcao, maxlength, checado, opcoeslabel, opcoes, disabled=false, minLength, mask, required=true, obrigatorio="Nao"}) {
 
-    // 2. Lógica que transforma o valor puro em valor com máscara para a tela
-    // const valorParaExibir = (mask && MASKS[mask]) ? MASKS[mask](String(value || "")) : value;
 
     if (classe == 'metade') {
         if (tipoInp == 'radio') {
@@ -106,30 +104,38 @@ export default function Input({tipoInp, label, htmlFor, placeholder, classe = ''
                     />
             ) : mask === 'cash' ? (
                 <IMaskInput
-                    mask="R$ num"
-                    blocks={{
-                        num: {
-                            mask: Number,
-                            scale: 2,
-                            thousandsSeparator: '.',
-                            padFractionalZeros: true,
-                            radix: ',',
-                            mapToRadix: ['.'],
-                            min: 0,
-                            max: 2000000000,
-                        }
-                    }}
-                    lazy={false}
+                    mask={Number}
+                    scale={2}
+                    signed={false}
+                    thousandsSeparator='.'
+                    padFractionalZeros={true}
+                    normalizeZeros={true}
+                    radix=','
+                    mapToRadix={['.']}
+                    min={0}
+                    max={2000000000}
+
+                    placeholder="R$ 0,00"
+
                     value={String(value || "")}
+
                     unmask={true}
-                    onAccept={(formattedValue, mask) => {
-                        funcao({ target: { name: htmlFor, value: mask.unmaskedValue } });
+
+                    onAccept={(value) => {
+                        funcao({
+                            target: {
+                                name: htmlFor,
+                                value
+                            }
+                        });
                     }}
+
                     className={"w-100 d-block rounded px-2 py-1 " + css.input}
                     id={htmlFor}
                     name={htmlFor}
+                    disabled={disabled}
                 />
-                ): (<input type={tipoInp} placeholder={placeholder} id={htmlFor} name={htmlFor}
+            ): (<input type={tipoInp} placeholder={placeholder} id={htmlFor} name={htmlFor}
                        className={`w-100 d-block rounded px-2 py-1 ` + css.input}
                        value={value}
                        onChange={funcao}

@@ -82,6 +82,14 @@ export default function Nav() {
         }
         return doadores;
     }
+    
+    function feedDoadores({ isActive }){
+        var feed = cssAtivado({ isActive });
+        if (local.pathname.includes('/novas_ongs')) {
+            feed += " active";
+        }
+        return feed;
+    }
 
     useEffect(() => {
         if (!localStorage.getItem("email") || !localStorage.getItem("email") || !localStorage.getItem("id_usuario") || !localStorage.getItem("tipo_usuario")) {
@@ -98,17 +106,23 @@ export default function Nav() {
         <div className={'m-auto justify-content-center w-75 '+ css.nav_container + "" }>
             {tipoUsuario == 0 && (
                 <>
-                <NavLink
-                    to={"/feed"}
-                    className={doadoresDashboard}>
-                    Feed
-                </NavLink>
+                    <NavLink
+                        to={"/feed"}
+                        className={feedDoadores}>
+                        Feed
+                    </NavLink>
 
-                <NavLink
-                    to={"/edicao_doadores"}
-                    className={doadoresDashboard}>
-                    Editar
-                </NavLink>
+                    <NavLink
+                        to={"/Historico_doador"}
+                        className={doadoresDashboard}>
+                        Histórico
+                    </NavLink>
+
+                    <NavLink
+                        to={"/edicao_doadores"}
+                        className={doadoresDashboard}>
+                        Editar
+                    </NavLink>
                 </>
             )}
             {tipoUsuario == 1 && (
@@ -119,17 +133,17 @@ export default function Nav() {
                         Prévia
                     </NavLink>
 
-                    {/*<NavLink*/}
-                    {/*    to="/grafico"*/}
-                    {/*    className={cssAtivado}>*/}
-                    {/*    Gráfico*/}
-                    {/*</NavLink>*/}
+                    <NavLink
+                        to="/grafico"
+                        className={cssAtivado}>
+                        Gráfico
+                    </NavLink>
 
-                    {/*<NavLink*/}
-                    {/*    to="/historico"*/}
-                    {/*    className={cssAtivado}>*/}
-                    {/*    Histórico*/}
-                    {/*</NavLink>*/}
+                    <NavLink
+                        to="/historico_ong"
+                        className={cssAtivado}>
+                        Histórico
+                    </NavLink>
 
                     <NavLink to={"/projetos_ong"} className={btnAddProjeto} >Projetos</NavLink>
 
@@ -165,6 +179,13 @@ export default function Nav() {
                         className={admAdms}>
                         ADMs
                     </NavLink>
+
+                    <NavLink
+                        to="/estatisticas"
+                        className={cssAtivado}>
+                        Estatisticas
+                    </NavLink>
+
 
                     {/*<NavLink to={"/doacoes"} className={cssAtivado} >Doações</NavLink>*/}
 

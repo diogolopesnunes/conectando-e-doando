@@ -112,8 +112,7 @@ export default function CardAdmAdm({
 
     return (
         <div className={'row shadow rounded p-2'}>
-            <Link to={`/previa_ong/${id}`} className={'col-12 col-sm-8'}>
-                <div>
+                <div className={'col-12 col-sm-8'}>
                     <div className={'d-flex gap-3 ' + css.nome}>
                         <p className={'px-2 rounded ' + css.idStyle}>ID {id}</p>
 
@@ -140,7 +139,6 @@ export default function CardAdmAdm({
                         <p>{descricao}</p>
                     </div>
                 </div>
-            </Link>
 
             <div className={'col-12 col-sm-4 d-flex align-items-center justify-content-end gap-1 flex-column flex-sm-row'}>
 

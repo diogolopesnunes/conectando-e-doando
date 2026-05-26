@@ -256,8 +256,7 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
 
                     <div
                         className={'col d-flex justify-content-end'}
-                        onClick={curtirDescurtirPost}
-                    >
+                        onClick={curtirDescurtirPost}>
                         <p className="d-flex align-items-center">
                             {quantidade}
                         </p>
@@ -346,7 +345,7 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
                             >
                                 <div className={`d-flex flex-column flex-lg-row justify-content-around align-items-center px-2 py-1 m-auto gap-0 gap-lg-5 ${css.containterInput}`}>
                                     <input
-                                        className={`w-100 rounded py-3 text-center text-sm-start ${css.inpComentario}`}
+                                        className={`w-100 rounded py-3 text-center text-sm-start p-5 ${css.inpComentario}`}
                                         type={'text'} placeholder={!editar ? 'Deixe sua mensagem' : 'Editar mensagem'} value={!editar ? comentario : mensagemEditada} onChange={!editar ? (e) => setComentario(e.target.value) : (e) => setMensagemEditada(e.target.value)} disabled={!idUsuario ? true : false}/>
                                     <div className={`d-flex gap-3 gap-sm-5 ${css.botoes}`}>
                                         <Buton texto={!editar ? 'Comentar': 'Editar'} background={'laranja'} tamanho={'pequeno'} tipo={'submit'}/>
