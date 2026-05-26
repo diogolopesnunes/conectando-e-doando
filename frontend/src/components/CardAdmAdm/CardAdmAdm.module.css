@@ -27,6 +27,31 @@
     background-color: rgba(230, 153, 148, 0.61);
 }
 
+.cardAdmAdm{
+    position: relative;
+}
+
+.linhaAtivo, .linhaBloqueado, .linhaDesativado, .linhaPendente{
+    position: absolute;
+    top: 0;
+    left: -5px;
+    border-radius: .375rem 0 0 .375rem;
+    width: 10px;
+    height: 100%;
+}
+
+.linhaAtivo {
+    background-color: rgba(146, 228, 146);
+}
+
+.linhaBloqueado {
+    background-color: rgba(255, 178, 65);
+}
+
+.linhaRecusado {
+    background-color: rgba(230, 153, 148);
+}
+
 .nomeCortar{
     white-space: nowrap;
     overflow: hidden;

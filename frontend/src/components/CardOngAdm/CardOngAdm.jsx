@@ -7,6 +7,7 @@ import "sweetalert2/dist/sweetalert2.min.css";
 
 export default function CardOngAdm({
                                        id,
+                                       email,
                                        nomeOng,
                                        cnpj,
                                        telefone,
@@ -146,6 +147,7 @@ export default function CardOngAdm({
                     </div>
 
                     <div className={css.justify + ' ' + css.infos}>
+                        <p>Email: {email}</p>
                         <p>{descricao}</p>
                     </div>
                 </div>

@@ -91,7 +91,16 @@ export default function CardDoadorAdm({
     }
 
     return (
-        <div className={'row shadow rounded p-2'}>
+        <div className={`row shadow rounded p-2 ${css.cardDoadorAdm}`}>
+            {status === 1 ? (
+                <div className={`${css.linhaAtivo}`}></div>
+            ) : status === 2 || status === 3 ? (
+                <div className={`${css.linhaBloqueado}`}></div>
+            ) : status === 5 ? (
+                <div className={`${css.linhaRecusado}`}></div>
+            ) : (
+                <div className={`${css.linhaRecusado}`}></div>
+            )}
             <div className={'col-12 col-sm-8'}>
                 <div>
                     <div className={'d-flex gap-3 ' + css.nome}>

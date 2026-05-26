@@ -133,11 +133,11 @@ export default function Nav() {
                         Prévia
                     </NavLink>
 
-                    <NavLink
-                        to="/grafico"
-                        className={cssAtivado}>
-                        Gráfico
-                    </NavLink>
+                    {/*<NavLink*/}
+                    {/*    to="/grafico"*/}
+                    {/*    className={cssAtivado}>*/}
+                    {/*    Gráfico*/}
+                    {/*</NavLink>*/}
 
                     <NavLink
                         to="/historico_ong"

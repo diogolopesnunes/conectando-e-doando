@@ -48,15 +48,15 @@
 }
 
 .linhaAtivo {
-    background-color: rgba(146, 228, 146, 0.52);
+    background-color: rgba(146, 228, 146);
 }
 
 .linhaBloqueado {
-    background-color: rgba(255, 178, 65, 0.63);
+    background-color: rgba(255, 178, 65);
 }
 
 .linhaRecusado {
-    background-color: rgba(230, 153, 148, 0.61);
+    background-color: rgba(230, 153, 148);
 }
 
 @media(max-width:426px){

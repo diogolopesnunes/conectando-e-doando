@@ -2,7 +2,7 @@ import Buton from "../Buton/Buton.jsx";
 import css from "./InfoOng.module.css";
 import SeguirOng from "../SeguirOng/SeguirOng.jsx";
 
-export default function InfoOng({ info, texto, api, atualizarSeguimento, seguindo}) {
+export default function InfoOng({rota ,info, texto, api, atualizarSeguimento, seguindo}) {
     return (
         <>
             <section className={css.secaoInfoProjeto}>
@@ -54,6 +54,13 @@ export default function InfoOng({ info, texto, api, atualizarSeguimento, seguind
                             background="laranja"
                             tamanho="medio"
                             texto={texto}
+                            rota={rota}
+                            state={{
+                                id_ong: info.id_ong,
+                                nome_ong: info.instituicao,
+                                id_projeto: info.id_projeto,
+                                nome_projeto: info.nome
+                            }}
                         />
                     </div>
                 </div>
