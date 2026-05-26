@@ -1,23 +1,21 @@
 .cardEstatistica{
-    width: 50%;
-
-    background-color: white;
-
+    width: 60%;
     border-radius: 20px;
 
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    align-items: center;
 
     box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 
     transition: 0.2s;
+
+    border: 1px solid var(--laranja);
 }
 
 .tituloCard{
-    font-size: 1.2rem;
-    width: 80%;
+    font-size: 1rem;
+    width: 100%;
 
     text-align: center;
 
@@ -25,7 +23,7 @@
 }
 
 .valorCard{
-    font-size: 1.7rem;
+    font-size: 2rem;
     font-weight: bold;
 
     color: #111;
@@ -40,14 +38,27 @@
     }
 
     .cardEstatistica{
-        width: 100%;
+        width: 90%;
     }
 
     .tituloCard{
-        font-size: 1rem;
+        font-size: 0.9rem;
     }
 
     .valorCard{
-        font-size: 1rem;
+        font-size: 1.7rem;
+    }
+
+}
+
+@media (max-width: 456px){
+    .cardEstatistica{
+        width: 225%;
+    }
+}
+
+@media (max-width: 321px){
+    .tituloCard{
+        font-size: 0.8rem;
     }
 }

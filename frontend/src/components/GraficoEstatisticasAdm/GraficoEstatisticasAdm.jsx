@@ -1,65 +1,87 @@
 import { Chart } from "react-google-charts";
 
-export default function GraficoHistoricoOng({dados}) {
+export default function GraficoEstatisticasAdm({ dados }) {
+
     const valores = dados.map((dado) => [
         dado.mes,
-        dado.valor_doacao_ano_passado,
-        dado.valor_doacao_ano,
-        dado.quantidade_de_doadores_ano_passado,
-        dado.quantidade_de_doadores_ano,
+
+        dado.valor_doacao_ano_passado || 0,
+        dado.valor_doacao_ano || 0,
+
+        dado.quantidade_doacoes_ano_passado || 0,
+        dado.quantidade_doacoes_ano || 0,
     ]);
 
     const data = [
         [
             "Mês",
-            "Doações no ano passado",
-            "Doações deste ano",
-            "Doadores do ano passado",
-            "Doadores deste ano",
+            "Valor Ano Passado",
+            "Valor Ano Atual",
+            "Doações Ano Passado",
+            "Doações Ano Atual",
         ],
         ...valores
     ];
 
     const options = {
-        title: "Doações e Doadores por Mês neste Ano e Ano Passado",
-        vAxes: {
-            0: {title: "Valor recebido (R$)",},
-            1: {title: "Quantidade de doadores",},
+
+        title: "Comparativo de Doações",
+
+        seriesType: "bars",
+
+        legend: {
+            position: "bottom"
         },
+
         hAxis: {
             title: "Meses",
             slantedText: true,
             slantedTextAngle: 45,
         },
-        seriesType: "bars",
+
+        vAxes: {
+
+            0: {
+                title: "Valor arrecadado (R$)"
+            },
+
+            1: {
+                title: "Quantidade de doações"
+            }
+        },
+
         series: {
+
             0: {
                 type: "bars",
                 targetAxisIndex: 0,
-                color: "#850038",
+                color: "#f39c12",
             },
+
             1: {
                 type: "bars",
                 targetAxisIndex: 0,
-                color:"#730662",
+                color: "#730662",
             },
+
             2: {
                 type: "line",
                 targetAxisIndex: 1,
-                color: "#E03E36",
+                color: "#e67e22",
                 lineWidth: 3,
                 pointSize: 5,
             },
+
             3: {
                 type: "line",
                 targetAxisIndex: 1,
-                color: "#F1731F",
+                color: "#730662",
                 lineWidth: 3,
                 pointSize: 5,
             },
         },
     };
-    
+
     return (
         <Chart
             chartType="ComboChart"

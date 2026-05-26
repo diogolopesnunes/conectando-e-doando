@@ -59,6 +59,12 @@
     background-color: rgba(230, 153, 148);
 }
 
+.email{
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 @media(max-width:426px){
     .infos p{
         font-size: 1.1em;

@@ -147,7 +147,7 @@ export default function CardOngAdm({
                     </div>
 
                     <div className={css.justify + ' ' + css.infos}>
-                        <p>Email: {email}</p>
+                        <p className={`${css.email}`}>Email: {email}</p>
                         <p>{descricao}</p>
                     </div>
                 </div>
@@ -175,41 +175,69 @@ export default function CardOngAdm({
                 )}
 
                 {status !== 4 && status !== 0 && (
-                    <>
-                        {[2, 3, 5].includes(status) && (
-                            <Buton
-                                texto={'Excluir'}
-                                background={'vermelho'}
-                                tamanho={'pequeno'}
-                                onClick={excluirUsuario}
-                            />
-                        )}
+                    <div className={"d-flex flex-column gap-2"}>
+                        <div className={"d-flex align-items-center justify-content-end gap-2 flex-wrap"}>
+                            {status === 1 ? (
+                                <div className={'d-flex gap-2 flex-column flex-sm-row'}>
+                                    <Buton
+                                        rota={`/historico_ong/${id}`}
+                                        texto={'Histórico'}
+                                        background={'bege'}
+                                        tamanho={'pequeno'}
+                                    />
 
-                        <Buton
-                            texto={'Editar'}
-                            background={'roxo'}
-                            tamanho={'pequeno'}
-                            rota={`/edicao_ongs/${id}`}
-                        />
+                                    <Buton
+                                        texto={'Editar'}
+                                        background={'roxo'}
+                                        tamanho={'pequeno'}
+                                        rota={`/edicao_ongs/${id}`}
+                                    />
+                                    <Buton
+                                        texto={loadingBloquear ? 'Bloqueando...' : 'Bloquear'}
+                                        background={'rosa'}
+                                        tamanho={'pequeno'}
+                                        onClick={bloquearDesbloquear}
+                                        disabled={loadingBloquear}
+                                    />
+                                </div>
+                            ) : (status === 2 || status === 3) ? (
+                                    <div className={'d-flex gap-2 flex-column'}>
+                                        <div className={'d-flex gap-2'}>
+                                            {[2, 3, 5].includes(status) && (
+                                                <Buton
+                                                    texto={'Excluir'}
+                                                    background={'vermelho'}
+                                                    tamanho={'pequeno'}
+                                                    onClick={excluirUsuario}
+                                                />
+                                            )}
+                                            <Buton
+                                                texto={loadingBloquear ? 'Desbloqueando...' : 'Desbloquear'}
+                                                background={'laranja'}
+                                                tamanho={'pequeno'}
+                                                onClick={bloquearDesbloquear}
+                                                disabled={loadingBloquear}
+                                            />
+                                        </div>
+                                        <div className={'d-flex gap-2'}>
+                                            <Buton
+                                                texto={'Histórico'}
+                                                background={'bege'}
+                                                tamanho={'pequeno'}
+                                            />
 
-                        {status === 1 ? (
-                            <Buton
-                                texto={loadingBloquear ? 'Bloqueando...' : 'Bloquear'}
-                                background={'rosa'}
-                                tamanho={'pequeno'}
-                                onClick={bloquearDesbloquear}
-                                disabled={loadingBloquear}
-                            />
-                        ) : (status === 2 || status === 3) ? (
-                            <Buton
-                                texto={loadingBloquear ? 'Desbloqueando...' : 'Desbloquear'}
-                                background={'laranja'}
-                                tamanho={'pequeno'}
-                                onClick={bloquearDesbloquear}
-                                disabled={loadingBloquear}
-                            />
-                        ) : null}
-                    </>
+                                            <Buton
+                                                texto={'Editar'}
+                                                background={'roxo'}
+                                                tamanho={'pequeno'}
+                                                rota={`/edicao_ongs/${id}`}
+                                            />
+                                        </div>
+                                    </div>
+
+                            ) : null}
+                        </div>
+                    </div>
                 )}
             </div>
         </div>

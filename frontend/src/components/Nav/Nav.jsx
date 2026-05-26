@@ -47,6 +47,9 @@ export default function Nav() {
         if (local.pathname.includes('/edicao_projetos/')) {
             ongs += " active";
         }
+        if (local.pathname.includes('/historico_ong/')){
+            ongs += " active";
+        }
         return ongs;
     }
 

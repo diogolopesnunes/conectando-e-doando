@@ -127,45 +127,50 @@ export default function CardDoadorAdm({
                 </div>
             </div>
 
-            <div className={'col-12 col-sm-4 d-flex align-items-center justify-content-end gap-1 flex-row flex-sm-row'}>
+            <div className={'col-12 col-sm-4 d-flex align-items-start justify-content-end gap-1 flex-row flex-sm-row'}>
 
 
                 {status !== 4 && status !== 0 && (
                     <>
+                        <div>
+                            <p>...</p>
+                        </div>
 
-                        {[2, 3, 5].includes(status) && (
-                            <Buton
-                                texto={'Excluir'}
-                                background={'vermelho'}
-                                tamanho={'pequeno'}
-                                onClick={excluirUsuario}
-                            />
-                        )}
+                        <div className={`d-flex gap-2 flex-column ${css.opcoesExpansivo}`}>
+                            {[2, 3, 5].includes(status) && (
+                                <Buton
+                                    texto={'Excluir'}
+                                    background={'vermelho'}
+                                    tamanho={'pequeno'}
+                                    onClick={excluirUsuario}
+                                />
+                            )}
 
-                        <Buton
-                            texto={'Editar'}
-                            background={'roxo'}
-                            tamanho={'pequeno'}
-                            rota={`/edicao_doadores/${id}`}
-                        />
+                            <Buton
+                                texto={'Editar'}
+                                background={'roxo'}
+                                tamanho={'pequeno'}
+                                rota={`/edicao_doadores/${id}`}
+                            />
 
-                        {status === 1 ? (
-                            <Buton
-                                texto={loadingBloquear ? 'Bloqueando...' : 'Bloquear'}
-                                background={'rosa'}
-                                tamanho={'pequeno'}
-                                disabled={loadingBloquear}
-                                rota={`/enviar_email_bloquear/${id}`}
-                            />
-                        ) : (status === 2 || status === 3) ? (
-                            <Buton
-                                texto={loadingBloquear ? 'Desbloqueando...' : 'Desbloquear'}
-                                background={'laranja'}
-                                tamanho={'pequeno'}
-                                onClick={bloquearDesbloquear}
-                                disabled={loadingBloquear}
-                            />
-                        ) : null}
+                            {status === 1 ? (
+                                <Buton
+                                    texto={loadingBloquear ? 'Bloqueando...' : 'Bloquear'}
+                                    background={'rosa'}
+                                    tamanho={'pequeno'}
+                                    disabled={loadingBloquear}
+                                    rota={`/enviar_email_bloquear/${id}`}
+                                />
+                            ) : (status === 2 || status === 3) ? (
+                                <Buton
+                                    texto={loadingBloquear ? 'Desbloqueando...' : 'Desbloquear'}
+                                    background={'laranja'}
+                                    tamanho={'pequeno'}
+                                    onClick={bloquearDesbloquear}
+                                    disabled={loadingBloquear}
+                                />
+                            ) : null}
+                        </div>
                     </>
                 )}
             </div>
