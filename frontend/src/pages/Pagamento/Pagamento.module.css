@@ -3,9 +3,7 @@
     border-radius: 15px;
 }
 
-.textJustify{
-    text-align: justify;
-}
+
 
 .copiarIcone{
     width: 25px !important;
@@ -34,4 +32,10 @@
 .fundoRoxo{
     background-color: color-mix(var(--preto) 20%, transparent);
     border-radius: 15px;
+}
+
+@media (max-width: 426px){
+    .qrCode{
+        width: 100% !important;
+    }
 }

@@ -7,8 +7,16 @@ import Buton from "../../components/Buton/Buton.jsx";
 import Input from "../../components/Input/Input.jsx";
 import CardOngAdm from "../../components/CardOngAdm/CardOngAdm.jsx";
 import Titulo from "../../components/Titulo/Titulo.jsx";
+import GraficoEstatisticasAdm from "../../components/GraficoEstatisticasAdm/GraficoEstatisticasAdm.jsx";
 
 export default function EstatisticaAdm({api}) {
+    const [valorDoacoes, setValorDoacoes] = useState('');
+    const monetario = {
+        0:'Mil',
+        1:'Mi',
+        2:'B',
+        3:'T'
+    }
 
     const [estatisticas, setEstatisticas] = useState({
         valor_total_doacoes: 0,
@@ -37,6 +45,17 @@ export default function EstatisticaAdm({api}) {
             if (resposta.ok) {
 
                 setEstatisticas(retorno.estatisticas);
+                var quantidade = -1
+                var valorTotal = retorno.estatisticas.valor_total_doacoes
+                while (valorTotal >= 1000){
+                    if (quantidade == 3){
+                        break
+                    }
+                    valorTotal = (valorTotal/1000).toFixed(3)
+                    quantidade++
+                }
+                setValorDoacoes(`${valorTotal} ${monetario[quantidade]}`)
+                console.log(`${valorTotal} ${monetario[quantidade]}`)
             }
 
         } catch (erro) {
@@ -52,19 +71,19 @@ export default function EstatisticaAdm({api}) {
             <div className={"row justify-content-center align-items-center m-auto flex-md-row flex-column "}>
                 <section className={"col-4 d-flex justify-content-center align-items-center flex-column " + css.containerEstatisticas}>
 
-                    <CardEstatistica texto={"Total de doações do ano"} valor={Number(estatisticas.valor_total_doacoes).toFixed(2).replace(".", ",")} />
+                    <CardEstatistica texto={"Total de doações do ano:"} valor={`R$${valorDoacoes.replace(".", ",")}`} />
 
-                    <CardEstatistica texto={"Número de doadores novos no ano"} valor={estatisticas.novos_doadores} />
+                    <CardEstatistica texto={"Número de doadores novos no ano:"} valor={estatisticas.novos_doadores} />
 
-                    <CardEstatistica texto={"Número de ONGs novas no ano"} valor={estatisticas.novas_ongs} />
+                    <CardEstatistica texto={"Número de ONGs novas no ano:"} valor={estatisticas.novas_ongs} />
 
                 </section>
 
                 <div className={"col-8 d-flex justify-content-center align-items-center m-auto" }>
-                    <div>
-                        <img src={"https://observatorio3setor.org.br/wp-content/uploads/2016/07/grafico-ongs-1.png"}></img>
-                    </div>
-                {/* Remover o style e colocar o gráfico na div */}
+                    <GraficoEstatisticasAdm
+                        dados={estatisticas.dados_grafico || []}
+                    />
+                {/* Remover a img e colocar o gráfico na div */}
                 </div>
             </div>
         </>

@@ -171,6 +171,7 @@ export default function Pagamento({ api }) {
                                     <img
                                         src={qrCode}
                                         alt="QRCode Pix"
+                                        className={`w-50 m-auto ${css.qrCode}`}
                                     />
 
                                     <div className={`rounded d-flex justify-content-between align-items-center w-100 my-4 ${css.bordaPix}`}>
@@ -180,7 +181,7 @@ export default function Pagamento({ api }) {
                                         </p>
 
                                         <img
-                                            className={css.copiarIcone}
+                                            className={`mx-2 ${css.copiarIcone}`}
                                             src={copiado ? "/copiadoIcon.png" : "/copiarIcon.png"}
                                             alt="Copiar Pix"
                                             onClick={copiarPix}
@@ -193,14 +194,13 @@ export default function Pagamento({ api }) {
                         )}
 
 
-                        <div className={`col-12 col-sm-4 p-5 d-flex flex-column justify-content-evenly ${css.bordaCard}`}>
+                        <div className={`col-12 col-sm-4 p-4 d-flex flex-column justify-content-evenly ${css.bordaCard}`}>
 
                             <p className={'fs-3 text-center'}>
                                 Resumo da doação
                             </p>
 
-                            <p className={`rounded-4 cor-fundo-laranja p-2 fs-5 my-4 ${css.textJustify}`}>
-
+                            <p className={`rounded-4 cor-fundo-laranja p-2 fs-5 my-4`}>
                                 Com sua doação estamos mais perto de alcançar nosso objetivo.
 
                             </p>

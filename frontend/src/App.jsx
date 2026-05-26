@@ -33,7 +33,7 @@ import Pagamento from "./pages/Pagamento/Pagamento.jsx";
 
 export default function App() {
 
-    const api = "http://10.92.3.149:5000"
+    const api = "http://10.246.249.202:5000"
 
     const quemSomos = useRef(null);
     const doacoes = useRef(null);
@@ -142,6 +142,7 @@ export default function App() {
                 <Route path={'/novas_ongs'} element={<NovasOngs api={api}/>}/>
                 <Route path={'/historico_doador'} element={<Historico api={api}/>}/>
                 <Route path={'/historico_ong'} element={<Historico api={api}/>}/>
+                <Route path={'/historico_ong/:id_ong'} element={<Historico api={api}/>}/>
                 <Route path={'/estatisticas'} element={<EstatisticaAdm api={api}/>}/>
                 <Route path={'/pagamento'} element={<Pagamento api={api}/>}/>
 

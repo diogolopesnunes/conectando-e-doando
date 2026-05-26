@@ -1,6 +1,6 @@
 import Nav from "../../components/Nav/Nav.jsx";
 import {useEffect, useState} from "react";
-import {useNavigate} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import Doacao from "../../components/Doacao/Doacao.jsx";
 import Input from "../../components/Input/Input.jsx";
 import Buton from "../../components/Buton/Buton.jsx";
@@ -8,6 +8,7 @@ import Alerts from "../../components/Alerts/Alerts.jsx";
 import GraficoHistoricoOng from "../../components/GraficoHistoricoOng/GraficoHistoricoOng.jsx";
 
 export default function Historico({api}){
+    const { id_ong } = useParams();
 
     const [tipoUsuario, setTipoUsuario] = useState(localStorage.getItem('tipo_usuario'));
     const [idUsuario,setIdUsuario] = useState('');
@@ -22,6 +23,8 @@ export default function Historico({api}){
     const [estatisticas, setEstatisticas] = useState([]);
     const [dadosGrafico, setDadosGrafico] = useState([]);
     const [ano, setAno] = useState(new Date().getFullYear());
+    const [anoRegistro, setAnoRegistro] = useState('');
+    const [listaAnos, setListaAnos] = useState([]);
 
     // useEffect(() => {
     //
@@ -39,8 +42,12 @@ export default function Historico({api}){
 
     async function listarHistorico() {
         try {
+            var rota=`${api}/historico/${pagina}?nome=${filtro}`
+            if(id_ong){
+                var rota=`${api}/historico/${pagina}?nome=${filtro}&id_usuario=${id_ong}`
+            }
             const resposta = await fetch(
-                `${api}/historico/${pagina}?nome=${filtro}`,
+                `${rota}`,
                 {
                     method: "GET",
                     headers: {
@@ -50,11 +57,13 @@ export default function Historico({api}){
                 }
             );
             const retorno = await resposta.json();
+            console.log(retorno)
             if (retorno.historico){
                 setHistorico(retorno.historico)
                 setQuantidade(retorno.numeroPaginas);
                 setProximaPagina(retorno.proximaPagina);
                 setPaginaAnterior(retorno.paginaAnterior);
+                setAnoRegistro(retorno.data_hora)
             }
             if (retorno.mensagem){
                 setMensagem(retorno.mensagem)
@@ -96,6 +105,14 @@ export default function Historico({api}){
     }
 
     const anoAtual = new Date().getFullYear();
+    const anosRegistro = []
+
+    for (let ano = anoRegistro; ano <= anoAtual; ano++) {
+        anosRegistro.push(ano);
+        if (ano == anoAtual) {
+            setListaAnos(anosRegistro);
+        }
+    }
 
     function alterarAno(e) {
         let valor = e.target.value;
@@ -140,14 +157,19 @@ export default function Historico({api}){
                 )}
                 {tipoUsuario == 1 && (
                     <div className={'col-12 col-sm-9 m-auto d-flex justify-content-center flex-column'}>
-                        <input
-                            type="text"
-                            value={ano}
-                            onChange={alterarAno}
-                            maxLength={4}
-                            placeholder="Digite o ano"
-                            className="w-50 m-auto px-2"
-                        />
+                        {/*<input*/}
+                        {/*    type="text"*/}
+                        {/*    value={ano}*/}
+                        {/*    onChange={alterarAno}*/}
+                        {/*    maxLength={4}*/}
+                        {/*    placeholder="Digite o ano"*/}
+                        {/*    className="w-50 m-auto px-2"*/}
+                        {/*/>*/}
+                        <select className={"w-50 m-auto px-2"}>
+                            {listaAnos.map((ano) => (
+                                <option key={ano} value={ano}>{ano}</option>
+                            ))}
+                        </select>
                         <GraficoHistoricoOng dados={dadosGrafico}/>
                     </div>
                 )}
