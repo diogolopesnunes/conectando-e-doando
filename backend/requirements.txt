@@ -9,3 +9,4 @@ logging
 validate-docbr
 fpdf
 pypix
+qrcode

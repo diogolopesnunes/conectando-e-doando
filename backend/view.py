@@ -1,5 +1,6 @@
 import os.path
 from enum import nonmember
+from pix import gerar_qrcode_pix
 
 from flask import Flask, jsonify, request, send_file, Response, make_response, send_from_directory
 import jwt
@@ -70,6 +71,7 @@ def cadastro():
             telefone = request.form.get('telefone')
             imagem = request.files.get('imagem')
             bannerOng = request.files.get('bannerOng')
+            chave_pix = request.form.get('chave_pix')
             email_usuario = email
             if not nome or not email or not senha or not cpf_cnpj or not telefone:
                 return jsonify({
@@ -129,11 +131,11 @@ def cadastro():
                     con.commit()
                 cur.execute("""insert into usuario (nome, email, senha, tipo_de_usuario, cpf_cnpj, tipo_ong,
                                                     descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong,
-                                                    telefone, senha_antiga_2, senha_antiga_3)
-                               values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, null, null) RETURNING id_usuario """,
+                                                    telefone, senha_antiga_2, senha_antiga_3, chave_pix)
+                               values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, null, null, ?) RETURNING id_usuario """,
                             (nome, email, senha_cript, tipo_de_usuario, cpf_cnpj,
                              tipo_ong, descricao_causa, banco_ong, agencia_ong,
-                             conta_ong, cidade_ong, telefone))
+                             conta_ong, cidade_ong, telefone, chave_pix))
                 con.commit()
 
                 cur.execute("""select id_usuario from usuario where email = ?""", (email,))
@@ -378,8 +380,9 @@ def login():
                     destinatario = email
                     assunto = "Ativação de conta"
                     mensagem = "Seu código para ativar sua conta é"
+                    mensagem_secundaria = "Recebemos sua solicitação com sucesso"
 
-                    email_verificacao(destinatario, assunto, mensagem)
+                    email_verificacao(destinatario, assunto, mensagem, mensagem_secundaria)
 
                 except Exception as e:
                     return jsonify({'mensagem': {
@@ -397,7 +400,7 @@ def login():
                     'descricao':"Sua Ong foi recusada reflita"
                 }})
             if check_password_hash(senha_armazenada, senha):
-                token = gerar_token(id_usuario)
+                token = gerar_token(id_usuario,)
 
                 cur.execute('SELECT NOME, TIPO_DE_USUARIO, SITUACAO FROM USUARIO WHERE ID_USUARIO = ?', (id_usuario,))
                 resultado = cur.fetchone()
@@ -539,7 +542,7 @@ def editar_usuario(id_usuario):
                         'cpf_cnpj': usuario[3]
                     }})
             else:
-                cur.execute("""select nome, email, telefone, cpf_cnpj, tipo_ong, descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong
+                cur.execute("""select nome, email, telefone, cpf_cnpj, tipo_ong, descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong, chave_pix
                                from usuario
                                where id_usuario = ?""",
                             (id_usuario,))
@@ -560,7 +563,8 @@ def editar_usuario(id_usuario):
                         'banco_ong': usuario[6],
                         'agencia_ong': usuario[7],
                         'conta_ong': usuario[8],
-                        'cidade_ong': usuario[9]
+                        'cidade_ong': usuario[9],
+                        'chave_pix': usuario[10]
                     }})
         except Exception as e:
             return jsonify({'mensagem': {
@@ -591,6 +595,7 @@ def editar_usuario(id_usuario):
             nome = request.form.get('nome') or infos[1]
             email = request.form.get('email') or infos[2]
             senha = request.form.get('senha')
+            confirmar_senha = request.form.get('confirmar_senha')
             telefone = request.form.get('telefone') or infos[3]
             imagem = request.files.get('imagem')
             banner = request.files.get('bannerOng')
@@ -600,6 +605,7 @@ def editar_usuario(id_usuario):
             agencia_ong = request.form.get('agencia_ong') or infos[7]
             conta_ong = request.form.get('conta_ong') or infos[8]
             cidade_ong = request.form.get('cidade_ong') or infos[9]
+
 
             cur.execute('select 1 from usuario where email = ? and id_usuario != ?', (email, id_usuario,))
             if cur.fetchone():
@@ -631,7 +637,7 @@ def editar_usuario(id_usuario):
                         'descricao': mensagem
                     }}), 400
 
-                mensagem_validacao = validar_senha(senha)
+                mensagem_validacao = validar_senha(senha, confirmar_senha)
                 if mensagem_validacao:
                     return jsonify({'mensagem': {
                         'tipo': 'erro',
@@ -713,6 +719,7 @@ def ativar_desativar_usuario(id_usuario_doador):
 
         data = request.get_json(silent=True) or {}
         mensagem = data.get('mensagem') or ''
+        mensagem_secundaria = data.get('mensagem_secundaria') or ''
 
     except Exception as e:
         return jsonify({'mensagem': {
@@ -747,7 +754,7 @@ def ativar_desativar_usuario(id_usuario_doador):
             con.commit()
 
             if tipo_usuario_select == 0:
-                enviando_email(email,assunto, mensagem, "", nome)
+                enviando_email(email,assunto, mensagem, "", nome, "")
 
             return jsonify({"mensagem": {
                 "tipo":"sucesso",
@@ -758,10 +765,9 @@ def ativar_desativar_usuario(id_usuario_doador):
             assunto = 'Conta Desbloqueada'
             mensagem_email = 'Sua conta foi reativada e pode ser usada novamente'
 
-
             cur.execute("""update usuario set situacao = 1 where id_usuario = ?""", (id_usuario_doador,))
             con.commit()
-            enviando_email(email,assunto, mensagem_email, "", nome)
+            enviando_email(email,assunto, mensagem_email, "", nome, "")
             return jsonify({"mensagem": {
                 "tipo":"sucesso",
                 "descricao":"Usuário Ativado com sucesso",
@@ -777,13 +783,13 @@ def ativar_desativar_usuario(id_usuario_doador):
 
 @app.route('/esqueci_minha_senha', methods=['POST'])
 def esqueci_minha_senha():
-    cur = con.cursor()
     try:
         data = request.get_json()
         destinatario = data.get('email')
 
         assunto = "Recuperação de senha"
         mensagem = f"Seu código para recuperar sua senha é"
+
         email, tipo = email_verificacao(destinatario, assunto, mensagem)
 
         return jsonify({'mensagem': {
@@ -795,8 +801,8 @@ def esqueci_minha_senha():
             'tipo': 'erro',
             'descricao': f'Erro ao enviar email {e}'
         }})
-    finally:
-        cur.close()
+
+
 @app.route('/alterar_senha', methods=['POST'])
 def alterar_senha():
     cur = con.cursor()
@@ -918,6 +924,7 @@ def alterar_senha():
         }}), 500
     finally:
         cur.close()
+
 
 
 @app.route('/logout', methods=['POST'])
@@ -1316,6 +1323,7 @@ def cadastrar_projeto(id_usuario):
                 'tipo':"erro",
                 'descricao':'Meta de doação obrigatória'}}), 400
         try:
+            print(meta_doacao)
             meta_doacao = int(meta_doacao)
         except:
             return jsonify({'mensagem': {
@@ -2600,9 +2608,31 @@ def detalhar_projeto(id_projeto, pagina):
 
         atualizacoes = []
 
-        for post in cur.fetchall():
+        posts = cur.fetchall()
 
+        for post in posts:
             data = post[4]
+
+            # quantidade de curtidas
+            cur.execute("""
+                        SELECT COUNT(id_curtidas)
+                        FROM curtidas_postagem
+                        WHERE fk_post = ?
+                          AND situacao_curtida = 1
+                        """, (post[0],))
+
+            quantidade_curtidas = cur.fetchone()[0]
+
+            # verifica se usuário curtiu
+            cur.execute("""
+                        SELECT id_curtidas
+                        FROM curtidas_postagem
+                        WHERE fk_post = ?
+                          AND fk_usuario_doador = ?
+                          AND situacao_curtida = 1
+                        """, (post[0], id_usuario_logado))
+
+            curtido = True if cur.fetchone() else False
 
             atualizacoes.append({
                 'id_post': post[0],
@@ -2610,13 +2640,30 @@ def detalhar_projeto(id_projeto, pagina):
                 'descricao': post[2],
                 'acao': post[2],
                 'atividade': post[3],
-                'data': (data.strftime('%d/%m/%Y')if data else ''),
-                'hora': (data.strftime('%H:%M')if data else ''),'imagem': f'/uploads/Usuarios/Post_Ong/{post[0]}.jpg'})
+                'quantidade': quantidade_curtidas,
+                'curtido': curtido,
+                'data': data.strftime('%d/%m/%Y') if data else '',
+                'hora': data.strftime('%H:%M') if data else '',
+                'imagem': f'/uploads/Usuarios/Post_Ong/{post[0]}.jpg'
+            })
 
         proximaPagina = pagina + 1
         if proximaPagina > numeroPaginas:
             proximaPagina = 0
-            
+
+        cur.execute("""
+                    SELECT CAST(COALESCE(SUM(valor_doador), 0) AS DOUBLE PRECISION)
+                    FROM doacoes
+                    WHERE fk_projeto = ?
+                    """, (id_projeto,))
+
+        resultado = cur.fetchone()
+
+        total_doado = 0
+
+        if resultado and resultado[0] is not None:
+            total_doado = float(resultado[0])
+
         return jsonify({
             'projeto': {
                 'id_projeto': info[0],
@@ -2624,6 +2671,7 @@ def detalhar_projeto(id_projeto, pagina):
                 'descricao_causa': info[2],
                 'descricao': info[2],
                 'meta_doacao': info[3],
+                'valor_arrecadado': total_doado,
                 'atividade': info[4],
                 'id_ong': info[5],
                 'instituicao': info[6],
@@ -2637,6 +2685,7 @@ def detalhar_projeto(id_projeto, pagina):
             'paginaAnterior': pagina - 1,
             'quantidade': quantidade
         }), 200
+
     except Exception as e:
         return jsonify({
             'mensagem': {
@@ -2730,7 +2779,7 @@ def permitir_recusar_ong(id_usuario, id_ong):
             cur.execute('update usuario set situacao = 1 where id_usuario = ?', (id_ong,))
             con.commit()
             try:
-                enviando_email(email, 'ONG aprovada', 'Sua ONG foi aprovada. Você já pode utilizar o sistema.', '', nome_ong)
+                enviando_email(email, 'ONG aprovada', 'Sua ONG foi aprovada. Você já pode utilizar o sistema.', '', nome_ong, '')
             except Exception:
                 pass
             return jsonify({'mensagem': {'tipo': 'sucesso', 'descricao': 'ONG aprovada com sucesso'}}), 200
@@ -2739,7 +2788,7 @@ def permitir_recusar_ong(id_usuario, id_ong):
             cur.execute('update usuario set situacao = 5 where id_usuario = ?', (id_ong,))
             con.commit()
             try:
-                enviando_email(email, "Sua Ong foi recusada", mensagem, '', nome_ong)
+                enviando_email(email, "Sua Ong foi recusada", mensagem, '', nome_ong, '')
             except Exception:
                 pass
             return jsonify({'mensagem': {'tipo': 'sucesso', 'descricao': 'ONG recusada e email enviado'}}), 200
@@ -3505,41 +3554,51 @@ def descurtir_curtir_post(id_post):
 
             nova_situacao = 0 if situacao == 1 else 1
 
-            if nova_situacao == 0:
-                texto = "Post descurtido"
-            else:
-                texto = "Post curtido"
-
             cur.execute("""
-                UPDATE curtidas_postagem
-                SET SITUACAO_CURTIDA = ?, DATA_HORA = CURRENT_TIMESTAMP
-                WHERE ID_CURTIDAS = ?
-            """, (nova_situacao, id_curtida))
+                        UPDATE curtidas_postagem
+                        SET SITUACAO_CURTIDA = ?,
+                            DATA_HORA        = CURRENT_TIMESTAMP
+                        WHERE ID_CURTIDAS = ?
+                        """, (nova_situacao, id_curtida))
 
             con.commit()
 
+            cur.execute("""
+                        SELECT COUNT(ID_CURTIDAS)
+                        FROM curtidas_postagem
+                        WHERE FK_POST = ?
+                          AND SITUACAO_CURTIDA = 1
+                        """, (id_post,))
+
+            quantidade_curtidas = cur.fetchone()[0]
+
             return jsonify({
-                'mensagem': {
-                    'tipo': 'sucesso',
-                    'descricao': texto
-                },
-                'curtido': nova_situacao == 1
+                'curtido': nova_situacao == 1,
+                'quantidade_curtidas': quantidade_curtidas
             }), 200
 
         else:
+
             cur.execute("""
-                INSERT INTO curtidas_postagem (FK_POST, FK_USUARIO_DOADOR)
-                VALUES (?, ?)
-            """, (id_post, id_usuario))
+                        INSERT INTO curtidas_postagem (FK_POST,
+                                                       FK_USUARIO_DOADOR)
+                        VALUES (?, ?)
+                        """, (id_post, id_usuario))
 
             con.commit()
 
+            cur.execute("""
+                        SELECT COUNT(ID_CURTIDAS)
+                        FROM curtidas_postagem
+                        WHERE FK_POST = ?
+                          AND SITUACAO_CURTIDA = 1
+                        """, (id_post,))
+
+            quantidade_curtidas = cur.fetchone()[0]
+
             return jsonify({
-                'mensagem': {
-                    'tipo': 'sucesso',
-                    'descricao': 'Post curtido'
-                },
-                'curtido': True
+                'curtido': True,
+                'quantidade_curtidas': quantidade_curtidas
             }), 201
 
     except jwt.ExpiredSignatureError:
@@ -3938,11 +3997,9 @@ def editar_comentario(id_mensagem):
 
 @app.route('/adicionar_tipo_ong', methods=['POST'])
 def adicionar_tipo_ong():
-
     cur = con.cursor()
 
     try:
-
         dados = request.get_json()
 
         novo_tipo = dados.get('novo_tipo')
@@ -4214,5 +4271,482 @@ def relatorio_doacoes():
                 'descricao': f'Erro ao gerar relatório {e}'
             }
         })
+    finally:
+        cur.close()
+
+
+@app.route("/enviar_pix", methods=['POST'])
+def enviar_pix():
+    dados = request.get_json()
+    if not dados:
+        return jsonify({
+            'mensagem': {'tipo': 'erro', 'descricao': 'Corpo da requisição vazio ou inválido'}
+        }), 400
+
+    id_projeto = dados.get('id_projeto')
+    id_ong = dados.get('id_ong')
+    valor_doacao = dados.get('valor')
+
+    token = request.cookies.get('access_token')
+
+    if not token:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Token necessário'
+            }
+        }), 401
+
+    cur = con.cursor()
+
+    try:
+        dados_token = jwt.decode(
+            token,
+            senha_secreta,
+            algorithms=['HS256']
+        )
+
+        id_token = dados_token['id_usuario']
+
+        cur.execute(
+            'SELECT tipo_de_usuario, nome, email FROM usuario WHERE id_usuario = ?',
+            (id_token,)
+        )
+
+        usuario = cur.fetchone()
+
+        if not usuario:
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Usuário não encontrado'
+                }
+            }), 404
+
+        res_usuario = usuario[0]
+        
+        if res_usuario != 0:
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Apenas Doadores podem realizar um PIX'
+                }
+            }), 403
+
+        cur.execute('SELECT NOME, CIDADE_ONG, CHAVE_PIX, EMAIL FROM USUARIO WHERE ID_USUARIO = ?', (id_ong,))
+        dados_ong = cur.fetchone()
+
+        if not dados_ong:
+            return jsonify({
+                'mensagem': {'tipo': 'erro', 'descricao': 'ONG não encontrada'}
+            }), 404
+        
+        email_ong = dados_ong[3]
+        nome_ong = dados_ong[0]
+        cidade_ong = dados_ong[1]
+        chave_pix = dados_ong[2]
+
+        nome_projeto = None
+        if id_projeto is not None:
+            cur.execute('SELECT NOME, FK_USUARIO_ONG FROM PROJETO_ONG WHERE ID_PROJETO = ?', (id_projeto,))
+            projeto_row = cur.fetchone()
+
+            if not projeto_row[0]:
+                return jsonify({
+                    'mensagem': {'tipo': 'erro', 'descricao': 'Projeto não existe'}
+                }), 404
+
+            id_projeto_ong = projeto_row[1]
+
+            if int(id_projeto_ong) != int(id_ong):
+                return jsonify({
+                    'mensagem':{
+                        'tipo':'erro',
+                        'descricao':'Esse projeto não é dessa ong'
+                    }
+                })
+
+
+            else:
+
+                nome_projeto = projeto_row[0]
+
+                cur.execute(
+                    'INSERT INTO DOACOES(FK_USUARIO_ONG, FK_USUARIO_DOADOR, FK_PROJETO, VALOR_DOADOR) VALUES (?, ?, ?, ?) RETURNING ID_DOACAO',
+                    (id_ong, id_token, id_projeto, valor_doacao)
+                )
+                id_doacao = cur.fetchone()[0]
+    
+                arquivo = f"{id_doacao}.png"
+    
+                con.commit()
+        if nome_projeto:
+            gerar_qrcode_pix(chave_pix, nome_projeto, cidade_ong, valor_doacao, arquivo)
+        
+            enviando_email(
+                usuario[2],
+                f"Pagamento efetuado com sucesso",
+                f"Valor enviado de R$:{valor_doacao} para o Projeto {nome_projeto} com sucesso",
+                "",
+                usuario[1],
+                "Obrigado pela doação"
+            )
+        
+            enviando_email(
+                email_ong,
+                f"Valor recebido de {usuario[2]} para o projeto {nome_projeto}",
+                f"Valor recebido de R$:{valor_doacao}, do doador {usuario[1]}.",
+                "",
+                nome_ong,
+                ""
+            )
+
+        else:
+            gerar_qrcode_pix(chave_pix, nome_ong, cidade_ong, valor_doacao, arquivo)
+
+            enviando_email(
+                usuario[2],
+                f"Pagamento efetuado com sucesso",
+                f"Valor enviado de R$:{valor_doacao} para a ONG {nome_ong} com sucesso",
+                "",
+                usuario[1],
+                "Obrigado pela a doação"
+            )
+
+            enviando_email(
+                email_ong,
+                f"Valor recebido de {usuario[2]}",
+                f"Valor recebido de R$:{valor_doacao}, do doador {usuario[1]}.",
+                "",
+                nome_ong,
+                "Gaste o Dinheiro em algum dos seus projeto"
+            )
+
+        return jsonify({
+            'mensagem': {
+                'tipo': 'sucesso',
+                'descricao': 'Pix gerado com sucesso'
+            }
+        }), 200
+
+    except Exception as e:
+        con.rollback()
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': f'Erro ao fazer o pix: {str(e)}'
+            }
+        }), 500
+
+    finally:
+        cur.close()
+        
+@app.route("/historico/<int:pagina>", methods=['GET'])
+def historico(pagina):
+
+    token = request.cookies.get('access_token')
+
+    if not token:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Token necessário'
+            }
+        }), 401
+
+    cur = con.cursor()
+
+    try:
+        dados = jwt.decode(
+            token,
+            senha_secreta,
+            algorithms=['HS256']
+        )
+
+        id_token = dados['id_usuario']
+
+        cur.execute("""
+            SELECT tipo_de_usuario
+            FROM usuario
+            WHERE id_usuario = ?
+        """, (id_token,))
+
+        tipo_usuario = cur.fetchone()[0]
+
+        id_usuario_param = request.args.get('id_usuario')
+
+        if id_usuario_param:
+            if tipo_usuario != 2:
+                return jsonify({
+                    'mensagem': {
+                        'tipo': 'erro',
+                        'descricao': 'Apenas administradores podem acessar histórico de outro usuário'
+                    }
+                }), 403
+
+            id_usuario = int(id_usuario_param)
+
+        else:
+            id_usuario = id_token
+        cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_usuario,))
+        tipo_usuario_historico = cur.fetchone()
+        if not tipo_usuario_historico:
+            return jsonify({'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Usuário não encontrado'
+            }})
+        tipo_usuario_historico = tipo_usuario_historico[0]
+        filtro = request.args.get('nome', '')
+        
+        if tipo_usuario_historico == 0:
+            filtro_sql = " UPPER(ong.nome) LIKE UPPER(?)"
+
+        elif tipo_usuario_historico == 1:
+            filtro_sql = " UPPER(doador.nome) LIKE UPPER(?)"
+
+        else:
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Tipo de usuário inválido para histórico'
+                }
+            }), 400
+
+        
+        cur.execute(f"""
+            SELECT COUNT(*)
+            FROM doacoes d
+
+            LEFT JOIN usuario ong
+                ON ong.id_usuario = d.fk_usuario_ong
+
+            LEFT JOIN usuario doador
+                ON doador.id_usuario = d.fk_usuario_doador
+
+            WHERE 
+                (
+                    d.fk_usuario_doador = ?
+                    OR d.fk_usuario_ong = ?
+                )
+                AND {filtro_sql}
+        """, (
+            id_usuario,
+            id_usuario,
+            f"%{filtro}%"
+        ))
+
+        quantidade = cur.fetchone()[0]
+
+        numeroPaginas = math.ceil(quantidade / quantidadePorPagina)
+
+        minimo = ((pagina - 1) * quantidadePorPagina) + 1
+        maximo = pagina * quantidadePorPagina
+
+        proximaPagina = pagina + 1
+
+        if proximaPagina > numeroPaginas:
+            proximaPagina = 0
+
+        paginaAnterior = pagina - 1
+
+        if (paginaAnterior <
+                1):
+            paginaAnterior = 0
+
+        cur.execute(f"""
+            SELECT
+                ong.nome,
+                projeto.nome,
+                doador.nome,
+                doador.email,
+                d.valor_doador,
+                d.data_hora,
+                d.fk_usuario_doador,
+                d.fk_usuario_ong
+            FROM doacoes d
+
+            LEFT JOIN usuario ong
+                ON ong.id_usuario = d.fk_usuario_ong
+
+            LEFT JOIN projeto_ong projeto
+                ON projeto.id_projeto = d.fk_projeto
+
+            LEFT JOIN usuario doador
+                ON doador.id_usuario = d.fk_usuario_doador
+
+            WHERE 
+                (
+                    d.fk_usuario_doador = ?
+                    OR d.fk_usuario_ong = ?
+                )
+                AND {filtro_sql}
+
+            ORDER BY d.data_hora DESC
+            ROWS ? TO ?
+        """, (
+            id_usuario,
+            id_usuario,
+            f"%{filtro}%",
+            minimo,
+            maximo
+        ))
+
+
+        resultados = cur.fetchall()
+
+        historico = []
+
+        for doacao in resultados:
+            historico.append({
+                'nome_ong': doacao[0],
+                'nome_projeto': doacao[1],
+                'nome_doador': doacao[2],
+                'email_doador': doacao[3],
+                'valor': float(doacao[4]),
+                'data': doacao[5].strftime('%d/%m/%Y'),
+                'hora': doacao[5].strftime('%H:%M'),
+                'id_doador': doacao[6],
+                'id_ong': doacao[7],
+                'tipo_historico': 'doacao_feita' if doacao[6] == id_usuario else 'doacao_recebida'
+            })
+
+        return jsonify({
+            'historico': historico,
+            'numeroPaginas': numeroPaginas,
+            'proximaPagina': proximaPagina,
+            'paginaAnterior': paginaAnterior,
+            'quantidade': quantidade
+        }), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Sessão expirada'
+            }
+        }), 401
+
+    except jwt.InvalidTokenError:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Token inválido'
+            }
+        }), 401
+
+    except Exception as e:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': f'Erro ao buscar histórico: {e}'
+            }
+        }), 500
+
+    finally:
+        cur.close()
+
+
+@app.route('/estatisticas_admin', methods=['GET'])
+def estatisticas_admin():
+
+    token = request.cookies.get('access_token')
+
+    if not token:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Token necessário'
+            }
+        }), 401
+
+    cur = con.cursor()
+
+    try:
+
+        dados = jwt.decode(
+            token,
+            senha_secreta,
+            algorithms=['HS256']
+        )
+
+        tipo_usuario = dados['tipo_usuario']
+
+        # verifica ADM
+        if tipo_usuario != 2:
+
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Acesso negado'
+                }
+            }), 403
+
+        ano_atual = datetime.now().year
+
+        # TOTAL DOAÇÕES
+        cur.execute(f"""
+            SELECT COALESCE(SUM(valor_doador), 0)
+            FROM doacao
+            WHERE EXTRACT(YEAR FROM data_hora) = {ano_atual}
+        """)
+
+        valor_total_doacoes = float(cur.fetchone()[0])
+
+        # NOVOS DOADORES
+        cur.execute(f"""
+            SELECT COUNT(id_usuario)
+            FROM usuario
+            WHERE tipo_usuario = 0
+              AND EXTRACT(YEAR FROM data_cadastro) = {ano_atual}
+        """)
+
+        novos_doadores = cur.fetchone()[0]
+
+        # NOVAS ONGS
+        cur.execute(f"""
+            SELECT COUNT(id_usuario)
+            FROM usuario
+            WHERE tipo_usuario = 1
+              AND EXTRACT(YEAR FROM data_cadastro) = {ano_atual}
+        """)
+
+        novas_ongs = cur.fetchone()[0]
+
+        return jsonify({
+            'estatisticas': {
+                'ano': ano_atual,
+                'valor_total_doacoes': valor_total_doacoes,
+                'novos_doadores': novos_doadores,
+                'novas_ongs': novas_ongs
+            }
+        }), 200
+
+    except jwt.ExpiredSignatureError:
+
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Sessão expirada'
+            }
+        }), 401
+
+    except jwt.InvalidTokenError:
+
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Token inválido'
+            }
+        }), 401
+
+    except Exception as e:
+
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': f'Erro ao buscar estatísticas: {e}'
+            }
+        }), 500
+
     finally:
         cur.close()
