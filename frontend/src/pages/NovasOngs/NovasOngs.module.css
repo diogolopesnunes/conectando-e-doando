@@ -4,3 +4,7 @@
     border: 1px solid var(--cor-borda);
     padding: 3px !important;
 }
+
+.minimoAltura {
+    min-height: 50% !important;
+}

@@ -60,6 +60,7 @@ export default function PaginaProjeto({ api }) {
         form.append("nome", nome);
         form.append("descricao", descricao);
         form.append("meta_doacao", meta_doacao);
+        console.log(meta_doacao);
 
         if (imagem) {
             form.append("imagem", imagem);
@@ -138,7 +139,7 @@ export default function PaginaProjeto({ api }) {
                                     tipoInp="text"
                                     placeholder="Ex: 1000"
                                     value={meta_doacao}
-                                    funcao={(e) => setMeta(e.target.value.replace(/\D/g, ""))}
+                                    funcao={(e) => setMeta(e.target.value)}
                                     inputMode="numeric"
                                     maxlength={10}
                                     mask={'cash'}

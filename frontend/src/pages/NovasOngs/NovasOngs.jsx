@@ -84,9 +84,9 @@ export default function NovasOngs({api}) {
     return(
         <>
             {idUsuario && <Nav/>}
-            <div className={'container m-auto'}>
+            <div className={'container m-auto formataAltura'}>
                 <div className={'row'}>
-                    <div className="col-10 m-auto d-flex flex-column">
+                    <div className={"col-10 m-auto d-flex flex-column "}>
                         {localStorage.getItem('id_usuario') ? (
                             <div className="my-3 d-flex gap-3 flex-column flex-md-row">
                                 <Input

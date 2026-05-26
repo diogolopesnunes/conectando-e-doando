@@ -4,12 +4,15 @@ import Card from "../../components/Card/Card.jsx";
 import Titulo from "../../components/Titulo/Titulo.jsx";
 import OngCausa from "../../components/Componentes Home/OngCausa/OngCausa.jsx";
 import css from "./Home.module.css"
-import {Link} from "react-router-dom";
+import Nav from "../../components/Nav/Nav.jsx";
 
 export default function Home({quemSomos, ongs, doacoes}) {
 
     return (
         <div className="container-fluid">
+            {localStorage.getItem('id_usuario') && (
+                <Nav/>
+            )}
             <div className="row">
                 <div className="col-12">
                     <Banner

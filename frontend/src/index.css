@@ -58,7 +58,7 @@
 }
 
 .formataAltura{
-    min-height: calc(100vh - 180px);
+    min-height: calc(100vh - 190px);
 }
 
 a.active {

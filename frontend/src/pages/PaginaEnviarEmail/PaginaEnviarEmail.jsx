@@ -13,6 +13,7 @@ export default function PaginaEnviarEmail({ api }) {
     const navigate = useNavigate();
     const [assunto, setAssunto] = useState(null);
     const [mensagemEmail, setMensagemEmail] = useState("");
+    const [mensagemSecundariaEmail, setMensagemSecundariaEmail] = useState("");
     const [mensagem, setMensagem] = useState("");
     const [tipoMensagem, setTipoMensagem] = useState("");
     const idAdm = localStorage.getItem("id_usuario");
@@ -41,7 +42,7 @@ export default function PaginaEnviarEmail({ api }) {
                 method: "PUT",
                 headers: {"Content-Type": "application/json"},
                 credentials: "include",
-                body: JSON.stringify({acao: 0, assunto, mensagem: mensagemEmail})
+                body: JSON.stringify({acao: 0, assunto, mensagem: mensagemEmail, descricao: mensagemSecundariaEmail})
             });
         } else {
             resposta = await fetch(`${api}/permitir_recusar_ong/${idAdm}/${id_ong}`, {
@@ -71,6 +72,7 @@ export default function PaginaEnviarEmail({ api }) {
                         {mensagem && <Alerts tipo={tipoMensagem} imagem={`/public/${tipoMensagem}.png`} duracao={10000} descricao={mensagem} />}
                         <Form largura="maior" titulo={rotaReprovar ? 'Motivo da reprova' : 'Motivo do bloqueio'} onSubmit={enviar}>
                             <Input tipoInp={"textarea"} label={"Mensagem:"} htmlFor={"mensagem"} placeholder={"Digite a mensagem"} value={mensagemEmail} funcao={(e) => setMensagemEmail(e.target.value)} />
+                            <Input tipoInp={"textarea"} label={"Descrição:"} htmlFor={"mensagem_secundaria"} placeholder={"Digite a descrição"} value={mensagemSecundariaEmail} funcao={(e) => setMensagemSecundariaEmail(e.target.value)} />
                             <div className="my-3">
                                 <Buton texto={loading ? "Enviando..." : "Enviar"} tamanho={"medio"} background={"laranja"} tipo={"submit"} disabled={loading} />
                             </div>

@@ -25,6 +25,8 @@ export default function PaginaProjeto({ api, info }) {
     const [quantidadePost, setQuantidadePost] = useState(0)
     const [idOng, setIdOng] = useState('')
     const [seguindo, setSeguindo] = useState(false);
+    const [porcentagem, setPorcentagem] = useState(0)
+
 
     useEffect(() => {
         if (!localStorage.getItem("email") || !localStorage.getItem("id_usuario")) {
@@ -49,6 +51,15 @@ export default function PaginaProjeto({ api, info }) {
             setQuantidadePost(retorno.quantidade)
             setIdOng(retorno.projeto.id_ong)
             setSeguindo(retorno.projeto.seguindo);
+
+            const valorArrecadado = retorno.projeto.valor_arrecadado
+            const meta = retorno.projeto.meta_doacao
+            if (meta > 0){
+                setPorcentagem(Number(((valorArrecadado / meta) * 100).toFixed(1)))
+            }
+            else{
+                setPorcentagem(0);
+            }
         } else if (retorno.mensagem) {
             alert(retorno.mensagem.descricao || retorno.mensagem.mensagem);
         }
@@ -110,6 +121,17 @@ export default function PaginaProjeto({ api, info }) {
         if (id_projeto) buscarProjeto();
     }, [id_projeto, pagina]);
 
+    function formatarDinheiro(valor) {
+        const numero = Number(valor || 0);
+
+        return numero.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
     return (
         <div className={"m-auto container " + css.containerPrincipal}>
             <Nav />
@@ -148,24 +170,20 @@ export default function PaginaProjeto({ api, info }) {
                                     <div className={css.valoresMeta}>
                                         <span>
                                             <strong>Valor Arrecadado:</strong>
-                                            <span className={css.valorLaranja}> R$ 0,00</span>
+                                            <span className={css.valorLaranja}>{` R$${formatarDinheiro(projeto.valor_arrecadado)}`}</span>
                                         </span>
                                         <span>
                                             <strong>Meta de Doações:</strong>
-                                            <span className={css.valorLaranja}>{` R$${projeto.meta_doacao},00`}</span>
+                                            <span className={css.valorLaranja}>{` R$${formatarDinheiro(projeto.meta_doacao)}`}</span>
                                         </span>
                                     </div>
 
                                     <div className={css.barraProgressoContainer}>
-                                        <span className={css.porcentagemTexto}>0.0%</span>
-                                        <div className={css.barraFundo}>
-                                            <div
-                                                className={css.barraPreenchida}
-
-                                            ></div>
-                                        </div>
+                                        <span className={css.porcentagemTexto}>{porcentagem}%</span>
+                                            <progress className={`${css.barraFundo} ${porcentagem >= 100 ? css.barraCheia : ""}`} value={Math.min(porcentagem, 100)} max={100}></progress>
                                     </div>
                                 </div>
+
 
                                 <SecaoAtualizacoes
                                     atualizacoes={projeto.atualizacoes || []}

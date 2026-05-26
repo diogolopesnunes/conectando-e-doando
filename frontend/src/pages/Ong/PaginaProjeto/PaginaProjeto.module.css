@@ -65,21 +65,52 @@
 
 .barraFundo {
     flex-grow: 1;
-    background-color: #f0f0f0;
     height: 38px; /* Altura generosa para a barra */
     border-radius: 25px;
     overflow: hidden;
     border: 1px solid #d1d1d1;
+
 }
 
-.barraPreenchida {
-    background-color: #e6e6e6; /* Roxo vibrante */
-    height: 100%;
+.barraFundo::-webkit-progress-bar {
+    background-color: #d9d9d9;
     border-radius: 25px;
-    transition: width 0.3s ease;
 }
 
+.barraFundo::-webkit-progress-value {
+    background: linear-gradient(
+            to right,
+            var(--roxo) 90%,
+            #d9d9d9 100%
+    );
+    border-radius: 25px;
+}
+.barraFundo::-moz-progress-bar {
+    background: linear-gradient(
+            to right,
+            var(--roxo) 90%,
+            #d9d9d9 100%
+    );
+    border-radius: 25px;
+}
 
+.barraCheia::-webkit-progress-value {
+    background: linear-gradient(
+            to right,
+            var(--laranja) 90%,
+            color-mix(var(--laranja) 80%,transparent),
+            color-mix(var(--laranja) 75%,transparent)
+    );
+}
+
+.barraCheia::-moz-progress-bar {
+    background: linear-gradient(
+            to right,
+            var(--laranja) 90%,
+            color-mix(var(--laranja) 80%,transparent),
+            color-mix(var(--laranja) 75%,transparent)
+    );
+}
 
 @media (max-width: 769px) {
     .valoresMeta {

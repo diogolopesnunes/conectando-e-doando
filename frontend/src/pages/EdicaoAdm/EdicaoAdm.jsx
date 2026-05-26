@@ -90,6 +90,8 @@ export default function EdicaoAdm({ api }) {
         form.append("telefone", telefone);
 
         if (senha) form.append("senha", senha);
+        console.log(confirmarSenha)
+        if (confirmarSenha) form.append("confirmar_senha", confirmarSenha);
         if (imagem) form.append("imagem", imagem);
 
         let res = await fetch(`${api}/editar_usuario/${idUsuario}`, {

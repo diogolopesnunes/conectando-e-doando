@@ -58,11 +58,6 @@ export default function DashboardAdmAdm({ api }) {
 
 
 
-    function trocarFiltro(valor) {
-        setAprovacao(valor);
-        setPagina(1);
-    }
-
     const [mensagem, setMensagem] = useState(null);
 
     function mostrarMensagem(msg) {

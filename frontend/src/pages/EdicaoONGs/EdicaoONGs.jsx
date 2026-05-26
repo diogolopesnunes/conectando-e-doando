@@ -30,6 +30,7 @@ export default function EditarOng({ api }) {
     const [bacoOng, setBacoOng] = useState('');
     const [agenciaOng, setAgenciaOng] = useState('');
     const [contaOng, setContaOng] = useState('');
+    const [chavePix, setChavePix] = useState('');
 
     const [imagem, setImagem] = useState(null);
     const [preview, setPreview] = useState(null);
@@ -70,6 +71,7 @@ export default function EditarOng({ api }) {
                 setAgenciaOng(res.usuario.agencia_ong);
                 setContaOng(res.usuario.conta_ong);
                 setTelefone(res.usuario.telefone);
+                setChavePix(res.usuario.chave_pix);
             }
             else if (res.mensagem){
                 setMensagem(res.mensagem.descricao);
@@ -106,7 +108,7 @@ export default function EditarOng({ api }) {
     async function editar(e) {
         e.preventDefault();
 
-        if (senha && senha !== confirmarSenha) {
+        if (senha && senha != confirmarSenha) {
             setMensagem("As senhas não coincidem");
             setTipoMensagem("erro");
             return;
@@ -122,6 +124,9 @@ export default function EditarOng({ api }) {
         form.append("banco_ong", bacoOng);
         form.append("agencia_ong", agenciaOng);
         form.append("conta_ong", contaOng);
+        form.append("chave_pix", chavePix);
+        form.append('senha', senha)
+        form.append('confirmar_senha', confirmarSenha)
 
         if (senha) form.append("senha", senha);
         if (imagem) form.append("imagem", imagem);
@@ -251,6 +256,8 @@ export default function EditarOng({ api }) {
                             <Input obrigatorio={"Sim"} label="Agência" tipoInp="text" value={agenciaOng} funcao={(e)=>setAgenciaOng(e.target.value)} />
 
                             <Input obrigatorio={"Sim"} label="Conta" tipoInp="text" value={contaOng} funcao={(e)=>setContaOng(e.target.value)} />
+
+                            <Input obrigatorio={"Sim"} label="Chave Pix" tipoInp="text" value={chavePix} funcao={(e)=>setChavePix(e.target.value)} />
 
                             <div className="w-100 flex-column d-flex justify-content-center align-items-center mb-4">
                                 <label className="mb-3 fw-bold">Logo da ONG</label>

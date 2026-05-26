@@ -375,7 +375,7 @@ export default function Feed({ api }) {
         <>
             {localStorage.getItem('id_usuario') && <Nav />}
 
-            <div className="container m-auto">
+            <div className="container m-auto formataAltura">
                 <div className="row">
                     {mensagem && (
                         <div className="col-12">
@@ -600,7 +600,7 @@ export default function Feed({ api }) {
                                 seguindoInicial={post.seguindo}
                                 aoAlterarSeguimento={atualizarSeguimento}
                                 aoAlterarOngsFavoritas={atualizarOngsFavoritas}
-                                atualizarQuantidadeComentarios={atualizarQuantidadeComentarios} // ADICIONE
+                                atualizarQuantidadeComentarios={atualizarQuantidadeComentarios}
                                 temaOng={post.tema}
                                 comentario={comentario}
                                 setComentario={setComentario}

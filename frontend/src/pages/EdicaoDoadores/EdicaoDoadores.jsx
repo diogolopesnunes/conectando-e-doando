@@ -77,6 +77,11 @@ export default function EdicaoDoadores({ api }) {
     async function editar(e) {
         e.preventDefault();
 
+        console.log({
+            senha,
+            confirmarSenha
+        });
+
         if (senha && senha !== confirmarSenha) {
             setMensagem("As senhas não coincidem");
             setTipoMensagem("erro");
@@ -90,6 +95,7 @@ export default function EdicaoDoadores({ api }) {
         form.append("telefone", telefone);
 
         if (senha) form.append("senha", senha);
+        if (confirmarSenha) form.append("confirmar_senha", confirmarSenha);
         if (imagem) form.append("imagem", imagem);
 
         let res = await fetch(`${api}/editar_usuario/${idUsuario}`, {

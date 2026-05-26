@@ -51,6 +51,7 @@ export default function PaginaCadastro({api}) {
     const [bacoOng, setBacoOng] = useState('')
     const [agenciaOng, setAgenciaOng] = useState('')
     const [contaOng, setContaOng] = useState('')
+    const [chavePix, setChavePix] = useState('')
     const [cidadeOng, setCidadeOng] = useState('')
     const [telefone, setTelefone] = useState('')
     const [imagem, setImagem] = useState(false)
@@ -99,6 +100,7 @@ export default function PaginaCadastro({api}) {
         form.append("conta_ong", contaOng)
         form.append("cidade_ong",cidadeOng)
         form.append("telefone", telefone)
+        form.append("chave_pix", chavePix)
 
         if (imagem) {
             form.append("imagem", imagem)
@@ -243,6 +245,8 @@ export default function PaginaCadastro({api}) {
                                     <Input obrigatorio={"Sim"} htmlFor={'banco'} label={'Banco:'} tipoInp={'text'} placeholder={'Informe qual seu banco'} value={bacoOng} funcao={(f) => setBacoOng(f.target.value)}/>
                                     <Input obrigatorio={"Sim"} htmlFor={'agencia'} label={'Agencia:'} tipoInp={'text'} placeholder={'Informe a agencia bancária'} value={agenciaOng} funcao={(f) => setAgenciaOng(f.target.value)}/>
                                     <Input obrigatorio={"Sim"} htmlFor={'conta'} label={'Conta:'} tipoInp={'text'} placeholder={'Informe a conta bancária'} value={contaOng} funcao={(f) => setContaOng(f.target.value)}/>
+                                    <Input obrigatorio={"Sim"} htmlFor={'chave'} label={'Chave PIX:'} tipoInp={'text'} placeholder={'Informe a chave pix'} value={chavePix} funcao={(f) => setChavePix(f.target.value)}/>
+
 
                                     <div className={"w-100 flex-column d-flex justify-content-center align-items-center mb-5"}>
                                         <label className={"mb-3 fw-bold"}>Ícone da ONG</label>

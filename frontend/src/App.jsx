@@ -26,11 +26,14 @@ import EdicaoDoadores from "./pages/EdicaoDoadores/EdicaoDoadores.jsx";
 import CadastroAdm from "./pages/PaginaCadastro/PaginaCadastro.jsx";
 import EdicaoAdm from "./pages/EdicaoAdm/EdicaoAdm.jsx"
 import NovasOngs from "./pages/NovasOngs/NovasOngs.jsx";
+import Historico from "./pages/Historico/Historico.jsx";
+import EstatisticaAdm from "./pages/EstatisticasAdm/EstatisticasAdm.jsx";
+import Pagamento from "./pages/Pagamento/Pagamento.jsx";
 
 
 export default function App() {
 
-    const api = "http://10.92.3.146:5000"
+    const api = "http://192.168.1.18:5000"
 
     const quemSomos = useRef(null);
     const doacoes = useRef(null);
@@ -134,10 +137,13 @@ export default function App() {
                 <Route path={'/enviar_email/:id_ong'} element={<PaginaEnviarEmail api={api}/>} />
                 <Route path={'/enviar_email_bloquear/:id_ong'} element={<PaginaEnviarEmail api={api}/>} />
                 <Route path={'/dashboard_adm_doador'} element={<DashboardAdmDoador api={api}/>} />
-                <Route path="/cadastroadm" element={<CadastroAdm api={api}/>}/>
-
+                <Route path={"/cadastroadm"} element={<CadastroAdm api={api}/>}/>
                 <Route path={'/feed'} element={<Feed api={api}/>} />
                 <Route path={'/novas_ongs'} element={<NovasOngs api={api}/>}/>
+                <Route path={'/historico_doador'} element={<Historico api={api}/>}/>
+                <Route path={'/historico_ong'} element={<Historico api={api}/>}/>
+                <Route path={'/estatisticas'} element={<EstatisticaAdm api={api}/>}/>
+                <Route path={'/pagamento'} element={<Pagamento api={api}/>}/>
 
                 <Route path="*" element={<Erro/>} />
             </Routes>
