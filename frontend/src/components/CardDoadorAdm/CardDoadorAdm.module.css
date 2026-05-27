@@ -31,10 +31,49 @@
     position: relative;
 }
 
+.hamburguer {
+    padding: 30px;
+    width: 30px;
+    height: 30px;
+    position: relative;
+
+    transition: 0.5s;
+
+}
+
+.hamburguer.girar {
+    transform: rotate(-90deg);
+}
+
+.hamburguer.girar + .opcoesExpansivo {
+    display: block !important;
+    opacity: 1;
+}
+
 .opcoesExpansivo {
     position: absolute;
-    top: 10px;
-    right: 50px;
+    top: 0px;
+    right: 39px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(20px);
+
+    width: 150px;
+    background-color: var(--branco);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+
+    transition: opacity 0.5s ease, visibility 0.5s ease, transform 0.5s ease;
+}
+
+.hamburguer.girar + .opcoesExpansivo {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
+
+.opcoesExpansivoConteudo{
+    width: 100%;
+    height: 100%;
 }
 
 .linhaAtivo, .linhaBloqueado, .linhaDesativado, .linhaPendente{
