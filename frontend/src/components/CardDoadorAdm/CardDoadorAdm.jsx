@@ -20,6 +20,7 @@ export default function CardDoadorAdm({
 
 
     const [loadingBloquear, setLoadingBloquear] = useState(false);
+    const [hoverMenu, setHoverMenu] = useState(false);
 
     const status = Number(situacao);
 
@@ -131,47 +132,52 @@ export default function CardDoadorAdm({
 
 
                 {status !== 4 && status !== 0 && (
-                    <>
-                        <div>
-                            <p>...</p>
+                    <div
+                        onMouseEnter={() => setHoverMenu(true)}
+                        onMouseLeave={() => setHoverMenu(false)}
+                    >
+                        <div className={`d-flex ${css.hamburguer} ${hoverMenu ? css.girar : ''}`}>
+                            <img src="./redirecionamento.png" alt="Hamburguer" />
                         </div>
+                        <div className={`p-2 rounded ${css.opcoesExpansivo} ${hoverMenu ? css.expandir : ''}`}>
+                            <p className={"text-center fw-bold fs-5"}>Opções</p>
+                            <div className={`d-flex flex-column align-items-center justify-content-center m-auto gap-2 p-2 ${css.opcoesExpansivoConteudo}`}>
+                                {[2, 3, 5].includes(status) && (
+                                    <Buton
+                                        texto={'Excluir'}
+                                        background={'vermelho'}
+                                        tamanho={'pequeno'}
+                                        onClick={excluirUsuario}
+                                    />
+                                )}
 
-                        <div className={`d-flex gap-2 flex-column ${css.opcoesExpansivo}`}>
-                            {[2, 3, 5].includes(status) && (
                                 <Buton
-                                    texto={'Excluir'}
-                                    background={'vermelho'}
+                                    texto={'Editar'}
+                                    background={'roxo'}
                                     tamanho={'pequeno'}
-                                    onClick={excluirUsuario}
+                                    rota={`/edicao_doadores/${id}`}
                                 />
-                            )}
 
-                            <Buton
-                                texto={'Editar'}
-                                background={'roxo'}
-                                tamanho={'pequeno'}
-                                rota={`/edicao_doadores/${id}`}
-                            />
-
-                            {status === 1 ? (
-                                <Buton
-                                    texto={loadingBloquear ? 'Bloqueando...' : 'Bloquear'}
-                                    background={'rosa'}
-                                    tamanho={'pequeno'}
-                                    disabled={loadingBloquear}
-                                    rota={`/enviar_email_bloquear/${id}`}
-                                />
-                            ) : (status === 2 || status === 3) ? (
-                                <Buton
-                                    texto={loadingBloquear ? 'Desbloqueando...' : 'Desbloquear'}
-                                    background={'laranja'}
-                                    tamanho={'pequeno'}
-                                    onClick={bloquearDesbloquear}
-                                    disabled={loadingBloquear}
-                                />
-                            ) : null}
+                                {status === 1 ? (
+                                    <Buton
+                                        texto={loadingBloquear ? 'Bloqueando...' : 'Bloquear'}
+                                        background={'rosa'}
+                                        tamanho={'pequeno'}
+                                        disabled={loadingBloquear}
+                                        rota={`/enviar_email_bloquear/${id}`}
+                                    />
+                                ) : (status === 2 || status === 3) ? (
+                                    <Buton
+                                        texto={loadingBloquear ? 'Desbloqueando...' : 'Desbloquear'}
+                                        background={'laranja'}
+                                        tamanho={'pequeno'}
+                                        onClick={bloquearDesbloquear}
+                                        disabled={loadingBloquear}
+                                    />
+                                ) : null}
+                            </div>
                         </div>
-                    </>
+                    </div>
                 )}
             </div>
         </div>
