@@ -10,3 +10,4 @@ validate-docbr
 fpdf
 pypix
 qrcode
+image
