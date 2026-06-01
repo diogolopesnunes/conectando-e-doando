@@ -33,7 +33,7 @@ import Pagamento from "./pages/Pagamento/Pagamento.jsx";
 
 export default function App() {
 
-    const api = "http://10.246.249.202:5000"
+    const api = "http://10.92.3.155:5000"
 
     const quemSomos = useRef(null);
     const doacoes = useRef(null);

@@ -21,8 +21,13 @@ export default function EstatisticaAdm({api}) {
     const [estatisticas, setEstatisticas] = useState({
         valor_total_doacoes: 0,
         novos_doadores: 0,
-        novas_ongs: 0
+        novas_ongs: 0,
+        dados_grafico: []
     });
+
+    const [ano, setAno] = useState(new Date().getFullYear());
+    const [listaAnos, setListaAnos] = useState([]);
+    const esteAno = new Date().getFullYear()
 
     useEffect(() => {
         buscarEstatisticas();
@@ -56,10 +61,41 @@ export default function EstatisticaAdm({api}) {
                 }
                 setValorDoacoes(`${valorTotal} ${monetario[quantidade]}`)
                 console.log(`${valorTotal} ${monetario[quantidade]}`)
+                setListaAnos(retorno.estatisticas.anos)
+                console.log(retorno.estatisticas.anos)
             }
 
         } catch (erro) {
+            console.log(erro);
+        }
+    }
 
+    async function baixarRelatorio() {
+        try {
+            const resposta = await fetch(`${api}/gerar_relatorio`, {
+                method: "GET",
+                credentials: "include"
+            });
+
+            if (!resposta.ok) {
+                const retorno = await resposta.json();
+                alert(retorno.mensagem.descricao);
+                return;
+            }
+
+            const blob = await resposta.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "relatorio_admin.pdf";
+            document.body.appendChild(link);
+            link.click();
+
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+        } catch (erro) {
             console.log(erro);
         }
     }
@@ -77,13 +113,28 @@ export default function EstatisticaAdm({api}) {
 
                     <CardEstatistica texto={"Número de ONGs novas no ano:"} valor={estatisticas.novas_ongs} />
 
+                    <Buton
+                        texto="Gerar relatório"
+                        background="laranja"
+                        tamanho="medio"
+                        onClick={baixarRelatorio}
+                    />
+
                 </section>
 
-                <div className={"col-8 d-flex justify-content-center align-items-center m-auto" }>
+                <div className={"col-8 d-flex justify-content-center align-items-center m-auto flex-column" }>
+                    <select className={"w-50 m-auto px-2 mt-3"} onChange={(e) => setAno(Number(e.target.value))}>
+                        {listaAnos.map((ano) => (
+                            ano == esteAno ? (
+                                <option selected={true} key={ano} value={ano} >{ano}</option>
+                            ) : (
+                                <option key={ano} value={ano} >{ano}</option>
+                            )
+                        ))}
+                    </select>
                     <GraficoEstatisticasAdm
                         dados={estatisticas.dados_grafico || []}
                     />
-                {/* Remover a img e colocar o gráfico na div */}
                 </div>
             </div>
         </>

@@ -4,7 +4,7 @@ import Buton from "../../components/Buton/Buton.jsx";
 import { useNavigate } from "react-router-dom";
 import Nav from "../../components/Nav/Nav.jsx";
 import IMask from "imask";
-import CardOngAdm from "../../components/CardOngAdm/CardOngAdm.jsx";
+import CardUsuarioAdm from "../../components/CardUsuarioAdm/CardUsuarioAdm.jsx";
 import Titulo from "../../components/Titulo/Titulo.jsx";
 import Alerts from "../../components/Alerts/Alerts.jsx";
 import Input from "../../components/Input/Input.jsx";
@@ -527,15 +527,15 @@ export default function DashboardAdmOng({ api }) {
                                 }
                             >
 
-                                <CardOngAdm
+                                <CardUsuarioAdm
                                     id={ong.id_usuario}
-                                    cnpj={formatarCNPJ(
+                                    cpfCnpj={formatarCNPJ(
                                         ong.cpf_cnpj
                                     )}
                                     telefone={formatarTelefone(
                                         ong.telefone
                                     )}
-                                    nomeOng={ong.nome}
+                                    nome={ong.nome}
                                     registro={
                                         ong.data_hora_registro
                                     }
@@ -556,6 +556,7 @@ export default function DashboardAdmOng({ api }) {
                                     email={
                                         ong.email
                                     }
+                                    tipo={ong.tipo_de_usuario}
                                 />
                             </div>
                         ))}

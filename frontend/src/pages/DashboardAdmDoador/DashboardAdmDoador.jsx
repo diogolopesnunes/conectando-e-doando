@@ -5,7 +5,7 @@ import {Link, useNavigate} from "react-router-dom";
 import Nav from "../../components/Nav/Nav.jsx";
 import IMask from "imask";
 import Swal from "sweetalert2";
-import CardDoadorAdm from "../../components/CardDoadorAdm/CardDoadorAdm.jsx";
+import CardUsuarioAdm from "../../components/CardUsuarioAdm/CardUsuarioAdm.jsx";
 import Titulo from "../../components/Titulo/Titulo.jsx";
 import Alerts from "../../components/Alerts/Alerts.jsx";
 import Input from "../../components/Input/Input.jsx";
@@ -148,9 +148,9 @@ export default function DashboardAdmDoador({ api }) {
                     <div className={"row d-flex justify-content-center align-items-center gap-3"}>
                         {doadores.map((doador) => (
                             <div key={doador.id_usuario} className={"row m-auto d-flex " + css.cardBonito}>
-                                <CardDoadorAdm
+                                <CardUsuarioAdm
                                     id={doador.id_usuario}
-                                    cpf={formatarCPF(doador.cpf_cnpj)}
+                                    cpfCnpj={formatarCPF(doador.cpf_cnpj)}
                                     telefone={formatarTelefone(doador.telefone)}
                                     nome={doador.nome}
                                     registro={doador.data_hora_registro}
@@ -159,6 +159,7 @@ export default function DashboardAdmDoador({ api }) {
                                     idAdm={id}
                                     onAtualizar={listarDoadores}
                                     onMensagem={mostrarMensagem}
+                                    tipo={doador.tipo_de_usuario}
                                 />
                             </div>
                         ))}

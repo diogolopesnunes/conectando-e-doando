@@ -127,6 +127,7 @@ export function PaginaPreviaOng({api}) {
                     <>
                         <InfoOng
                             rota={'/pagamento'}
+                            nomeOng={ong.nome}
                             info={ong}
                             texto={"Doar Agora"}
                             api={api}

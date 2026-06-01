@@ -159,6 +159,8 @@ export default function PaginaProjeto({ api, info }) {
                             <>
                                 <InfoOng
                                     info={projeto}
+                                    nomeOng={projeto.instituicao}
+                                    nomeProjeto={projeto.nome}
                                     texto={"Doar Agora"}
                                     api={api}
                                     seguindo={seguindo}

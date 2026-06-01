@@ -25,6 +25,7 @@ export default function Historico({api}){
     const [ano, setAno] = useState(new Date().getFullYear());
     const [anoRegistro, setAnoRegistro] = useState('');
     const [listaAnos, setListaAnos] = useState([]);
+    const esteAno = new Date().getFullYear()
 
     // useEffect(() => {
     //
@@ -64,6 +65,8 @@ export default function Historico({api}){
                 setProximaPagina(retorno.proximaPagina);
                 setPaginaAnterior(retorno.paginaAnterior);
                 setAnoRegistro(retorno.data_hora)
+                setListaAnos(retorno.anos)
+                console.log(retorno.anos)
             }
             if (retorno.mensagem){
                 setMensagem(retorno.mensagem)
@@ -78,6 +81,10 @@ export default function Historico({api}){
         listarHistorico();
         carregarGrafico()
     }, [filtro, pagina])
+
+    useEffect(() => {
+        carregarGrafico()
+    }, [ano]);
 
     async function carregarGrafico(){
         try {
@@ -103,42 +110,54 @@ export default function Historico({api}){
             console.log(erro);
         }
     }
+    async function gerarRelatorio() {
+        try {
 
-    const anoAtual = new Date().getFullYear();
-    const anosRegistro = []
+            let rota = `${api}/gerar_relatorio`;
 
-    for (let ano = anoRegistro; ano <= anoAtual; ano++) {
-        anosRegistro.push(ano);
-        if (ano == anoAtual) {
-            setListaAnos(anosRegistro);
-        }
-    }
-
-    function alterarAno(e) {
-        let valor = e.target.value;
-
-        valor = valor.replace(/\D/g, "");
-
-        valor = valor.slice(0, 4);
-
-        if (Number(valor) > anoAtual) {
-            valor = String(anoAtual);
-        }
-
-        if(valor.length == 4){
-            if(Number(valor) < 1945){
-                setMensagem({
-                    'tipo': 'erro',
-                    'descricao': 'O ano tem que ser maior que 1945'
-                })
+            if (id_ong) {
+                rota += `?id_usuario=${id_ong}`;
             }
-            else{
-                setAno(valor)
-                carregarGrafico()
-            }
-        }
 
-        setAno(valor);
+            const resposta = await fetch(
+                rota,
+                {
+                    method: "GET",
+                    credentials: "include"
+                }
+            );
+
+            if (!resposta.ok) {
+
+                const erro = await resposta.json();
+
+                setMensagem(erro.mensagem);
+
+                return;
+            }
+
+            const blob = await resposta.blob();
+
+            const url = window.URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+
+            link.href = url;
+
+            link.download = "relatorio.pdf";
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            link.remove();
+
+            window.URL.revokeObjectURL(url);
+
+        } catch (erro) {
+
+            console.log(erro);
+        }
     }
 
     return (
@@ -165,15 +184,26 @@ export default function Historico({api}){
                         {/*    placeholder="Digite o ano"*/}
                         {/*    className="w-50 m-auto px-2"*/}
                         {/*/>*/}
-                        <select className={"w-50 m-auto px-2"}>
+
+                        <select className={"w-50 m-auto px-2"} onChange={(e) => setAno(Number(e.target.value))}>
                             {listaAnos.map((ano) => (
-                                <option key={ano} value={ano}>{ano}</option>
+                                ano == esteAno ? (
+                                    <option selected={true} key={ano} value={ano} >{ano}</option>
+                                ) : (
+                                    <option key={ano} value={ano} >{ano}</option>
+                                )
                             ))}
                         </select>
+
+
                         <GraficoHistoricoOng dados={dadosGrafico}/>
+
                     </div>
+
                 )}
                 <div className={'d-flex align-items-end'}>
+
+
                     <Input
                         tipoInp={'text'}
                         htmlFor={'projetos'}
@@ -184,6 +214,12 @@ export default function Historico({api}){
                         }}
                     />
                 </div>
+                <Buton
+                    texto={"Gerar Relatório"}
+                    background={"laranja"}
+                    tamanho={"medio"}
+                    onClick={gerarRelatorio}
+                />
                 <div className={'col-10 col-sm-9 m-auto'}>
                     <div className={'row'}>
                         {historico ? (

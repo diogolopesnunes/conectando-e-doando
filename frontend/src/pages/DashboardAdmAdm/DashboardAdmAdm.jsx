@@ -7,7 +7,7 @@ import IMask from "imask";
 import Titulo from "../../components/Titulo/Titulo.jsx";
 import Alerts from "../../components/Alerts/Alerts.jsx";
 import Input from "../../components/Input/Input.jsx";
-import CardAdmAdm from "../../components/CardAdmAdm/CardAdmAdm.jsx";
+import CardUsuarioAdm from "../../components/CardUsuarioAdm/CardUsuarioAdm.jsx";
 
 export default function DashboardAdmAdm({ api }) {
     const [id, setId] = useState(localStorage.getItem("id_usuario"));
@@ -139,17 +139,18 @@ export default function DashboardAdmAdm({ api }) {
                     <div className={"row d-flex justify-content-center align-items-center gap-3"}>
                         {adms.map((adm) => (
                             <div key={adm.id_usuario} className={"row m-auto d-flex " + css.cardBonito}>
-                                <CardAdmAdm
+                                <CardUsuarioAdm
                                     id={adm.id_usuario}
-                                    cnpj={formatarCNPJ(adm.cpf_cnpj)}
+                                    cpfCnpj={formatarCNPJ(adm.cpf_cnpj)}
                                     telefone={formatarTelefone(adm.telefone)}
-                                    nomeAdm={adm.nome}
+                                    nome={adm.nome}
                                     registro={adm.data_hora_registro}
                                     situacao={adm.situacao}
                                     api={api}
                                     idAdm={id}
                                     onAtualizar={listarAdms}
                                     onMensagem={mostrarMensagem}
+                                    tipo={adm.tipo_de_usuario}
                                 />
                             </div>
                         ))}

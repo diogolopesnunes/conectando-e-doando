@@ -131,16 +131,16 @@ export default function Pagamento({ api }) {
 
             <div className={'row p-2'}>
 
-                <div className={'col-10 m-auto col-sm-10 d-flex flex-column my-3'}>
+                <div className={'col-10 m-auto d-flex flex-column my-3'}>
 
                     <p className={`fs-3 text-center text-sm-start ${css.maiuscula}`}>
-                        {nomeOng}
+                        {nomeProjeto ? nomeProjeto : nomeOng}
                     </p>
 
                     <span className={css.linha}></span>
 
                     <p className={`text-center text-sm-start ${css.maiuscula}`}>
-                        {nomeProjeto}
+                        {nomeProjeto && nomeOng}
                     </p>
 
                 </div>
@@ -161,12 +161,12 @@ export default function Pagamento({ api }) {
                     <div className={'row d-flex justify-content-around'}>
 
                         {carregando ? (
-                            <div className={`col-12 col-sm-4 d-flex align-items-center justify-content-center ${css.fundoRoxo}`}>
+                            <div className={`col-12 col-sm-8 col-lg-4 d-flex align-items-center justify-content-center mb-2 py-5 ${css.fundoRoxo}`}>
                                 <p className={'text-white'}>Carregando...</p>
                             </div>
                         ): (
                             (qrCode || pix) && (
-                                <div className={'col-12 col-sm-4 d-flex flex-column mb-3 mb-sm-0'}>
+                                <div className={'col-12 col-sm-8 col-lg-4 d-flex flex-column mb-3 mb-sm-0'}>
 
                                     <img
                                         src={qrCode}
@@ -194,7 +194,7 @@ export default function Pagamento({ api }) {
                         )}
 
 
-                        <div className={`col-12 col-sm-4 p-4 d-flex flex-column justify-content-evenly ${css.bordaCard}`}>
+                        <div className={`col-12 col-sm-8 col-lg-4 p-4 d-flex flex-column justify-content-evenly ${css.bordaCard}`}>
 
                             <p className={'fs-3 text-center'}>
                                 Resumo da doação
