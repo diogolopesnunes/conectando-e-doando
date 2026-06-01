@@ -55,7 +55,7 @@ export default function GraficoEstatisticasAdm({ dados }) {
             0: {
                 type: "bars",
                 targetAxisIndex: 0,
-                color: "#f39c12",
+                color: "#850038",
             },
 
             1: {
@@ -67,7 +67,7 @@ export default function GraficoEstatisticasAdm({ dados }) {
             2: {
                 type: "line",
                 targetAxisIndex: 1,
-                color: "#e67e22",
+                color: "#E03E36",
                 lineWidth: 3,
                 pointSize: 5,
             },
@@ -75,7 +75,7 @@ export default function GraficoEstatisticasAdm({ dados }) {
             3: {
                 type: "line",
                 targetAxisIndex: 1,
-                color: "#730662",
+                color: "#F1731F",
                 lineWidth: 3,
                 pointSize: 5,
             },

@@ -1,0 +1,134 @@
+.nome{
+    color: var(--preto);
+}
+
+.idStyle{
+    color: var(--rosa);
+    background-color: rgba(224, 108, 158, 0.6);
+}
+
+.infos{
+    color: gray;
+    font-size: 0.9em;
+}
+
+.ativo{
+    color: green;
+    background-color: rgba(146, 228, 146, 0.52);
+}
+
+.bloqueado{
+    color: var(--laranja);
+    background-color: rgba(255, 178, 65, 0.63);
+}
+
+.recusado{
+    color: var(--vermelho);
+    background-color: rgba(230, 153, 148, 0.61);
+}
+
+.cardUsuarioAdm{
+    position: relative;
+}
+
+.nomeCortar{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    flex: 1;
+}
+
+.hamburguer {
+    padding: 30px;
+    width: 30px;
+    height: 30px;
+    position: relative;
+
+    transition: 0.5s;
+
+}
+
+.hamburguer.girar {
+    transform: rotate(-90deg);
+}
+
+.hamburguer.girar + .opcoesExpansivo {
+    display: block !important;
+    opacity: 1;
+}
+
+.opcoesExpansivo {
+    position: absolute;
+    top: 0px;
+    right: 39px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(20px);
+
+    width: 150px;
+    background-color: var(--branco);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+
+    transition: opacity 0.5s ease, visibility 0.5s ease, transform 0.5s ease;
+}
+
+.hamburguer.girar + .opcoesExpansivo {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
+
+.opcoesExpansivoConteudo{
+    width: 100%;
+    height: 100%;
+}
+
+.linhaAtivo, .linhaBloqueado, .linhaDesativado, .linhaRecusado{
+    position: absolute;
+    top: 0;
+    left: -5px;
+    border-radius: .375rem 0 0 .375rem;
+    width: 10px;
+    height: 100%;
+}
+
+.linhaAtivo {
+    background-color: rgba(146, 228, 146);
+}
+
+.linhaBloqueado {
+    background-color: rgba(255, 178, 65);
+}
+
+.linhaRecusado {
+    background-color: rgba(230, 153, 148);
+}
+
+.nomeCortar{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.email{
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media(max-width:426px){
+    .infos p{
+        font-size: 1.1em;
+    }
+    .nome p{
+        font-size: 1.2em !important;
+    }
+    .justify p{
+        text-align: justify;
+    }
+    .nomeCortar {
+        max-width: 65%;
+    }
+}

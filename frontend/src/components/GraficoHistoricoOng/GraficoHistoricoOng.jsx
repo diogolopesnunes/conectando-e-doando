@@ -22,6 +22,7 @@ export default function GraficoHistoricoOng({dados}) {
 
     const options = {
         title: "Doações e Doadores por Mês neste Ano e Ano Passado",
+        seriesType: "bars",
         vAxes: {
             0: {title: "Valor recebido (R$)",},
             1: {title: "Quantidade de doadores",},
@@ -31,7 +32,6 @@ export default function GraficoHistoricoOng({dados}) {
             slantedText: true,
             slantedTextAngle: 45,
         },
-        seriesType: "bars",
         series: {
             0: {
                 type: "bars",
