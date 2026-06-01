@@ -8,7 +8,7 @@ from flask_bcrypt import check_password_hash, bcrypt
 import math
 from funcoes import validar_senha, criptografar, checar_senha, enviando_email, gerar_token, verificar_codigo, email_verificacao, valida_nova_senha, validaCpfCnpj
 from main import app, con
-from datetime import datetime
+from datetime import datetime, date
 import emoji
 from fpdf import FPDF
 # from authlib.integrations.flask_client import OAuth
@@ -294,7 +294,7 @@ def listar_adm_adm(pagina, aprovacao):
 
         if aprovacao == 0:
             cur.execute("""
-                        SELECT id_usuario, nome, situacao, cpf_cnpj, telefone, data_hora_registro
+                        SELECT id_usuario, nome, situacao, cpf_cnpj, telefone, data_hora_registro, tipo_de_usuario
                         FROM usuario
                         WHERE tipo_de_usuario = 2
                           AND situacao IN (0, 4)
@@ -303,7 +303,7 @@ def listar_adm_adm(pagina, aprovacao):
                         """, (f"%{nome}%", minimo, maximo))
         elif aprovacao == 1:
             cur.execute("""
-                        SELECT id_usuario, nome, situacao, cpf_cnpj, telefone, data_hora_registro
+                        SELECT id_usuario, nome, situacao, cpf_cnpj, telefone, data_hora_registro, tipo_de_usuario
                         FROM usuario
                         WHERE tipo_de_usuario = 2
                           AND situacao NOT IN (0, 4)
@@ -327,7 +327,8 @@ def listar_adm_adm(pagina, aprovacao):
                 'situacao': adm[2],
                 'cpf_cnpj': adm[3],
                 'telefone': adm[4],
-                'data_hora_registro': adm[5].strftime("%d/%m/%Y %H:%M")
+                'data_hora_registro': adm[5].strftime("%d/%m/%Y %H:%M"),
+                'tipo_de_usuario': adm[6]
             })
             numeroAdm += 1
 
@@ -1083,7 +1084,7 @@ def listar_ong_adm(pagina, aprovacao):
 
         if aprovacao == 0:
             cur.execute("""
-                        SELECT id_usuario, nome, descricao_causa, situacao, cpf_cnpj, telefone, data_hora_registro, email
+                        SELECT id_usuario, nome, descricao_causa, situacao, cpf_cnpj, telefone, data_hora_registro, email, tipo_de_usuario
                         FROM usuario
                         WHERE tipo_de_usuario = 1
                           AND situacao IN (0, 4)
@@ -1092,7 +1093,7 @@ def listar_ong_adm(pagina, aprovacao):
                         """, (f"%{nome}%", minimo, maximo))
         elif aprovacao == 1:
             cur.execute("""
-                        SELECT id_usuario, nome, descricao_causa, situacao, cpf_cnpj, telefone, data_hora_registro, email
+                        SELECT id_usuario, nome, descricao_causa, situacao, cpf_cnpj, telefone, data_hora_registro, email, tipo_de_usuario
                         FROM usuario
                         WHERE tipo_de_usuario = 1
                           AND situacao NOT IN (0, 4)
@@ -1118,7 +1119,8 @@ def listar_ong_adm(pagina, aprovacao):
                 'cpf_cnpj': ong[4],
                 'telefone': ong[5],
                 'data_hora_registro': ong[6].strftime("%d/%m/%Y %H:%M"),
-                'email': ong[7]
+                'email': ong[7],
+                'tipo_de_usuario': ong[8],
             })
             numeroOng += 1
 
@@ -1200,7 +1202,7 @@ def listar_doador_adm(pagina, aprovacao):
 
         if aprovacao == 0:
             cur.execute("""
-                        SELECT id_usuario, nome, situacao, cpf_cnpj, telefone, data_hora_registro
+                        SELECT id_usuario, nome, situacao, cpf_cnpj, telefone, data_hora_registro, tipo_de_usuario
                         FROM usuario
                         WHERE tipo_de_usuario = 0
                           AND situacao IN (0, 4)
@@ -1209,7 +1211,7 @@ def listar_doador_adm(pagina, aprovacao):
                         """, (f"%{nome}%", minimo, maximo))
         elif aprovacao == 1:
             cur.execute("""
-                        SELECT id_usuario, nome, situacao, cpf_cnpj, telefone, data_hora_registro
+                        SELECT id_usuario, nome, situacao, cpf_cnpj, telefone, data_hora_registro, tipo_de_usuario
                         FROM usuario
                         WHERE tipo_de_usuario = 0
                           AND situacao NOT IN (0, 4)
@@ -1233,7 +1235,8 @@ def listar_doador_adm(pagina, aprovacao):
                 'situacao': doador[2],
                 'cpf_cnpj': doador[3],
                 'telefone': doador[4],
-                'data_hora_registro': doador[5].strftime("%d/%m/%Y %H:%M")
+                'data_hora_registro': doador[5].strftime("%d/%m/%Y %H:%M"),
+                'tipo_de_usuario': doador[6]
             })
             numeroDoador += 1
 
@@ -4342,11 +4345,11 @@ def enviar_pix():
             return jsonify({
                 'mensagem': {'tipo': 'erro', 'descricao': 'ONG não encontrada'}
             }), 404
-        
-        email_ong = dados_ong[3]
+
         nome_ong = dados_ong[0]
         cidade_ong = dados_ong[1]
         chave_pix = dados_ong[2]
+        email_ong = dados_ong[3]
 
         nome_projeto = None
         if id_projeto is not None:
@@ -4636,6 +4639,11 @@ def historico(pagina):
 
         cur.execute('select extract(year from data_hora_registro) from usuario where id_usuario = ?', (id_usuario,))
         data_hora_registro = cur.fetchone()[0]
+        anoAtual = date.today().year
+        diferencaAnos = int(anoAtual) - int(data_hora_registro) + 1
+        anos = []
+        for ano in range(0,diferencaAnos):
+            anos.append(data_hora_registro+ano)
 
         historico = []
 
@@ -4659,7 +4667,8 @@ def historico(pagina):
             'proximaPagina': proximaPagina,
             'paginaAnterior': paginaAnterior,
             'quantidade': quantidade,
-            'data_hora':data_hora_registro
+            'data_hora':data_hora_registro,
+            'anos': anos
         }), 200
 
     except jwt.ExpiredSignatureError:
@@ -4914,6 +4923,18 @@ def estatisticas_admin():
             dados_grafico[numero_mes - 1]["quantidade_doacoes_ano_passado"] = quantidade_doacoes
 
         # =========================
+        # LISTA ANOS
+        # =========================
+        cur.execute("""SELECT MIN(EXTRACT(YEAR FROM DATA_HORA_REGISTRO))
+                       FROM USUARIO""")
+        menorAno = cur.fetchone()[0]
+        anoAtual = date.today().year
+        diferencaAnos = int(anoAtual) - int(menorAno) + 1
+        listaAnos = []
+        for ano in range(0, diferencaAnos):
+            listaAnos.append(menorAno + ano)
+
+        # =========================
         # RETORNO
         # =========================
         return jsonify({
@@ -4928,7 +4949,8 @@ def estatisticas_admin():
                 'novas_ongs': novas_ongs,
 
                 # GRÁFICO
-                'dados_grafico': dados_grafico
+                'dados_grafico': dados_grafico,
+                'anos': listaAnos
             }
         }), 200
 
@@ -5151,109 +5173,489 @@ def grafico_ong():
 @app.route('/gerar_relatorio', methods=['GET'])
 def gerar_relatorio():
 
+    token = request.cookies.get('access_token')
+
+    if not token:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Token necessário'
+            }
+        }), 401
+
     cursor = con.cursor()
 
-    cursor.execute("""
-        SELECT 
-    u.nome AS usuario_nome,
-    u.email AS usuario_email,
-    d.valor_doador,
-    d.data_hora,
-    o.nome AS ong_nome,
-    p.nome AS projeto_nome
-    FROM doacoes d
-    JOIN usuario u ON d.fk_usuario_doador = u.id_usuario
-    LEFT JOIN usuario o ON d.fk_usuario_ong = o.id_usuario
-    LEFT JOIN projeto_ong p ON d.fk_projeto = p.id_projeto;
-    """)
-
-    dados = cursor.fetchall()
-    cursor.close()
-
-    doacoes = []
-
-    for d in dados:
-        nome = d[0]
-        email = d[1]
-        valor = float(d[2])
-        data = d[3].strftime("%d/%m/%Y")
-
-        nome_ong = d[4]
-        nome_projeto = d[5]
-
-        destino = nome_projeto if nome_projeto else nome_ong
-
-        doacoes.append((nome, email, valor, data, destino))
-
-
-
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.add_page()
-
-    roxo = (115, 6, 98)
-    vermelho = (224, 62, 54)
-    cinza = (120, 120, 120)
-
     try:
-        pdf.image("static/logo.png", x=10, y=8, w=20)
-    except:
-        pass
+        dados_token = jwt.decode(
+            token,
+            senha_secreta,
+            algorithms=['HS256']
+        )
 
-    pdf.set_font("Arial", "B", 16)
-    pdf.set_text_color(*roxo)
-    pdf.cell(0, 10, "Relatório de Doações", ln=True, align='C')
+        id_token = dados_token['id_usuario']
 
-    pdf.set_font("Arial", "", 10)
-    pdf.set_text_color(*cinza)
-    pdf.cell(0, 5, f"Gerado em: {datetime.now().strftime('%d/%m/%Y %H:%M')}", ln=True, align='C')
+        cursor.execute("""
+            SELECT tipo_de_usuario, nome, email
+            FROM usuario
+            WHERE id_usuario = ?
+        """, (id_token,))
 
-    pdf.ln(5)
+        usuario_logado = cursor.fetchone()
 
-    pdf.set_draw_color(*vermelho)
-    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+        if not usuario_logado:
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Usuário não encontrado'
+                }
+            }), 404
 
-    pdf.ln(8)
+        tipo_usuario_logado = int(usuario_logado[0])
 
-    pdf.set_font("Arial", "B", 11)
-    pdf.set_fill_color(*roxo)
-    pdf.set_text_color(255, 255, 255)
+        id_usuario_param = request.args.get('id_usuario')
 
-    pdf.cell(40, 8, "Nome", 1, 0, 'C', True)
-    pdf.cell(50, 8, "Email", 1, 0, 'C', True)
-    pdf.cell(25, 8, "Valor", 1, 0, 'C', True)
-    pdf.cell(30, 8, "Data", 1, 0, 'C', True)
-    pdf.cell(45, 8, "Destino", 1, 1, 'C', True)
+        if id_usuario_param:
+            if tipo_usuario_logado != 2:
+                return jsonify({
+                    'mensagem': {
+                        'tipo': 'erro',
+                        'descricao': 'Apenas administradores podem gerar relatório de outro usuário'
+                    }
+                }), 403
 
-    pdf.set_font("Arial", "", 10)
-    pdf.set_text_color(0, 0, 0)
+            id_usuario = int(id_usuario_param)
 
-    total = 0
+        else:
+            id_usuario = id_token
 
-    for nome, email, valor, data, destino in doacoes:
-        total += valor
+        cursor.execute("""
+            SELECT tipo_de_usuario, nome, email
+            FROM usuario
+            WHERE id_usuario = ?
+        """, (id_usuario,))
 
-        pdf.cell(40, 8, nome, 1)
-        pdf.cell(50, 8, email, 1)
-        pdf.cell(25, 8, f"R$ {valor:.2f}", 1)
-        pdf.cell(30, 8, data, 1)
-        pdf.cell(45, 8, destino, 1)
-        pdf.ln()
+        usuario_relatorio = cursor.fetchone()
 
-    pdf.ln(5)
-    pdf.set_draw_color(*vermelho)
-    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+        if not usuario_relatorio:
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Usuário do relatório não encontrado'
+                }
+            }), 404
 
-    pdf.ln(8)
-    pdf.set_font("Arial", "B", 12)
-    pdf.set_text_color(*roxo)
-    pdf.cell(0, 10, f"Total arrecadado: R$ {total:.2f}", ln=True, align='C')
+        tipo_usuario_relatorio = int(usuario_relatorio[0])
+        nome_usuario_relatorio = usuario_relatorio[1]
 
-    pdf.set_font("Arial", "", 10)
-    pdf.set_text_color(0, 0, 0)
-    pdf.cell(0, 8, f"Total de doacoes: {len(doacoes)}", ln=True, align='C')
+        filtro = request.args.get('nome', '')
 
-    pdf_path = "relatorio_doacoes.pdf"
-    pdf.output(pdf_path)
+        if tipo_usuario_relatorio == 0:
+            titulo = "Historico de Doacoes Feitas"
+            filtro_sql = "UPPER(ong.nome) LIKE UPPER(?)"
 
-    return send_file(pdf_path, as_attachment=True)
+        elif tipo_usuario_relatorio == 1:
+            titulo = "Historico de Doacoes Recebidas"
+            filtro_sql = "UPPER(doador.nome) LIKE UPPER(?)"
+
+        elif tipo_usuario_relatorio == 2:
+            titulo = "Relatorio Administrativo"
+            filtro_sql = None
+
+        else:
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Tipo de usuário inválido para relatório'
+                }
+            }), 400
+
+        pdf = FPDF()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.add_page()
+
+        roxo = (115, 6, 98)
+        vermelho = (224, 62, 54)
+        cinza = (120, 120, 120)
+
+        def limpar_texto(texto, limite=35):
+            texto = str(texto) if texto is not None else "-"
+
+            trocas = {
+                "ç": "c", "Ç": "C",
+                "ã": "a", "Ã": "A",
+                "á": "a", "Á": "A",
+                "à": "a", "À": "A",
+                "é": "e", "É": "E",
+                "ê": "e", "Ê": "E",
+                "í": "i", "Í": "I",
+                "ó": "o", "Ó": "O",
+                "õ": "o", "Õ": "O",
+                "ú": "u", "Ú": "U"
+            }
+
+            for antigo, novo in trocas.items():
+                texto = texto.replace(antigo, novo)
+
+            if len(texto) > limite:
+                return texto[:limite - 3] + "..."
+
+            return texto
+
+        def cabecalho_pdf(titulo_pdf):
+            try:
+                pdf.image("static/logo.png", x=10, y=8, w=20)
+            except:
+                pass
+
+            pdf.set_font("Arial", "B", 16)
+            pdf.set_text_color(*roxo)
+            pdf.cell(0, 10, limpar_texto(titulo_pdf, 80), ln=True, align="C")
+
+            pdf.set_font("Arial", "", 10)
+            pdf.set_text_color(*cinza)
+            pdf.cell(
+                0,
+                5,
+                f"Gerado em: {datetime.now().strftime('%d/%m/%Y %H:%M')}",
+                ln=True,
+                align="C"
+            )
+
+            pdf.cell(
+                0,
+                5,
+                f"Usuario: {limpar_texto(nome_usuario_relatorio, 80)}",
+                ln=True,
+                align="C"
+            )
+
+            pdf.ln(5)
+
+            pdf.set_draw_color(*vermelho)
+            pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+
+            pdf.ln(8)
+
+        def criar_tabela(cabecalhos, linhas, larguras):
+            pdf.set_font("Arial", "B", 9)
+            pdf.set_fill_color(*roxo)
+            pdf.set_text_color(255, 255, 255)
+
+            for i, cabecalho in enumerate(cabecalhos):
+                pdf.cell(larguras[i], 8, limpar_texto(cabecalho), 1, 0, "C", True)
+
+            pdf.ln()
+
+            pdf.set_font("Arial", "", 8)
+            pdf.set_text_color(0, 0, 0)
+
+            for linha in linhas:
+                for i, item in enumerate(linha):
+                    pdf.cell(larguras[i], 8, limpar_texto(item), 1)
+
+                pdf.ln()
+
+        cabecalho_pdf(titulo)
+
+        if tipo_usuario_relatorio in [0, 1]:
+
+            cursor.execute(f"""
+                SELECT
+                    ong.nome,
+                    projeto.nome,
+                    doador.nome,
+                    doador.email,
+                    d.valor_doador,
+                    d.data_hora,
+                    d.fk_usuario_doador,
+                    d.fk_usuario_ong
+                FROM doacoes d
+
+                LEFT JOIN usuario ong
+                    ON ong.id_usuario = d.fk_usuario_ong
+
+                LEFT JOIN projeto_ong projeto
+                    ON projeto.id_projeto = d.fk_projeto
+
+                LEFT JOIN usuario doador
+                    ON doador.id_usuario = d.fk_usuario_doador
+
+                WHERE 
+                    (
+                        d.fk_usuario_doador = ?
+                        OR d.fk_usuario_ong = ?
+                    )
+                    AND {filtro_sql}
+
+                ORDER BY d.data_hora DESC
+            """, (
+                id_usuario,
+                id_usuario,
+                f"%{filtro}%"
+            ))
+
+            resultados = cursor.fetchall()
+
+            linhas = []
+            total = 0
+
+            for doacao in resultados:
+                nome_ong = doacao[0]
+                nome_projeto = doacao[1]
+                nome_doador = doacao[2]
+                email_doador = doacao[3]
+                valor = float(doacao[4])
+                data = doacao[5].strftime('%d/%m/%Y') if doacao[5] else "-"
+
+                total += valor
+
+                if tipo_usuario_relatorio == 0:
+                    linhas.append([
+                        nome_ong,
+                        nome_projeto if nome_projeto else "-",
+                        f"R$ {valor:.2f}",
+                        data
+                    ])
+
+                else:
+                    linhas.append([
+                        nome_doador,
+                        email_doador,
+                        f"R$ {valor:.2f}",
+                        data,
+                        nome_projeto if nome_projeto else "-"
+                    ])
+
+            if tipo_usuario_relatorio == 0:
+                criar_tabela(
+                    ["ONG", "Projeto", "Valor", "Data"],
+                    linhas,
+                    [60, 60, 35, 35]
+                )
+
+                texto_total = f"Total doado: R$ {total:.2f}"
+
+            else:
+                criar_tabela(
+                    ["Doador", "Email", "Valor", "Data", "Projeto"],
+                    linhas,
+                    [35, 55, 30, 30, 40]
+                )
+
+                texto_total = f"Total recebido: R$ {total:.2f}"
+
+            pdf.ln(8)
+            pdf.set_font("Arial", "B", 12)
+            pdf.set_text_color(*roxo)
+            pdf.cell(0, 10, texto_total, ln=True, align="C")
+            pdf.cell(0, 8, f"Total de registros: {len(linhas)}", ln=True, align="C")
+
+            nome_arquivo = f"relatorio_historico_{id_usuario}.pdf"
+
+        else:
+            ano_atual = request.args.get(
+                "ano",
+                datetime.now().year,
+                type=int
+            )
+
+            if int(ano_atual) > datetime.now().year or int(ano_atual) < 1945:
+                return jsonify({
+                    'mensagem': {
+                        'tipo': 'erro',
+                        'descricao': 'Ano inválido'
+                    }
+                }), 400
+
+            ano_passado = ano_atual - 1
+
+            data_inicio = datetime(ano_atual, 1, 1, 0, 0, 0)
+            data_fim = datetime(ano_atual, 12, 31, 23, 59, 59)
+
+            cursor.execute("""
+                SELECT
+                    COUNT(ID_DOACAO),
+                    CAST(
+                        COALESCE(SUM(VALOR_DOADOR), 0)
+                        AS DOUBLE PRECISION
+                    )
+                FROM DOACOES
+                WHERE DATA_HORA BETWEEN ? AND ?
+            """, (data_inicio, data_fim))
+
+            resultado_doacoes = cursor.fetchone()
+
+            total_doacoes_ano = (
+                int(resultado_doacoes[0])
+                if resultado_doacoes and resultado_doacoes[0] is not None
+                else 0
+            )
+
+            valor_total_doacoes = (
+                float(resultado_doacoes[1])
+                if resultado_doacoes and resultado_doacoes[1] is not None
+                else 0
+            )
+
+            cursor.execute("""
+                SELECT CAST(COUNT(ID_USUARIO) AS INTEGER)
+                FROM USUARIO
+                WHERE TIPO_DE_USUARIO = 0
+                  AND DATA_HORA_REGISTRO BETWEEN ? AND ?
+            """, (data_inicio, data_fim))
+
+            resultado_doadores = cursor.fetchone()
+
+            novos_doadores = (
+                int(resultado_doadores[0])
+                if resultado_doadores and resultado_doadores[0] is not None
+                else 0
+            )
+
+            cursor.execute("""
+                SELECT CAST(COUNT(ID_USUARIO) AS INTEGER)
+                FROM USUARIO
+                WHERE TIPO_DE_USUARIO = 1
+                  AND DATA_HORA_REGISTRO BETWEEN ? AND ?
+            """, (data_inicio, data_fim))
+
+            resultado_ongs = cursor.fetchone()
+
+            novas_ongs = (
+                int(resultado_ongs[0])
+                if resultado_ongs and resultado_ongs[0] is not None
+                else 0
+            )
+
+            linhas_resumo = [
+                ["Ano", ano_atual],
+                ["Total de doacoes no ano", total_doacoes_ano],
+                ["Valor total arrecadado", f"R$ {valor_total_doacoes:.2f}"],
+                ["Novos doadores no ano", novos_doadores],
+                ["Novas ONGs no ano", novas_ongs]
+            ]
+
+            criar_tabela(
+                ["Indicador", "Valor"],
+                linhas_resumo,
+                [120, 60]
+            )
+
+            pdf.ln(10)
+
+            cursor.execute("""
+                SELECT
+                    EXTRACT(MONTH FROM DATA_HORA) AS MES,
+                    COUNT(ID_DOACAO) AS QUANTIDADE_DOACOES,
+                    CAST(
+                        COALESCE(SUM(VALOR_DOADOR), 0)
+                        AS NUMERIC(15,2)
+                    ) AS VALOR_TOTAL
+                FROM DOACOES
+                WHERE EXTRACT(YEAR FROM DATA_HORA) = ?
+                GROUP BY EXTRACT(MONTH FROM DATA_HORA)
+                ORDER BY MES
+            """, (ano_atual,))
+
+            resultado_ano_atual = cursor.fetchall()
+
+            cursor.execute("""
+                SELECT
+                    EXTRACT(MONTH FROM DATA_HORA) AS MES,
+                    COUNT(ID_DOACAO) AS QUANTIDADE_DOACOES,
+                    CAST(
+                        COALESCE(SUM(VALOR_DOADOR), 0)
+                        AS NUMERIC(15,2)
+                    ) AS VALOR_TOTAL
+                FROM DOACOES
+                WHERE EXTRACT(YEAR FROM DATA_HORA) = ?
+                GROUP BY EXTRACT(MONTH FROM DATA_HORA)
+                ORDER BY MES
+            """, (ano_passado,))
+
+            resultado_ano_passado = cursor.fetchall()
+
+            meses = [
+                "Janeiro", "Fevereiro", "Marco", "Abril",
+                "Maio", "Junho", "Julho", "Agosto",
+                "Setembro", "Outubro", "Novembro", "Dezembro"
+            ]
+
+            dados_meses = []
+
+            for i, mes in enumerate(meses, start=1):
+                dados_meses.append({
+                    "numero_mes": i,
+                    "mes": mes,
+                    "valor_doacao_ano": 0,
+                    "quantidade_doacoes_ano": 0,
+                    "valor_doacao_ano_passado": 0,
+                    "quantidade_doacoes_ano_passado": 0
+                })
+
+            for row in resultado_ano_atual:
+                numero_mes = int(row[0])
+                dados_meses[numero_mes - 1]["quantidade_doacoes_ano"] = int(row[1])
+                dados_meses[numero_mes - 1]["valor_doacao_ano"] = float(row[2]) if row[2] else 0
+
+            for row in resultado_ano_passado:
+                numero_mes = int(row[0])
+                dados_meses[numero_mes - 1]["quantidade_doacoes_ano_passado"] = int(row[1])
+                dados_meses[numero_mes - 1]["valor_doacao_ano_passado"] = float(row[2]) if row[2] else 0
+
+            linhas_meses = []
+
+            for item in dados_meses:
+                linhas_meses.append([
+                    item["mes"],
+                    f"R$ {item['valor_doacao_ano_passado']:.2f}",
+                    f"R$ {item['valor_doacao_ano']:.2f}",
+                    item["quantidade_doacoes_ano_passado"],
+                    item["quantidade_doacoes_ano"]
+                ])
+
+            criar_tabela(
+                [
+                    "Mes",
+                    f"Valor {ano_passado}",
+                    f"Valor {ano_atual}",
+                    f"Qtd {ano_passado}",
+                    f"Qtd {ano_atual}"
+                ],
+                linhas_meses,
+                [35, 40, 40, 35, 35]
+            )
+
+            nome_arquivo = f"relatorio_admin_{ano_atual}.pdf"
+
+        pdf.output(nome_arquivo)
+
+        return send_file(nome_arquivo, as_attachment=True)
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Sessão expirada'
+            }
+        }), 401
+
+    except jwt.InvalidTokenError:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Token inválido'
+            }
+        }), 401
+
+    except Exception as e:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': f'Erro ao gerar relatório: {e}'
+            }
+        }), 500
+
+    finally:
+        cursor.close()
+
