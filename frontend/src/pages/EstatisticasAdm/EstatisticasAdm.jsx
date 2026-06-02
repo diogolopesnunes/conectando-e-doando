@@ -74,21 +74,23 @@ export default function EstatisticaAdm({api}) {
 
     async function baixarRelatorio() {
         try {
-            const resposta = await fetch(`${api}/gerar_relatorio`, {
+            const resposta = await fetch(`${api}/gerar_relatorio?${ano}`, {
                 method: "GET",
                 credentials: "include"
             });
 
-            const retorno = await resposta.json();
-            if (!resposta.ok) {
-                return;
-            }
-            if (retorno.mensagem) {
-                setMensagem({
-                    ...retorno.mensagem,
-                    id: Date.now()
-                });
-            }
+            // const retorno = await resposta.json();
+            // const retorno = await resposta.blob();
+            // console.log(retorno)
+            // if (!resposta.ok) {
+            //     return;
+            // }
+            // if (retorno.mensagem) {
+            //     setMensagem({
+            //         ...retorno.mensagem,
+            //         id: Date.now()
+            //     });
+            // }
 
             const blob = await resposta.blob();
             const url = window.URL.createObjectURL(blob);

@@ -145,7 +145,15 @@ export default function PaginaPost({ api }) {
                                         </>
                                     )}
                                 </div>
-                                <Buton texto={loading ? 'Publicando...' : (editando ? 'Salvar' : 'Adicionar')} background={'laranja'} tamanho={'medio'} tipo="submit" disabled={loading} />
+                                <div className={"d-flex flex-column align-items-center justify-content-center gap-2"}>
+                                    <Buton texto={loading ? 'Publicando...' : (editando ? 'Salvar' : 'Adicionar')} background={'laranja'} tamanho={'medio'} tipo="submit" disabled={loading} />
+                                    <Buton
+                                        texto={'Cancelar'}
+                                        background={'roxo'}
+                                        tamanho={'pequeno'}
+                                        onClick={() => {navigate(-1)}}
+                                    />
+                                </div>
                             </Form>
                         </div>
                     </div>

@@ -357,7 +357,7 @@ export default function DashboardAdmOng({ api }) {
 
                         <div>
 
-                            <div className="d-none d-sm-flex gap-3">
+                            <div className="d-flex flex-column flex-md-row gap-3">
 
                                 <Buton
                                     texto="Ongs para aprovação"
@@ -384,7 +384,7 @@ export default function DashboardAdmOng({ api }) {
 
                         <div>
 
-                            <div className="d-none d-sm-flex gap-3">
+                            <div className="d-flex flex-column flex-md-row gap-3">
 
                                 <Buton
                                     texto="Ongs para aprovação"
@@ -417,7 +417,7 @@ export default function DashboardAdmOng({ api }) {
                     <div className={`row d-flex justify-content-center align-items-center ${css.wAdicionarTipo}`}>
                         <div
                             className={
-                                "d-flex col-12 justify-content-center gap-2 "
+                                "d-flex col-12 justify-content-center gap-2 flex-column flex-lg-row justify-content-center align-items-center "
                             }
                         >
                             <Input
@@ -451,7 +451,7 @@ export default function DashboardAdmOng({ api }) {
                     <div className={`row ${css.wSelecionarTipo}`}>
                         <div
                             className={
-                                "d-flex justify-content-center align-items-center m-auto flex-row gap-2 col-12 "
+                                "d-flex justify-content-center align-items-center m-auto flex-column flex-lg-row gap-2 col-12 "
                             }
                         >
 

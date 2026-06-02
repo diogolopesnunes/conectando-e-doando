@@ -178,12 +178,20 @@ export default function PaginaProjeto({ api }) {
                                 </div>
 
 
-                                <Buton
-                                    texto={'Cadastrar'}
-                                    background={'laranja'}
-                                    tamanho={'medio'}
-                                    tipo={"submit"}
-                                />
+                                <div className={"d-flex flex-column align-items-center justify-content-center gap-2"}>
+                                    <Buton
+                                        texto={'Cadastrar'}
+                                        background={'laranja'}
+                                        tamanho={'medio'}
+                                        tipo={"submit"}
+                                    />
+                                    <Buton
+                                        texto={'Cancelar'}
+                                        background={'roxo'}
+                                        tamanho={'pequeno'}
+                                        onClick={() => {navigate(-1)}}
+                                    />
+                                </div>
 
                             </Form>
                         </div>

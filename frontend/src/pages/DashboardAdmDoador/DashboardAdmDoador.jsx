@@ -107,29 +107,7 @@ export default function DashboardAdmDoador({ api }) {
                         />
                     )}
                 </div>
-                <div className={'d-flex justify-content-center gap-4 align-items-center'}>
-                    {aprovacao == 1 ? (
-                        <div>
 
-                            <div className={'d-block d-sm-none'}>
-                                <Buton texto={'Aprovação'} background={'branco'} tamanho={'medio'} onClick={() => trocarFiltro(0)} />
-                                <Buton texto={'Recusadas'} background={'rosa'} tamanho={'medio'} onClick={() => trocarFiltro(1)} />
-                            </div>
-
-                        </div>
-                    ) : (
-                        <div>
-                            <div className={'d-none d-sm-flex gap-3'}>
-                                <Buton texto={'Doadores não validados'} background={'rosa'} tamanho={'medio'} onClick={() => trocarFiltro(0)} />
-                                <Buton texto={'Doadores validados'} background={'branco'} tamanho={'medio'} onClick={() => trocarFiltro(1)} />
-                            </div>
-                            <div className={'d-block d-sm-none'}>
-                                <Buton texto={'Aprovação'} background={'rosa'} tamanho={'medio'} onClick={() => trocarFiltro(0)} />
-                                <Buton texto={'Recusadas'} background={'branco'} tamanho={'medio'} onClick={() => trocarFiltro(1)} />
-                            </div>
-                        </div>
-                    )}
-                </div>
                 <div>
                     <Input
                         tipoInp={'text'}
