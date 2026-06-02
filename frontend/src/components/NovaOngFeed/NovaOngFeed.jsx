@@ -26,7 +26,7 @@ export default function NovaOngFeed({api, banner, descricao, nomeOng, logoOng, s
 
                         <div className="col d-flex justify-content-center">
                             <img
-                                className={css.iconeOng}
+                                className={"object-fit-cover " + css.iconeOng}
                                 src={`${api}${logoOng}`}
                                 onError={(e) => {
                                     e.target.src = "/public/SemImagemDisponivel.png";

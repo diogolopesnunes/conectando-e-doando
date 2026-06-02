@@ -1,14 +1,14 @@
 import css from './Input.module.css'
 import {IMaskInput} from "react-imask";
 
-export default function Input({tipoInp, label, htmlFor, placeholder, classe = '', value, funcao, maxlength, checado, opcoeslabel, opcoes, disabled=false, minLength, mask, required=true, obrigatorio="Nao"}) {
+export default function Input({tipoInp, label, htmlFor, placeholder, classe = '', value, funcao, maxlength, checado, opcoeslabel, opcoes, disabled=false, minLength, mask, required=false, obrigatorio="Nao", margin ='auto'}) {
 
 
     if (classe == 'metade') {
         if (tipoInp == 'radio') {
             return (
                 <div className={"d-flex flex-column my-3 text-center " + css.metade}>
-                    <input type={tipoInp} id={htmlFor} name={htmlFor} value={value} onChange={funcao} checked={checado} required={obrigatorio == "Sim"}/>
+                    <input type={tipoInp} id={htmlFor} name={htmlFor} value={value} onChange={funcao} checked={checado} />
                     <label htmlFor={htmlFor} className='mx-2'>{label}</label>
                 </div>
             )
@@ -33,7 +33,7 @@ export default function Input({tipoInp, label, htmlFor, placeholder, classe = ''
                     id={htmlFor}
                     onChange={funcao}
                     className={"d-block w-100 rounded px-2 py-1 " + css.input}
-                    required={obrigatorio == "Sim"}
+
                     value={value || ""}
                 >
                     <option value="" disabled>
@@ -60,13 +60,13 @@ export default function Input({tipoInp, label, htmlFor, placeholder, classe = ''
                     <span className={css.campoObrigatorio}>* Campo Obrigatório</span>
                 )}
                 <label htmlFor={htmlFor}>{label}</label>
-                <textarea id={htmlFor} name={htmlFor} value={value} onChange={funcao} placeholder={placeholder} className={"d-block w-100 rounded px-2 py-1 " + css.input} required={obrigatorio == "Sim"}/>
+                <textarea id={htmlFor} name={htmlFor} value={value} onChange={funcao} placeholder={placeholder} className={"d-block w-100 rounded px-2 py-1 " + css.input}/>
             </div>
         )
     }
 
     return (
-        <div className={`d-flex flex-column w-75 m-auto my-3`} >
+        <div className={`d-flex flex-column w-75 my-3 ${margin === "auto" && "m-auto "} `} >
             {obrigatorio == "Sim" && (
                 <span className={css.campoObrigatorio}>* Campo Obrigatório</span>
             )}
@@ -141,7 +141,6 @@ export default function Input({tipoInp, label, htmlFor, placeholder, classe = ''
                        onChange={funcao}
                        maxLength={maxlength}
                        minLength={minLength}
-                       required={obrigatorio == "Sim"}
                        disabled={disabled}/>
             )}
 

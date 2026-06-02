@@ -169,7 +169,7 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
                             <Link to={`/previa_ong/${idOng}`}>
                                 <div className={'col-12 col-sm-12 d-flex align-items-center justify-content-center justify-content-sm-start gap-2'}>
                                     <img
-                                        className={css.logoOng}
+                                        className={"object-fit-cover " + css.logoOng}
                                         alt={`Logo da ONG ${nomeOng}`}
                                         src={`${api}${ongImagem}?t=${Date.now()}`}
                                         onError={(e) => {
@@ -201,7 +201,7 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
 
                     <div className={'col-12 d-flex col-sm-6 m-auto justify-content-center align-items-center ' + css.divImagemPost}>
                         <img
-                            className={`w-100 ${css.imagemPost}`}
+                            className={`w-100 object-fit-cover ${css.imagemPost}`}
                             src={`${api}${postImagem}?t=${Date.now()}`}
                             alt={'Imagem do post'}
                             onError={(e) => {

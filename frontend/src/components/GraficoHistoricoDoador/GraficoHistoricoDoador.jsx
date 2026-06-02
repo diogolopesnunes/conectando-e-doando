@@ -4,8 +4,8 @@ export default function GraficoHistoricoDoador({dados}) {
     console.log(dados)
     const valores = dados.map((dado) => [
         dado.mes,
-        dado.valor_doacao_ano,
-        dado.quantidade_de_doacoes_ano
+        Number(dado.valor_doacao_ano) || 0,
+        Number(dado.quantidade_de_doacoes_ano) || 0
     ]);
 
     const data = [

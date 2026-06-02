@@ -1,5 +1,5 @@
 import React from "react";
-import "./OngCard.css";
+import css from "./OngCard.module.css";
 
 export default function OngCard({ ong, onDesativar }) {
     return (
@@ -10,17 +10,17 @@ export default function OngCard({ ong, onDesativar }) {
             <img
                 src={ong.imagem}
                 alt={ong.nome}
-                className="cardImagem"
+                className={css.cardImagem}
             />
-            <div className="cardConteudo">
-                <h3 className="cardTitulo">{ong.nome}</h3>
-                <p className="cardDescricao">{ong.descricao}</p>
+            <div className={css.cardConteudo}>
+                <h3 className={css.cardTitulo}>{ong.nome}</h3>
+                <p className={css.cardDescricao}>{ong.descricao}</p>
             </div>
-            <div className="cardRodape">
+            <div className={css.cardRodape}>
                 <img
                     src={ong.logo}
                     alt={`${ong.nome} logo`}
-                    className="cardLogo"
+                    className={css.cardLogo}
                 />
             </div>
         </div>
