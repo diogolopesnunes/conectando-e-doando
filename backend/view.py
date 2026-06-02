@@ -81,6 +81,11 @@ def cadastro():
                         'descricao': 'Todos os campos obrigatórios (Nome, Email, Senha, CPF/CNPJ, Telefone) devem ser preenchidos.'
                     }
                 }), 400
+            if len(telefone) < 11:
+                return jsonify({'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Insira seu telefone'
+                }}), 400
             if int(tipo_de_usuario) == 0 or int(tipo_de_usuario) == 2:
                 cpfValido = validaCpfCnpj(cpf_cnpj)
                 if not cpfValido:
@@ -107,7 +112,31 @@ def cadastro():
                             'descricao': 'Para ONGs, os campos Tipo de ONG, Descrição da Causa, Banco, Agência, Conta e Cidade são obrigatórios.'
                         }
                     }), 400
+                elif any(ci.isdigit() for ci in cidade_ong):
+                    return jsonify({
+                    'mensagem':{
+                        'tipo':'erro',
+                        'descricao':'Pode apenas letras no campo de Cidade'
+                    }
+                }), 400
+                elif banco_ong.isalpha():
+                    return jsonify({
+                        'mensagem': {
+                            'tipo': 'erro',
+                            'descricao': 'Pode apenas Numeros no campo de Banco'
+                        }
+                    }), 400
+                
+                elif conta_ong.isalpha():
+                    return jsonify({
+                        'mensagem': {
+                            'tipo': 'erro',
+                            'descricao': 'Pode apenas Numeros no campo de Conta'
+                        }
+                    }), 400
+
             mensagem_validacao = validar_senha(senha, confirmar_senha)
+
             if mensagem_validacao:
                 return jsonify({'mensagem': {
                     'tipo': 'erro',
@@ -589,7 +618,7 @@ def editar_usuario(id_usuario):
                     'descricao': 'Usuário não encontrado'
                 }}), 404
 
-            cur.execute("""select tipo_de_usuario, nome, email, telefone, tipo_ong, descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong, cpf_cnpj
+            cur.execute("""select tipo_de_usuario, nome, email, telefone, tipo_ong, descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong, cpf_cnpj, chave_pix
                            from usuario
                            where id_usuario = ?""", (id_usuario,))
             infos = cur.fetchone()
@@ -608,6 +637,7 @@ def editar_usuario(id_usuario):
             conta_ong = request.form.get('conta_ong') or infos[8]
             cidade_ong = request.form.get('cidade_ong') or infos[9]
             cpf_cnpj = request.form.get('cpf_cnpj') or infos[10]
+            chave_pix = request.form.get('chave_pix') or infos[11]
 
 
             cur.execute('select 1 from usuario where email = ? and id_usuario != ?', (email, id_usuario,))
@@ -661,10 +691,11 @@ def editar_usuario(id_usuario):
                                    conta_ong       = ?,
                                    cidade_ong      = ?,
                                    senha_antiga_2 = ?,
-                                   senha_antiga_3 = senha_antiga_2
+                                   senha_antiga_3 = senha_antiga_2,
+                    chave_pix =?
                                where id_usuario = ?""",
                             (nome, email, nova_senha, telefone, tipo_ong, descricao_causa, banco_ong, agencia_ong, conta_ong,
-                             cidade_ong, senha_criptografada, id_usuario))
+                             cidade_ong, senha_criptografada, chave_pix, id_usuario))
 
                 con.commit()
                 return jsonify({'mensagem': {
@@ -700,10 +731,11 @@ def editar_usuario(id_usuario):
                                banco_ong       = ?,
                                agencia_ong     = ?,
                                conta_ong       = ?,
-                               cidade_ong      = ?
+                               cidade_ong      = ?,
+                               chave_pix = ?
                            where id_usuario = ?""",
                         (nome, email, telefone, tipo_ong, descricao_causa, banco_ong, agencia_ong, conta_ong,
-                         cidade_ong, id_usuario))
+                         cidade_ong, chave_pix,id_usuario))
             con.commit()
             return jsonify({'mensagem': {
                 'tipo': 'sucesso',
@@ -2943,9 +2975,7 @@ def pagina_feed(pagina):
 
     try:
         nome = request.args.get('nome', '')
-        ong = request.args.get('ong', '')
         tema = request.args.get('tema', '')
-        data = request.args.get('data', '')
         ordem = request.args.get('ordem', 'desc').lower()
 
         if ordem not in ['asc', 'desc']:
@@ -2995,17 +3025,10 @@ def pagina_feed(pagina):
             selectBase += " AND UPPER(p.titulo) LIKE UPPER(?)"
             filtros.append(f"%{nome}%")
 
-        if ong:
-            selectBase += " AND UPPER(u.nome) LIKE UPPER(?)"
-            filtros.append(f"%{ong}%")
-
         if tema:
             selectBase += " AND u.tipo_ong = ?"
             filtros.append(tema)
 
-        if data:
-            selectBase += " AND CAST(p.data_hora AS DATE) = ?"
-            filtros.append(data)
 
         selectBase += f"""
             ORDER BY p.data_hora {ordem}, p.id_post_projeto {ordem}
@@ -3024,7 +3047,7 @@ def pagina_feed(pagina):
                         """, (p[0],))
             total_curtidas = cur.fetchone()[0]
 
-            # Total de comentários
+
             cur.execute("""
                         SELECT COUNT(*)
                         FROM mensagens_postagem
@@ -3721,7 +3744,7 @@ def postar_comentario(id_usuario, id_post):
         return jsonify({
             'mensagem': {
                 'tipo': 'sucesso',
-                'descricao': 'comentario realizado com sucesso'
+                'descricao': 'Comentário realizado com sucesso'
             },
             'id_mensagem': id_mensagem
         }), 201
@@ -4037,11 +4060,26 @@ def adicionar_tipo_ong():
                 }
             }), 400
 
+        nome_tipo = novo_tipo.strip().upper()
+        print(nome_tipo)
+        cur.execute("""SELECT id_tipo_ong 
+                        FROM tipo_ong
+                        WHERE UPPER(nome) = ?
+                    """,(nome_tipo,))
+
+        if cur.fetchone():
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Este tipo de ONG já está cadastrado'
+                }
+            }), 409
+
         cur.execute("""
                     INSERT INTO tipo_ong (nome)
                     VALUES (?)
                         RETURNING id_tipo_ong
-                    """, (novo_tipo.strip().upper(),))
+                    """, (nome_tipo,))
 
         id_tipo_ong = cur.fetchone()[0]
 
@@ -4116,6 +4154,22 @@ def excluir_tipo_ong(id_tipo_ong):
                     'descricao': 'Apenas ADMs podem excluir tipos de ONG'
                 }
             }), 403
+
+        cur.execute("""
+                    SELECT COUNT(ID_USUARIO)
+                    FROM USUARIO
+                    WHERE TIPO_ONG = ?
+                    """, (id_tipo_ong,))
+
+        quantidade_ongs = cur.fetchone()[0]
+
+        if quantidade_ongs > 0:
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Não é possível excluir este tipo, pois existem ONGs cadastradas com ele'
+                }
+            }), 400
 
         cur.execute(
             'SELECT 1 FROM TIPO_ONG WHERE ID_TIPO_ONG = ?',
@@ -4310,7 +4364,11 @@ def enviar_pix():
 
     id_projeto = dados.get('id_projeto')
     id_ong = dados.get('id_ong')
-    valor_doacao = float(dados.get('valor'))
+    valor_doacao = float(dados.get('valor')) or 0
+    valor_etapa = int(dados.get('etapa')) or 1
+
+    print(valor_etapa)
+
 
     token = request.cookies.get('access_token')
 
@@ -4349,7 +4407,11 @@ def enviar_pix():
             }), 404
 
         res_usuario = usuario[0]
-        
+        nome_doador = usuario[1]
+        email_doador = usuario[2]
+
+        print(email_doador)
+
         if res_usuario != 0:
             return jsonify({
                 'mensagem': {
@@ -4371,27 +4433,50 @@ def enviar_pix():
         chave_pix = dados_ong[2]
         email_ong = dados_ong[3]
 
+        if valor_doacao > 1000000000000 or valor_doacao <= 0:
+            return jsonify({'mensagem':{
+                'tipo':'erro',
+                'descricao':'O valor não pode passar de um Trilhão e nem ser 0 ou menos'
+            }}), 400
+
         nome_projeto = None
-        if id_projeto is not None:
-            cur.execute('SELECT NOME, FK_USUARIO_ONG FROM PROJETO_ONG WHERE ID_PROJETO = ?', (id_projeto,))
-            projeto_row = cur.fetchone()
+        if valor_etapa == 1:
+            if id_projeto is not None:
+                cur.execute('SELECT NOME, FK_USUARIO_ONG FROM PROJETO_ONG WHERE ID_PROJETO = ?', (id_projeto,))
+                projeto_row = cur.fetchone()
 
-            if not projeto_row[0]:
-                return jsonify({
-                    'mensagem': {'tipo': 'erro', 'descricao': 'Projeto não existe'}
-                }), 404
+                if not projeto_row[0]:
+                    return jsonify({
+                        'mensagem': {'tipo': 'erro', 'descricao': 'Projeto não existe'}
+                    }), 404
 
-            id_projeto_ong = projeto_row[1]
+                id_projeto_ong = projeto_row[1]
 
-            if int(id_projeto_ong) != int(id_ong):
-                return jsonify({
-                    'mensagem':{
-                        'tipo':'erro',
-                        'descricao':'Esse projeto não é dessa ong'
-                    }
-                })
+                if int(id_projeto_ong) != int(id_ong):
+                    return jsonify({
+                        'mensagem':{
+                            'tipo':'erro',
+                            'descricao':'Esse projeto não é dessa ong'
+                        }
+                    })
 
-            if not chave_pix:
+                if not chave_pix:
+                        return jsonify(({
+                            'mensagem':{
+                                "tipo":"erro",
+                                'descricao':'Não existe chave Pix'
+                            }
+                        }))
+
+                else:
+                    nome_projeto = projeto_row[0]
+
+                    arquivo = f"{id_token}{id_ong}{id_projeto}{valor_doacao}.png"
+
+                    pay = gerar_qrcode_pix(chave_pix, nome_ong, cidade_ong, valor_doacao, arquivo)
+
+            else:
+                if not chave_pix:
                     return jsonify(({
                         'mensagem':{
                             "tipo":"erro",
@@ -4399,70 +4484,95 @@ def enviar_pix():
                         }
                     }))
 
-            else:
-                nome_projeto = projeto_row[0]
-
-                cur.execute(
-                    """INSERT INTO DOACOES(
-                        FK_USUARIO_ONG,
-                        FK_USUARIO_DOADOR,
-                        FK_PROJETO,
-                        VALOR_DOADOR,
-                        STATUS
-                    )
-                    VALUES (?, ?, ?, ?, 'PENDENTE')
-                    RETURNING ID_DOACAO""",
-                    (id_ong, id_token, id_projeto, valor_doacao)
-                )
-                id_doacao = cur.fetchone()[0]
-    
-                arquivo = f"{id_doacao}.png"
+                arquivo = f"{id_token}{id_ong}{valor_doacao}.png"
 
                 pay = gerar_qrcode_pix(chave_pix, nome_ong, cidade_ong, valor_doacao, arquivo)
 
-                con.commit()
 
-        else:
-            if not chave_pix:
-                return jsonify(({
-                    'mensagem':{
-                        "tipo":"erro",
-                        'descricao':'Não existe chave Pix'
-                    }
-                }))
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'sucesso',
+                    'descricao': 'Pix gerado com sucesso'
+                },
+                'pix': {
+                    'nome_ong': nome_ong,
+                    'nome_projeto': nome_projeto,
+                    'chave_pix': pay,
+                    'qrcode': arquivo,
+                    'etapa' : valor_etapa
+                }
+            }), 200
 
-            cur.execute(
-                """INSERT INTO DOACOES(
-                    FK_USUARIO_ONG,
-                    FK_USUARIO_DOADOR,
-                    VALOR_DOADOR,
-                    STATUS
+        elif valor_etapa == 2:
+            print(valor_etapa)
+            if id_projeto is not None:
+                cur.execute(
+                    """INSERT INTO DOACOES(FK_USUARIO_ONG,
+                                           FK_USUARIO_DOADOR,
+                                           FK_PROJETO,
+                                           VALOR_DOADOR)
+                       VALUES (?, ?, ?, ?) RETURNING ID_DOACAO""",
+                    (id_ong, id_token, id_projeto, valor_doacao)
                 )
-                VALUES (?, ?, ?, 'PENDENTE')
-                RETURNING ID_DOACAO""",
-                (id_ong, id_token, valor_doacao)
-            )
-            id_doacao = cur.fetchone()[0]
+                id_doacao = cur.fetchone()[0]
 
-            arquivo = f"{id_doacao}.png"
+                enviando_email(
+                    email_doador,
+                    "Pagamento efetuado com sucesso",
+                    f"Valor de R$ {valor_doacao} enviado com sucesso para o projeto {nome_projeto}",
+                    "",
+                    nome_doador,
+                    "Obrigado pela doação"
+                )
 
-            pay = gerar_qrcode_pix(chave_pix, nome_ong, cidade_ong, valor_doacao, arquivo)
+                enviando_email(
+                    email_ong,
+                    f"Valor recebido de {nome_doador} para o projeto {nome_projeto}",
+                    f"Valor recebido de R$ {valor_doacao}, do doador {nome_doador}.",
+                    "",
+                    nome_ong)
 
-            con.commit()
 
-        return jsonify({
-            'mensagem': {
-                'tipo': 'sucesso',
-                'descricao': 'Pix gerado com sucesso'
-            },
-            'pix': {
-                'id_doacao': id_doacao,
-                'nome_ong': nome_ong,
-                'nome_projeto': nome_projeto,
-                'chave_pix': pay,
-                'qrcode': arquivo
-            }
-        }), 200
+                return jsonify({'mensagem': {
+                    'tipo': 'sucesso',
+                    'descricao': 'Pix realizado com sucesso',
+                    'pix':{
+                        'etapa':valor_etapa
+                    }
+                }})
+
+            else:
+                cur.execute(
+                    """INSERT INTO DOACOES(FK_USUARIO_ONG,
+                                           FK_USUARIO_DOADOR,
+                                           VALOR_DOADOR)
+                       VALUES (?, ?, ?) RETURNING ID_DOACAO""",
+                    (id_ong, id_token, valor_doacao)
+                )
+                id_doacao = cur.fetchone()[0]
+
+                enviando_email(
+                    email_doador,
+                    "Pagamento efetuado com sucesso",
+                    f"Valor de R$ {valor_doacao} enviado com sucesso para a ONG {nome_ong}",
+                    "",
+                    nome_doador,
+                    "Obrigado pela doação"
+                )
+
+                enviando_email(
+                    email_ong,
+                    f"Valor recebido de {email_doador}",
+                    f"Valor recebido de R$ {valor_doacao}, do doador {nome_doador}.",
+                    "",
+                    nome_ong,
+                    "Gaste o dinheiro em algum dos seus projetos")
+
+                return  jsonify({'mensagem':{
+                    'tipo':'sucesso',
+                    'descricao':'Pix realizado com sucesso'
+                }})
+
 
     except Exception as e:
         con.rollback()
@@ -4476,169 +4586,6 @@ def enviar_pix():
     finally:
         cur.close()
 
-@app.route('/confirmar_pix/<int:id_doacao>', methods=['PUT'])
-def confirmar_pix(id_doacao):
-    cur = con.cursor()
-
-    try:
-
-        cur.execute("""
-            SELECT
-                D.VALOR_DOADOR,
-                D.FK_PROJETO,
-                U_DOADOR.NOME,
-                U_DOADOR.EMAIL,
-                U_ONG.NOME,
-                U_ONG.EMAIL
-            FROM DOACOES D
-            JOIN USUARIO U_DOADOR
-                ON U_DOADOR.ID_USUARIO = D.FK_USUARIO_DOADOR
-            JOIN USUARIO U_ONG
-                ON U_ONG.ID_USUARIO = D.FK_USUARIO_ONG
-            WHERE D.ID_DOACAO = ?
-        """, (id_doacao,))
-
-        dados = cur.fetchone()
-
-        if not dados:
-            return jsonify({
-                'mensagem': {
-                    'tipo': 'erro',
-                    'descricao': 'Doação não encontrada'
-                }
-            }), 404
-
-        valor_doacao = dados[0]
-        id_projeto = dados[1]
-
-        nome_doador = dados[2]
-        email_doador = dados[3]
-
-        nome_ong = dados[4]
-        email_ong = dados[5]
-
-        cur.execute("""
-            UPDATE DOACOES
-            SET STATUS = 'PAGO'
-            WHERE ID_DOACAO = ?
-        """, (id_doacao,))
-
-        nome_projeto = None
-
-        if id_projeto:
-            cur.execute("""
-                SELECT NOME
-                FROM PROJETO_ONG
-                WHERE ID_PROJETO = ?
-            """, (id_projeto,))
-
-            projeto = cur.fetchone()
-
-            if projeto:
-                nome_projeto = projeto[0]
-
-        con.commit()
-
-        # EMAILS APÓS A CONFIRMAÇÃO
-
-        if nome_projeto:
-
-            enviando_email(
-                email_doador,
-                "Pagamento efetuado com sucesso",
-                f"Valor de R$ {valor_doacao} enviado com sucesso para o projeto {nome_projeto}",
-                "",
-                nome_doador,
-                "Obrigado pela doação"
-            )
-
-            enviando_email(
-                email_ong,
-                f"Valor recebido de {email_doador} para o projeto {nome_projeto}",
-                f"Valor recebido de R$ {valor_doacao}, do doador {nome_doador}.",
-                "",
-                nome_ong,
-                ""
-            )
-
-        else:
-
-            enviando_email(
-                email_doador,
-                "Pagamento efetuado com sucesso",
-                f"Valor de R$ {valor_doacao} enviado com sucesso para a ONG {nome_ong}",
-                "",
-                nome_doador,
-                "Obrigado pela doação"
-            )
-
-            enviando_email(
-                email_ong,
-                f"Valor recebido de {email_doador}",
-                f"Valor recebido de R$ {valor_doacao}, do doador {nome_doador}.",
-                "",
-                nome_ong,
-                "Gaste o dinheiro em algum dos seus projetos"
-            )
-
-        return jsonify({
-            'mensagem': {
-                'tipo': 'sucesso',
-                'descricao': 'PIX Pago com sucesso'
-            }
-        }), 200
-
-    except Exception as e:
-        con.rollback()
-
-        return jsonify({
-            'mensagem': {
-                'tipo': 'erro',
-                'descricao': str(e)
-            }
-        }), 500
-
-    finally:
-        cur.close()
-@app.route('/cancelar_pix/<int:id_doacao>', methods=['DELETE'])
-def cancelar_pix(id_doacao):
-    cur = con.cursor()
-
-    try:
-        cur.execute(
-            'DELETE FROM DOACOES WHERE ID_DOACAO = ?',
-            (id_doacao,)
-        )
-
-        if cur.rowcount == 0: #o rowcount faz a verificação de quantas linha foram alteradas com a ultima ação no caso o DELETE
-            return jsonify({
-                'mensagem': {
-                    'tipo': 'erro',
-                    'descricao': 'Doação não encontrada'
-                }
-            }), 404
-
-        con.commit()
-
-        return jsonify({
-            'mensagem': {
-                'tipo': 'sucesso',
-                'descricao': 'PIX cancelado com sucesso'
-            }
-        }), 200
-
-    except Exception as e:
-        con.rollback()
-
-        return jsonify({
-            'mensagem': {
-                'tipo': 'erro',
-                'descricao': str(e)
-            }
-        }), 500
-
-    finally:
-        cur.close()
 
 @app.route('/qrcodes/<nome_arquivo>')
 def servir_qrcode(nome_arquivo):
