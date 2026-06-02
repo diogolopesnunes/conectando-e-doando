@@ -4516,6 +4516,8 @@ def enviar_pix():
                 )
                 id_doacao = cur.fetchone()[0]
 
+                con.commit()
+
                 enviando_email(
                     email_doador,
                     "Pagamento efetuado com sucesso",
@@ -4530,7 +4532,7 @@ def enviar_pix():
                     f"Valor recebido de {nome_doador} para o projeto {nome_projeto}",
                     f"Valor recebido de R$ {valor_doacao}, do doador {nome_doador}.",
                     "",
-                    nome_ong)
+                    nome_ong,"")
 
 
                 return jsonify({'mensagem': {
@@ -4550,6 +4552,8 @@ def enviar_pix():
                     (id_ong, id_token, valor_doacao)
                 )
                 id_doacao = cur.fetchone()[0]
+
+                con.commit()
 
                 enviando_email(
                     email_doador,
@@ -4648,6 +4652,8 @@ def historico(pagina):
         tipo_usuario_historico = tipo_usuario_historico[0]
 
         filtro = request.args.get('nome', '')
+
+        filtroso = int(request.args.get('filtroso',''))
         
         if tipo_usuario_historico == 0:
             filtro_sql = " UPPER(ong.nome) LIKE UPPER(?)"
@@ -4704,44 +4710,126 @@ def historico(pagina):
                 1):
             paginaAnterior = 0
 
-        cur.execute(f"""
-            SELECT
-                ong.nome,
-                projeto.nome,
-                doador.nome,
-                doador.email,
-                d.valor_doador,
-                d.data_hora,
-                d.fk_usuario_doador,
-                d.fk_usuario_ong
-            FROM doacoes d
+        if filtroso == 0:
 
-            LEFT JOIN usuario ong
-                ON ong.id_usuario = d.fk_usuario_ong
+            cur.execute(f"""
+                SELECT
+                    ong.nome,
+                    projeto.nome,
+                    doador.nome,
+                    doador.email,
+                    d.valor_doador,
+                    d.data_hora,
+                    d.fk_usuario_doador,
+                    d.fk_usuario_ong
+                FROM doacoes d
+    
+                LEFT JOIN usuario ong
+                    ON ong.id_usuario = d.fk_usuario_ong
+    
+                LEFT JOIN projeto_ong projeto
+                    ON projeto.id_projeto = d.fk_projeto
+    
+                LEFT JOIN usuario doador
+                    ON doador.id_usuario = d.fk_usuario_doador
+    
+                WHERE 
+                    (
+                        d.fk_usuario_doador = ?
+                        OR d.fk_usuario_ong = ?
+                    )
+                    AND {filtro_sql}
+                    AND fk_projeto IS NULL
+    
+                ORDER BY d.data_hora DESC
+                ROWS ? TO ?
+            """, (
+                id_usuario,
+                id_usuario,
+                f"%{filtro}%",
+                minimo,
+                maximo
+            ))
 
-            LEFT JOIN projeto_ong projeto
-                ON projeto.id_projeto = d.fk_projeto
+        elif filtroso == 1:
 
-            LEFT JOIN usuario doador
-                ON doador.id_usuario = d.fk_usuario_doador
+            cur.execute(f"""
+                            SELECT
+                                ong.nome,
+                                projeto.nome,
+                                doador.nome,
+                                doador.email,
+                                d.valor_doador,
+                                d.data_hora,
+                                d.fk_usuario_doador,
+                                d.fk_usuario_ong
+                            FROM doacoes d
 
-            WHERE 
-                (
-                    d.fk_usuario_doador = ?
-                    OR d.fk_usuario_ong = ?
-                )
-                AND {filtro_sql}
+                            LEFT JOIN usuario ong
+                                ON ong.id_usuario = d.fk_usuario_ong
 
-            ORDER BY d.data_hora DESC
-            ROWS ? TO ?
-        """, (
-            id_usuario,
-            id_usuario,
-            f"%{filtro}%",
-            minimo,
-            maximo
-        ))
+                            LEFT JOIN projeto_ong projeto
+                                ON projeto.id_projeto = d.fk_projeto
 
+                            LEFT JOIN usuario doador
+                                ON doador.id_usuario = d.fk_usuario_doador
+
+                            WHERE 
+                                (
+                                    d.fk_usuario_doador = ?
+                                    OR d.fk_usuario_ong = ?
+                                )
+                                AND {filtro_sql}
+                                AND fk_projeto IS NOT NULL
+
+                            ORDER BY d.data_hora DESC
+                            ROWS ? TO ?
+                        """, (
+                id_usuario,
+                id_usuario,
+                f"%{filtro}%",
+                minimo,
+                maximo
+            ))
+
+        else:
+            cur.execute(f"""
+                                        SELECT
+                                            ong.nome,
+                                            projeto.nome,
+                                            doador.nome,
+                                            doador.email,
+                                            d.valor_doador,
+                                            d.data_hora,
+                                            d.fk_usuario_doador,
+                                            d.fk_usuario_ong
+                                        FROM doacoes d
+
+                                        LEFT JOIN usuario ong
+                                            ON ong.id_usuario = d.fk_usuario_ong
+
+                                        LEFT JOIN projeto_ong projeto
+                                            ON projeto.id_projeto = d.fk_projeto
+
+                                        LEFT JOIN usuario doador
+                                            ON doador.id_usuario = d.fk_usuario_doador
+
+                                        WHERE 
+                                            (
+                                                d.fk_usuario_doador = ?
+                                                OR d.fk_usuario_ong = ?
+                                            )
+                                            AND {filtro_sql}
+
+                                        ORDER BY d.data_hora DESC
+                                        ROWS ? TO ?
+                                    """, (
+                id_usuario,
+                id_usuario,
+                f"%{filtro}%",
+                minimo,
+                maximo
+            ))
 
         resultados = cur.fetchall()
 
