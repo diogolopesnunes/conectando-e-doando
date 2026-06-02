@@ -60,7 +60,6 @@
 @media (max-width: 769px){
     .wSelecionarTipo,
     .wAdicionarTipo {
-        width: 75% !important;
-        flex-direction: column !important;
+        width: 100% !important;
     }
 }
