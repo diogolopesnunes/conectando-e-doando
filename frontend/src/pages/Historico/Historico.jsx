@@ -30,7 +30,7 @@ export default function Historico({api}){
     const esteAno = new Date().getFullYear()
     const [dadosGraficoDoador, setDadosGraficoDoador] = useState([]);
     const local = useLocation();
-    const [filtroso, setFiltroso] = useState('');
+    const [filtroso, setFiltroso] = useState(2);
 
     useEffect(() => {
 
