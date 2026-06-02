@@ -30,6 +30,7 @@ export default function Historico({api}){
     const esteAno = new Date().getFullYear()
     const [dadosGraficoDoador, setDadosGraficoDoador] = useState([]);
     const local = useLocation();
+    const [filtroso, setFiltroso] = useState('');
 
     useEffect(() => {
 
@@ -46,7 +47,7 @@ export default function Historico({api}){
 
     async function listarHistorico() {
         try {
-            var rota=`${api}/historico/${pagina}?nome=${filtro}`
+            var rota=`${api}/historico/${pagina}?nome=${filtro}&filtroso=${filtroso}`
             if(id_ong){
                 rota += `&id_usuario=${id_ong}`
             }
@@ -88,6 +89,11 @@ export default function Historico({api}){
         listarHistorico();
         carregarGrafico()
     }, [filtro, pagina])
+
+    useEffect(() => {
+        setHistorico([])
+        listarHistorico();
+    }, [filtroso]);
 
     useEffect(() => {
         carregarGrafico()
@@ -239,7 +245,7 @@ export default function Historico({api}){
                     )}
 
                 </div>
-                <div className={'d-flex align-items-end'}>
+                <div className={'col-9 m-auto d-flex align-items-center'}>
 
 
                     <Input
@@ -251,6 +257,11 @@ export default function Historico({api}){
                             setFiltro(e.target.value);
                         }}
                     />
+                    <select className={'py-1 px-2'} onChange={(e) => setFiltroso(Number(e.target.value))}>
+                        <option value={2}>Geral</option>
+                        <option value={0}>Doações para a ONG</option>
+                        <option value={1}>Doações para projetos</option>
+                    </select>
                 </div>
                 <Buton
                     texto={"Gerar Relatório"}
