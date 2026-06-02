@@ -4,8 +4,6 @@ import Buton from "../Buton/Buton.jsx";
 
 export default function OngsFavoritas({ ongs = [], api }) {
 
-    console.log(ongs)
-
     return (
         <div className={css.favoritasContainer}>
             <h3 className={css.tituloFavoritas}>

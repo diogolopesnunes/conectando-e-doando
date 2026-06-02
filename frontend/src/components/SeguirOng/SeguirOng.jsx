@@ -90,7 +90,7 @@ export default function SeguirOng({
                 )}
 
             <div
-                className={css.containerSeguir}
+                className={`${css.containerSeguir}`}
                 onClick={seguirDesseguirOng}>
                 <img
                     className={css.seguir}

@@ -1,7 +1,7 @@
 import {Link} from "react-router-dom";
 import css from "./Footer.module.css";
 
-export default function Footer() {
+export default function Footer({scrollQuemSomos,scrollOngs}) {
     return (
         <footer className={"w-100 " + css.footer}>
             <div className={css.container}>
@@ -10,11 +10,16 @@ export default function Footer() {
                     <img src="/logo.png" alt="Conectando & Doando"/>
                 </div>
 
-                <nav className={css.menu}>
-                    <Link href="/">Início</Link>
-                    <Link href="/">Sobre Nós</Link>
-                    <Link href="/">ONGs</Link>
-                    <Link href="/cadastro">Cadastro</Link>
+                <nav className={`${css.menu}`}>
+                    <Link onClick={() => {
+                        window.scrollTo({
+                            top: 0,
+                            behavior: "smooth"
+                        });
+                    }}>Início</Link>
+                    <Link to="/" state={{ secao: "quemSomos" }}>Sobre Nós</Link>
+                    <Link to="/" state={{ secao: "ongs" }}>ONGs</Link>
+                    <Link to="/cadastro">Cadastro</Link>
                 </nav>
 
                 <div className={css.linha}></div>

@@ -122,13 +122,14 @@
     .infos p{
         font-size: 1.1em;
     }
+
     .nome p{
-        font-size: 1.2em !important;
+        font-size: 0.9em !important;
     }
     .justify p{
         text-align: justify;
     }
     .nomeCortar {
-        max-width: 65%;
+        max-width: 100%;
     }
 }

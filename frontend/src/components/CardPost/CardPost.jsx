@@ -52,7 +52,6 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
             const elemento = entries[0];
 
             if (elemento.isIntersecting) {
-                console.log("Chegou no final da lista");
 
                 if (proximaPagina > pagina) {
                     setPagina(proximaPagina);
@@ -65,12 +64,10 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
             const elemento = entries[0];
 
             if (elemento.isIntersecting) {
-                console.log("Chegou no começo da lista");
 
                 if (paginaAnterior < pagina) {
                     setPagina(paginaAnterior);
                     setPaginaAnterior(paginaAnterior - 1);
-                    console.log(pagina);
                 }
             }
         });
@@ -103,7 +100,10 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
 
             // Exibe a mensagem retornada pela API
             if (dados.mensagem) {
-                setMensagem(dados.mensagem);
+                setMensagem({
+                    ...dados.mensagem,
+                    id: Date.now()
+                });
             }
 
             if (resposta.ok) {
@@ -128,7 +128,6 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
                     aoAlterarCurtida(idPost, dados.curtido, novoTotal);
                 }
 
-                console.log(dados.mensagem.descricao);
             } else {
                 console.error(dados.mensagem.descricao);
             }
@@ -155,6 +154,7 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
             {mensagem && (
                 <div className={'col-12 position-absolute'}>
                     <Alerts
+                        key={mensagem.id}
                         tipo={mensagem.tipo}
                         imagem={`/public/${mensagem.tipo}.png`}
                         duracao={10000}
@@ -345,7 +345,7 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
                             >
                                 <div className={`d-flex flex-column flex-lg-row justify-content-around align-items-center px-2 py-1 m-auto gap-0 gap-lg-5 ${css.containterInput}`}>
                                     <input
-                                        className={`w-100 rounded py-3 text-center text-sm-start p-5 ${css.inpComentario}`}
+                                        className={`w-100 rounded py-3 text-center text-sm-start px-0 px-sm-5 ${css.inpComentario}`}
                                         type={'text'} placeholder={!editar ? 'Deixe sua mensagem' : 'Editar mensagem'} value={!editar ? comentario : mensagemEditada} onChange={!editar ? (e) => setComentario(e.target.value) : (e) => setMensagemEditada(e.target.value)} disabled={!idUsuario ? true : false}/>
                                     <div className={`d-flex gap-3 gap-sm-5 ${css.botoes}`}>
                                         <Buton texto={!editar ? 'Comentar': 'Editar'} background={'laranja'} tamanho={'pequeno'} tipo={'submit'}/>

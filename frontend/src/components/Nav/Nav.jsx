@@ -26,28 +26,7 @@ export default function Nav() {
 
     function ongsAdm({ isActive }) {
         var ongs = cssAtivado({ isActive });
-        if (local.pathname.includes('/enviar_email/')) {
-            ongs += " active";
-        }
-        if (local.pathname.includes('/edicao_ongs/')) {
-            ongs += " active";
-        }
-        if (local.pathname.includes('/previa_ong/')) {
-            ongs += " active";
-        }
-        if (local.pathname.includes('/projeto/')) {
-            ongs += " active";
-        }
-        if (local.pathname.includes('/adicionar_post/')) {
-            ongs += " active";
-        }
-        if (local.pathname.includes('/adicionar_projetos/')) {
-            ongs += " active";
-        }
-        if (local.pathname.includes('/edicao_projetos/')) {
-            ongs += " active";
-        }
-        if (local.pathname.includes('/historico_ong/')){
+        if (local.pathname.includes('/enviar_email/') || local.pathname.includes('/edicao_ongs/') || local.pathname.includes('/previa_ong/') || local.pathname.includes('/projeto/') || local.pathname.includes('/adicionar_post/') || local.pathname.includes('/adicionar_projetos/') || local.pathname.includes('/edicao_projetos/') || local.pathname.includes('/historico_ong/') || local.pathname.includes('/edicao_post/')) {
             ongs += " active";
         }
         return ongs;
@@ -55,12 +34,9 @@ export default function Nav() {
 
     function doadoresAdm({ isActive }) {
         var doadores = cssAtivado({ isActive });
-        if (local.pathname.includes('/edicao_doadores/')) {
+        if (local.pathname.includes('/edicao_doadores/') || local.pathname.includes('/historico_doador/')) {
             doadores += " active";
         }
-        // if (local.pathname.includes('/edicao_ongs/')) {
-        //     ongs += " active";
-        // }
         return doadores;
     }
 
@@ -135,12 +111,6 @@ export default function Nav() {
                         className={cssAtivado}>
                         Prévia
                     </NavLink>
-
-                    {/*<NavLink*/}
-                    {/*    to="/grafico"*/}
-                    {/*    className={cssAtivado}>*/}
-                    {/*    Gráfico*/}
-                    {/*</NavLink>*/}
 
                     <NavLink
                         to="/historico_ong"

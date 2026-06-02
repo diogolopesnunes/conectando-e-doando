@@ -15,61 +15,6 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
         setLogado(false);
     }
 
-
-
-    // const [logado, setLogado] = useState("");
-    // if (localStorage.getItem('id_usuario')){
-    //     setlogado(true)
-    // } else{
-    //     setLogado(false)
-    // }
-    // const [id, setId] = useState("");
-    // const [mensagem, setMensagem] = useState()
-    // const [tipoMensagem ,setTipoMensagem] = useState()
-    // const navegate = useNavigate();
-
-    // useEffect(() => {
-    //     if (!localStorage.getItem("email") || !localStorage.getItem("email") || !localStorage.getItem("id_usuario")) {
-    //         setLogado(false);
-    //         // } else{
-    //         setLogado(true);
-    //         setId(localStorage.getItem('id_usuario'))
-    //     }
-    // }, [logado])
-
-    // async function logout(e) {
-    //     e.preventDefault();
-    //     let retorno = await fetch(`http://10.92.3.118:5000/logout`, {
-    //         method: "POST",
-    //         headers: {
-    //             "Content-Type": "application/json"
-    //         },
-    //         credentials: "include",
-    //         body: JSON.stringify({
-    //
-    //         })
-    //     })
-    //
-    //     setLogado(false)
-    //
-    //     retorno = await retorno.json()
-    //     console.log(retorno)
-    //     if(!retorno){
-    //         console.log("Erro do servidor:", retorno);
-    //         return;
-    //     }
-    //     if (retorno.mensagem){
-    //         setMensagem(retorno.mensagem.descricao)
-    //         setTipoMensagem(retorno.mensagem.tipo)
-    //         console.log(mensagem)
-    //         console.log(tipoMensagem)
-    //         if(retorno.mensagem.tipo === 'sucesso'){
-    //             localStorage.clear()
-    //         }
-    //     }
-    //     // navegate('/')
-    // }
-
     async function logout(e) {
         e.preventDefault();
         let retorno = await fetch(`${api}/logout`, {
@@ -86,7 +31,6 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
         setLogado(false)
 
         retorno = await retorno.json()
-        console.log(retorno)
         if(!retorno){
             console.log("Erro do servidor:", retorno);
             return;

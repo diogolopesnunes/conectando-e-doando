@@ -31,8 +31,6 @@ export default function CardUsuarioAdm({
     const usuarioOng = tipo === 1;
     const usuarioAdm = tipo === 2;
 
-    console.log("tipo:", tipo, typeof tipo);
-
     async function aprovar() {
         setLoadingAprovar(true);
 
@@ -131,9 +129,9 @@ export default function CardUsuarioAdm({
                 <div className={`${css.linhaRecusado}`}></div>
             )}
             <div className="d-flex justify-content-between align-items-start w-100">
-                <Link to={usuarioOng ? `/previa_ong/${id}` : "#"} className={'d-flex flex-grow-1 min-w-0'}>
+                <Link to={usuarioOng ? `/previa_ong/${id}` : "#"} className={'d-flex w-75'}>
                     <div className={"w-100"}>
-                        <div className={'d-flex gap-3 ' + css.nome}>
+                        <div className={'d-flex gap-1 ' + css.nome}>
                             <p className={'px-2 rounded ' + css.idStyle}>ID {id}</p>
 
                             {status === 1 ? (
@@ -148,8 +146,7 @@ export default function CardUsuarioAdm({
 
                             <p className={css.nomeCortar}>{nome}</p>
                         </div>
-
-                        <div className={'d-flex justify-content-between flex-column flex-lg-row my-3 ' + css.infos}>
+                        <div className={'d-flex justify-content-between flex-column flex-lg-row my-3' + css.infos}>
                             {usuarioOng ? (
                                 <div className={'d-flex flex-column w-100'}>
                                     <div className={'d-flex justify-content-between flex-column flex-lg-row my-3 w-100 ' + css.infos}>
@@ -173,7 +170,7 @@ export default function CardUsuarioAdm({
                         </div>
                     </div>
                 </Link>
-                <div className={'flex-shrink-0'}>
+                <div className={`flex-shrink-0`}>
 
                     {usuarioOng && (status === 4 || status === 0) && (
                         <div
@@ -249,6 +246,15 @@ export default function CardUsuarioAdm({
                                         />
                                     )}
 
+                                    {usuarioDoador && (
+                                        <Buton
+                                            rota={`/historico_doador/${id}`}
+                                            texto={'Histórico'}
+                                            background={'bege'}
+                                            tamanho={'pequeno'}
+                                        />
+                                    )}
+
                                     {status === 1 ? (
                                         <Buton
                                             texto={loadingBloquear ? 'Bloqueando...' : 'Bloquear'}
@@ -281,6 +287,7 @@ export default function CardUsuarioAdm({
                     )}
                 </div>
             </div>
+
         </div>
 
 

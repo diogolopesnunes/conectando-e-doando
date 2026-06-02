@@ -3,7 +3,6 @@ import css from "./InfoOng.module.css";
 import SeguirOng from "../SeguirOng/SeguirOng.jsx";
 
 export default function InfoOng({rota ,info, texto, api, atualizarSeguimento, seguindo, nomeOng, nomeProjeto}) {
-    console.log(info)
     return (
         <>
             <section className={css.secaoInfoProjeto}>
@@ -29,7 +28,7 @@ export default function InfoOng({rota ,info, texto, api, atualizarSeguimento, se
                         </p>
                     </div>
 
-                    <div className={"mt-2 " + css.secaoChamadaAcao}>
+                    <div className={`mt-2 flex-column flex-sm-row ${css.secaoChamadaAcao}`}>
                         <img
                             src={`${api}${info.logoInstituicao}?t=${Date.now()}`}
                             alt="Logo Instituição"
@@ -39,17 +38,19 @@ export default function InfoOng({rota ,info, texto, api, atualizarSeguimento, se
                             }}
                         />
 
-                        <SeguirOng
-                            api={api}
-                            idOng={info.id_ong}
-                            nomeOng={info.nome}
-                            temaOng={info.tema}
-                            ongImagem={info.logoInstituicao}
-                            seguindoInicial={seguindo}
-                            aoAlterarSeguimento={(idOng, novoValor) => {
-                                atualizarSeguimento(novoValor);
-                            }}
-                        />
+                        <div className={'d-flex justify-content-center align-items-center'}>
+                            <SeguirOng
+                                api={api}
+                                idOng={info.id_ong}
+                                nomeOng={info.nome}
+                                temaOng={info.tema}
+                                ongImagem={info.logoInstituicao}
+                                seguindoInicial={seguindo}
+                                aoAlterarSeguimento={(idOng, novoValor) => {
+                                    atualizarSeguimento(novoValor);
+                                }}
+                            />
+                        </div>
 
                         <Buton
                             background="laranja"
@@ -68,7 +69,7 @@ export default function InfoOng({rota ,info, texto, api, atualizarSeguimento, se
             </section>
 
             <section className={css.secaoDescricao}>
-                <p>{info.descricao_causa}</p>
+                <p>Descrição da ong: {info.descricao_causa}</p>
             </section>
         </>
     );

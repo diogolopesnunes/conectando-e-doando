@@ -31,8 +31,8 @@ export default function CardProjeto({ NomeProjeto, id, title, api, idUsuario, at
         const retorno = await resposta.json();
         if (retorno.mensagem) {
             setMensagem({
-                texto: retorno.mensagem.descricao,
-                tipo: retorno.mensagem.tipo
+                ...retorno.mensagem,
+                id: Date.now()
             });
         }
         if (onAtualizar) onAtualizar();
@@ -77,8 +77,8 @@ export default function CardProjeto({ NomeProjeto, id, title, api, idUsuario, at
 
                                 if (retorno.mensagem) {
                                     setMensagem({
-                                        texto: retorno.mensagem.descricao,
-                                        tipo: retorno.mensagem.tipo
+                                        ...retorno.mensagem,
+                                        id: Date.now()
                                     });
                                 }
 
