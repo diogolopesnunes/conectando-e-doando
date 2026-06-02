@@ -83,12 +83,22 @@ export default function PaginaEsqueciMinhaSenha({api}){
                             funcao={(e) => setEmail(e.target.value)}
                         />
 
-                        <Buton
-                            texto={"Confirmar"}
-                            background={"laranja"}
-                            tamanho={"medio"}
-                            tipo={"submit"}
-                        />
+
+                        <div className={"d-flex flex-column align-items-center justify-content-center gap-2"}>
+                            <Buton
+                                texto={'Enviar e-mail'}
+                                background={'laranja'}
+                                tamanho={'medio'}
+                                tipo={"submit"}
+                            />
+                            <Buton
+                                texto={'Cancelar'}
+                                background={'roxo'}
+                                tamanho={'pequeno'}
+                                onClick={() => {navigate(-1)}}
+                            />
+                        </div>
+
 
                     </Form>
                 </div>

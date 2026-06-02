@@ -10,9 +10,24 @@
     cursor: pointer;
 }
 
+.preview, .previewBanner {
+    height: 150px;
+    object-fit: cover;
+    border-radius: 15px;
+    margin-bottom: 10px;
+}
+
+.previewDiv {
+    border: 1px solid var(--cor-borda);
+    border-radius: 10px;
+}
+
 .preview {
-    width: 200px;
-    height: 200px;
+    width: 150px;
+}
+
+.previewBanner {
+    width: 300px;
 }
 
 .circulo {

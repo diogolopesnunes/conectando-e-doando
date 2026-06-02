@@ -194,45 +194,55 @@ export default function EdicaoAdm({ api }) {
                                 />
                             </div>
 
-                            <div className="w-100 flex-column d-flex justify-content-center align-items-center mb-4">
-                                <label className="mb-3 fw-bold">Imagem de Perfil</label>
+                            <div className={"w-75 m-auto mb-3 p-1 " + css.previewDiv}>
+                                <div className={"w-100 flex-column d-flex justify-content-center align-items-center "}>
+                                    <label className="mb-3 fw-bold">Imagem de Perfil</label>
+                                    <input
+                                        ref={inputImagemRef}
+                                        type="file"
+                                        onChange={colocarImagem}
+                                        className={css.botao}
+                                    />
 
-                                <input
-                                    ref={inputImagemRef}
-                                    type="file"
-                                    onChange={colocarImagem}
-                                    className={css.botao}
-                                />
+                                    {preview && (
+                                        <div className={"d-flex flex-column gap-1"}>
+                                            <img
+                                                className={"mt-3 " + css.preview}
+                                                src={preview}
+                                                alt="Preview"
+                                            />
 
-                                {preview && (
-                                    <>
-                                        <img
-                                            className={"mt-3 " + css.preview}
-                                            src={preview}
-                                            alt="Preview"
-                                        />
-
-                                        <Buton
-                                            tipo="button"
-                                            texto="Remover"
-                                            background="vermelho"
-                                            tamanho="pequeno"
-                                            onClick={() => {
-                                                inputImagemRef.current.value = null;
-                                                setPreview(null);
-                                                setImagem(null);
-                                            }}
-                                        />
-                                    </>
-                                )}
+                                            <Buton
+                                                tipo="button"
+                                                texto="Remover"
+                                                background="vermelho"
+                                                tamanho="pequeno"
+                                                onClick={() => {
+                                                    inputImagemRef.current.value = null;
+                                                    setPreview(null);
+                                                    setImagem(null);
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
-                            <Buton
-                                texto={'Salvar Alterações'}
-                                background={'laranja'}
-                                tamanho={'medio'}
-                                tipo={"submit"}
-                            />
+                            <div className={"d-flex flex-column align-items-center justify-content-center gap-2"}>
+                                <Buton
+                                    texto={'Salvar Alterações'}
+                                    background={'laranja'}
+                                    tamanho={'medio'}
+                                    tipo={"submit"}
+                                />
+                                <Buton
+                                    texto={'Cancelar'}
+                                    background={'roxo'}
+                                    tamanho={'pequeno'}
+                                    onClick={() => {navigate(-1)}}
+                                />
+                            </div>
+
 
                         </Form>
                     </div>

@@ -20,11 +20,13 @@ export default function Pagamento({ api }) {
     const [idusuario, setIdUsuario] = useState("");
     const [qrCode, setQrCode] = useState("");
     const [pix, setPix] = useState("");
-    const [valorPix, setValorPix] = useState("");
+    const [valorPix, setValorPix] = useState(0);
     const [copiado, setCopiado] = useState(false);
     const [carregando, setCarregando] = useState(false)
     const [mensagem, setMensagem] = useState('');
     const [idDoacao, setIdDoacao] = useState("");
+    const [processandoPagamento, setProcessandoPagamento] = useState(false);
+    const [etapa, setEtapa] = useState(1);
 
     useEffect(() => {
 
@@ -70,7 +72,8 @@ export default function Pagamento({ api }) {
                     body: JSON.stringify({
                         id_ong: idOng,
                         id_projeto: idProjeto,
-                        valor: valorPix
+                        valor: valorPix,
+                        etapa: etapa
                     })
                 }
             );
@@ -100,8 +103,11 @@ export default function Pagamento({ api }) {
                     ...retorno.mensagem,
                     id: Date.now()
                 });
-                if (retorno.mensagem.tipo == 'sucesso'){
-                    sessionStorage.setItem("pagamento_pendente", 'true');
+                if(retorno.mensagem.tipo == 'sucesso' && retorno.pix.etapa == 1){
+                    setEtapa(2)
+                }
+                if(retorno.mensagem.tipo == 'erro'){
+                    setCarregando(false)
                 }
             }
 
@@ -137,70 +143,57 @@ export default function Pagamento({ api }) {
     }
 
     async function confirmarPagamento() {
-        const resposta = await fetch(
-            `${api}/confirmar_pix/${idDoacao}`,
-            {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                credentials: "include",
-            }
-        );
+        if(processandoPagamento == true){
+            return
+        }
+        setProcessandoPagamento(true)
+        try{
+            const resposta = await fetch(
+                `${api}/enviar_pix`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        id_ong: idOng,
+                        id_projeto: idProjeto,
+                        valor: valorPix,
+                        etapa: etapa
+                    })
+                }
+            );
 
-        const retorno = await resposta.json();
-        console.log(retorno);
-        if (retorno.mensagem){
-            setMensagem({
-                ...retorno.mensagem,
-                id: Date.now()
-            });
-            if (retorno.mensagem.tipo == 'sucesso'){
-                sessionStorage.removeItem('pagamento_pendente')
-                navigate(-1)
+            const retorno = await resposta.json();
+            console.log(retorno);
+            if (retorno.mensagem) {
+                setMensagem({
+                    ...retorno.mensagem,
+                    id: Date.now()
+                });
+                if (retorno.mensagem.tipo == 'sucesso') {
+                    navigate(-1)
+                }
             }
+        } catch (erro){
+            setMensagem({
+                descricao:'Erro ao confirmar pagamento',
+                tipo:'erro',
+                id: Date.now()
+            })
+            console.log(erro)
+        } finally {
+            setProcessandoPagamento(false)
         }
     }
 
     async function cancelarPagamento() {
-        const resposta = await fetch(
-            `${api}/cancelar_pix/${idDoacao}`,
-            {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                credentials: "include",
-            }
-        );
-
-        const retorno = await resposta.json();
-        console.log(retorno);
-        if (retorno.mensagem){
-            setMensagem({
-                ...retorno.mensagem,
-                id: Date.now()
-            });
-            if (retorno.mensagem.tipo == 'sucesso'){
-                sessionStorage.removeItem('pagamento_pendente')
-                navigate(-1)
-            }
+        if(processandoPagamento == true){
+            return
         }
+        navigate(-1)
     }
-
-    useEffect(() => {
-        const handleBackButton = () => {
-            if (sessionStorage.getItem("pagamento_pendente") == 'true') {
-                cancelarPagamento();
-            }
-        };
-
-        window.addEventListener("popstate", handleBackButton);
-
-        return () => {
-            window.removeEventListener("popstate", handleBackButton);
-        };
-    }, []);
 
     return (
         <div className={'container m-auto formataAltura'}>
@@ -270,7 +263,7 @@ export default function Pagamento({ api }) {
 
                                     </div>
 
-                                    <div className={'d-flex justify-content-evenly'}>
+                                    <div className={`mb-4 d-flex justify-content-evenly ${processandoPagamento && css.carregando}`}>
                                         <Buton texto={'Pagar'} onClick={() => confirmarPagamento()} background={'laranja'} tamanho={'pequeno'}/>
                                         <Buton texto={'Cancelar'} onClick={() => cancelarPagamento()} background={'roxo'} tamanho={'pequeno'}/>
                                     </div>
@@ -303,7 +296,8 @@ export default function Pagamento({ api }) {
                                     htmlFor={'valorPix'}
                                     placeholder={'Digite o valor do pix'}
                                     label={'Digite o valor'}
-                                    required={true}
+                                    maxlength={13}
+                                    minLength={1}
                                 />
 
                                 <Buton

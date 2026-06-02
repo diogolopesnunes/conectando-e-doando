@@ -411,81 +411,87 @@ export default function DashboardAdmOng({ api }) {
 
                 {/* GERENCIAR TIPOS ONG */}
 
-                <div className="my-4 d-flex flex-row justify-content-center align-items-center gap-5">
+                <div className="col-12 my-4 d-flex flex-column justify-content-center align-items-center gap-2">
                     {/* ADICIONAR */}
 
-                    <div
-                        className={
-                            "d-flex flex-row gap-2 " +
-                            css.wAdicionarTipo
-                        }
-                    >
-
-                        <Input
-                            className={css.inputAdicionar}
-                            tipoInp="text"
-                            htmlFor="novo_tipo_ong"
-                            placeholder="Digite o novo tipo"
-                            value={novoTipo}
-                            funcao={(e) =>
-                                setNovoTipo(
-                                    e.target.value
-                                )
+                    <div className={`row d-flex justify-content-center align-items-center ${css.wAdicionarTipo}`}>
+                        <div
+                            className={
+                                "d-flex col-12 justify-content-center gap-2 "
                             }
-                        />
+                        >
+                            <Input
+                                className={css.inputAdicionar}
+                                tipoInp="text"
+                                htmlFor="novo_tipo_ong"
+                                placeholder="Digite o novo tipo"
+                                value={novoTipo}
+                                funcao={(e) =>
+                                    setNovoTipo(
+                                        e.target.value
+                                    )
+                                }
+                                margin="nenhuma"
+                            />
 
-                        <Buton
-                            texto="Adicionar"
-                            background="verde"
-                            tamanho="pequeno"
-                            onClick={adicionarTipoOng}
-                        />
+
+
+                            <Buton
+                                texto="Adicionar"
+                                background="verde"
+                                tamanho="pequeno"
+                                onClick={adicionarTipoOng}
+                            />
+                        </div>
+
                     </div>
 
                     {/* EXCLUIR */}
 
-                    <div
-                        className={
-                            "d-flex justify-content-center align-items-center m-auto flex-row gap-2 " +
-                            css.wSelecionarTipo
-                        }
-                    >
-
-                        <select
-                            className={"m-auto form-select px-2 rounded " + css.input}
-                            value={tipoOng}
-                            onChange={(e) =>
-                                setTipoOng(
-                                    e.target.value
-                                )
+                    <div className={`row ${css.wSelecionarTipo}`}>
+                        <div
+                            className={
+                                "d-flex justify-content-center align-items-center m-auto flex-row gap-2 col-12 "
                             }
                         >
 
-                            <option value="" className={css.opcao}>
-                                Selecione o tipo
-                            </option>
+                            <select
+                                className={"form-select px-2 rounded " + css.input}
+                                value={tipoOng}
+                                onChange={(e) =>
+                                    setTipoOng(
+                                        e.target.value
+                                    )
+                                }
+                            >
 
-                            {tiposOng.map((tipo) => (
-
-                                <option
-                                    key={tipo.id_tipo_ong}
-                                    value={
-                                        tipo.id_tipo_ong
-                                    }
-                                    className={css.opcao}
-                                >
-                                    {tipo.nome}
+                                <option value="" className={css.opcao}>
+                                    Selecione o tipo
                                 </option>
-                            ))}
-                        </select>
 
-                        <Buton
-                            texto="Excluir"
-                            background="rosa"
-                            tamanho="pequeno"
-                            onClick={excluirTipoOng}
-                        />
+                                {tiposOng.map((tipo) => (
+
+                                    <option
+                                        key={tipo.id_tipo_ong}
+                                        value={
+                                            tipo.id_tipo_ong
+                                        }
+                                        className={css.opcao}
+                                    >
+                                        {tipo.nome}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <Buton
+                                texto="Excluir"
+                                background="rosa"
+                                tamanho="pequeno"
+                                onClick={excluirTipoOng}
+                            />
+                        </div>
                     </div>
+
                 </div>
 
                 {/* FILTRO */}

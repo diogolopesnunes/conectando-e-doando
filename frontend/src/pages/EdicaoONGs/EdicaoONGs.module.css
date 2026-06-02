@@ -8,17 +8,24 @@
     margin: 15px;
 }
 
-.preview {
-    width: 150px;
+.previewDiv {
+    border: 1px solid var(--cor-borda);
+    border-radius: 10px;
+}
+
+.preview, .previewBanner {
     height: 150px;
     object-fit: cover;
-    border-radius: 15px;
+    margin-bottom: 10px;
+}
+
+.preview {
+    width: 150px;
+    border-radius: 100%;
 }
 
 .previewBanner {
     width: 300px;
-    height: 150px;
-    object-fit: cover;
     border-radius: 15px;
 }
 

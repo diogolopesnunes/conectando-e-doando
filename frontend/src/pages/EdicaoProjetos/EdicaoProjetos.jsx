@@ -172,7 +172,7 @@ export default function EditarProjeto({ api }) {
                                     mask={'cash'}
                                 />
 
-                                <div className="w-100 flex-column d-flex justify-content-center align-items-center mb-4">
+                                <div className="w-100 flex-column d-flex justify-content-center align-items-center mb-5">
                                     <label className="mb-3 fw-bold">Imagem do Projeto</label>
 
                                     <input
@@ -205,12 +205,21 @@ export default function EditarProjeto({ api }) {
                                     )}
                                 </div>
 
-                                <Buton
-                                    texto={'Salvar alterações'}
-                                    background={'laranja'}
-                                    tamanho={'medio'}
-                                    tipo={"submit"}
-                                />
+
+                                <div className={"d-flex flex-column align-items-center justify-content-center gap-2"}>
+                                    <Buton
+                                        texto={'Salvar Alterações'}
+                                        background={'laranja'}
+                                        tamanho={'medio'}
+                                        tipo={"submit"}
+                                    />
+                                    <Buton
+                                        texto={'Cancelar'}
+                                        background={'roxo'}
+                                        tamanho={'pequeno'}
+                                        onClick={() => {navigate(-1)}}
+                                    />
+                                </div>
 
 
                             </Form>

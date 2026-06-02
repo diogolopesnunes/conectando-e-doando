@@ -14,6 +14,10 @@
     font-size: var(--titulo-card);
 }
 
+.wSelecionarTipo, .wAdicionarTipo {
+    width: 90%;
+}
+
 .nome p{
     white-space: nowrap;
     overflow: hidden;
@@ -38,12 +42,6 @@
     margin: 0px !important;
 }
 
-.wSelecionarTipo,
-.wAdicionarTipo {
-    width: 100% !important;
-    gap: 10px;
-}
-
 .input {
     border: 1px solid var(--cor-borda);
     padding: 3px !important;
@@ -62,7 +60,7 @@
 @media (max-width: 769px){
     .wSelecionarTipo,
     .wAdicionarTipo {
-        width: 100% !important;
+        width: 75% !important;
         flex-direction: column !important;
     }
 }

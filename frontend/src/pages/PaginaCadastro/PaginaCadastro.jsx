@@ -206,7 +206,7 @@ export default function PaginaCadastro({api}) {
                                         <input obrigatorio={"Sim"} ref={inputImagemRef} type="file" onChange={colocarImagem} className={' ' + css.botao}/>
                                         {preview && (
                                             <>
-                                                <img className={'mt-3 ' + css.preview + ' ' + css.circulo}
+                                                <img className={'my-3 ' + css.preview + ' ' + css.circulo}
                                                      src={preview}
                                                      alt="Preview"
                                                 />
@@ -239,10 +239,10 @@ export default function PaginaCadastro({api}) {
                                     </div>
                                     <p className={'text-center w-100 m-auto'}>Esses dados serão usados para enviar os valores para suas contas bancárias</p>
 
-                                    <Input obrigatorio={"Sim"} htmlFor={'cidade'} label={'Cidade:'} tipoInp={'text'} placeholder={'Digite a cidade da ONG'} value={cidadeOng} funcao={(f) => setCidadeOng(f.target.value)}/>
-                                    <Input obrigatorio={"Sim"} htmlFor={'banco'} label={'Banco:'} tipoInp={'text'} placeholder={'Informe qual seu banco'} value={bacoOng} funcao={(f) => setBacoOng(f.target.value)}/>
-                                    <Input obrigatorio={"Sim"} htmlFor={'agencia'} label={'Agencia:'} tipoInp={'text'} placeholder={'Informe a agencia bancária'} value={agenciaOng} funcao={(f) => setAgenciaOng(f.target.value)}/>
-                                    <Input obrigatorio={"Sim"} htmlFor={'conta'} label={'Conta:'} tipoInp={'text'} placeholder={'Informe a conta bancária'} value={contaOng} funcao={(f) => setContaOng(f.target.value)}/>
+                                    <Input obrigatorio={"Sim"} htmlFor={'cidade'} label={'Cidade:'} tipoInp={'text'} placeholder={'Digite a cidade da ONG'} value={cidadeOng} funcao={(f) => setCidadeOng(f.target.value.replace(/[^a-zA-Zá-úÁ-Úâ-ûÂ-Ûã-õÃ-ÕçÇ\s]/g, ""))} inputMode="text"/>
+                                    <Input obrigatorio={"Sim"} htmlFor={'banco'} label={'Banco:'} tipoInp={'text'} placeholder={'Informe qual seu banco'} value={bacoOng} funcao={(f) => setBacoOng(f.target.value.replace(/\D/g, "").slice(0, 3))} minLength={3} maxlength={3}/>
+                                    <Input obrigatorio={"Sim"} htmlFor={'agencia'} label={'Agencia:'} tipoInp={'text'} placeholder={'Informe a agencia bancária'} value={agenciaOng} funcao={(f) => setAgenciaOng(f.target.value.replace(/\D/g, "").slice(0, 4))} minLength={4} maxlength={4}/>
+                                    <Input obrigatorio={"Sim"} htmlFor={'conta'} label={'Conta:'} tipoInp={'text'} placeholder={'Informe a conta bancária'} value={contaOng} funcao={(f) => setContaOng(f.target.value.replace(/\D/g, ""))}/>
                                     <Input obrigatorio={"Sim"} htmlFor={'chave'} label={'Chave PIX:'} tipoInp={'text'} placeholder={'Informe a chave pix'} value={chavePix} funcao={(f) => setChavePix(f.target.value)}/>
 
 
@@ -251,7 +251,7 @@ export default function PaginaCadastro({api}) {
                                         <input ref={inputImagemRef} type="file" onChange={colocarImagem} className={' ' + css.botao}/>
                                         {preview && (
                                             <>
-                                                <img className={'mt-3 ' + css.preview}
+                                                <img className={'my-3 ' + css.preview}
                                                      src={preview}
                                                      alt="Preview"
                                                 />
@@ -265,7 +265,7 @@ export default function PaginaCadastro({api}) {
                                         <input ref={inputBannerRef} type="file" onChange={colocarImagemBanner} className={' ' + css.botao}/>
                                         {previewBanner && (
                                             <>
-                                                <img className={'mt-3 ' + css.preview}
+                                                <img className={'my-3 ' + css.preview}
                                                      src={previewBanner}
                                                      alt="Preview"
                                                 />
@@ -279,18 +279,20 @@ export default function PaginaCadastro({api}) {
                             {selecionado == "2" && (
                                 <div>
                                     <Input obrigatorio={"Sim"} htmlFor={'cpf'} label={'CPF'} tipoInp={'text'} placeholder={'Digite seu CPF'} value={cpfCnpj} funcao={(e) => setCpfCnpj(e.target.value.replace(/\D/g, "").slice(0, 11))} inputMode="numeric" maxLength={14} minLength={14} mask={"cpf"}/>
-                                    <div className="w-100 flex-column d-flex justify-content-center align-items-center mb-3">
-                                        <label className={"mb-3 fw-bold"}>Imagem de perfil</label>
-                                        <input obrigatorio={"Sim"} ref={inputImagemRef} type="file" onChange={colocarImagem} className={' ' + css.botao}/>
-                                        {preview && (
-                                            <>
-                                                <img className={'mt-3 ' + css.preview + ' ' + css.circulo}
-                                                     src={preview}
-                                                     alt="Preview"
-                                                />
-                                                <Buton tipo={"button"} onClick={() => { inputImagemRef.current.value = null;setPreview(null); setImagem(null)}} background={'vermelho'} tamanho={'pequeno'} texto={"Remover"} />
-                                            </>
-                                        )}
+                                    <div className={"w-75 m-auto mb-2 p-1 " + css.previewDiv}>
+                                        <div className="w-100 flex-column d-flex justify-content-center align-items-center mb-3">
+                                            <label className={"mb-3 fw-bold"}>Imagem de perfil</label>
+                                            <input obrigatorio={"Sim"} ref={inputImagemRef} type="file" onChange={colocarImagem} className={' ' + css.botao}/>
+                                            {preview && (
+                                                <>
+                                                    <img className={'my-3 ' + css.preview + ' ' + css.circulo}
+                                                         src={preview}
+                                                         alt="Preview"
+                                                    />
+                                                    <Buton tipo={"button"} onClick={() => { inputImagemRef.current.value = null;setPreview(null); setImagem(null)}} background={'vermelho'} tamanho={'pequeno'} texto={"Remover"} />
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             )}

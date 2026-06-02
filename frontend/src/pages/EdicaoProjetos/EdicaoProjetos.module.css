@@ -10,12 +10,27 @@
     cursor: pointer;
 }
 
-.preview {
-    width: 250px;
+.previewDiv {
+    border: 1px solid var(--cor-borda);
+    border-radius: 10px;
+}
+
+.preview, .previewBanner {
     height: 150px;
     object-fit: cover;
+    margin-bottom: 10px;
+}
+
+.preview {
+    width: 150px;
+    border-radius: 100%;
+}
+
+.previewBanner {
+    width: 300px;
     border-radius: 15px;
 }
+
 
 @media (max-width: 426px){
     .botao {
