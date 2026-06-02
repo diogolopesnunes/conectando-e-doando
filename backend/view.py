@@ -4653,7 +4653,7 @@ def historico(pagina):
 
         filtro = request.args.get('nome', '')
 
-        filtroso = int(request.args.get('filtroso',''))
+        filtroso = int(request.args.get('filtroso',2))
         
         if tipo_usuario_historico == 0:
             filtro_sql = " UPPER(ong.nome) LIKE UPPER(?)"
