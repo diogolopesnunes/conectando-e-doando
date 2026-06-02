@@ -268,14 +268,14 @@ def listar_adm_adm(pagina, aprovacao):
         if aprovacao == 0:
             cur.execute("""select count(id_usuario)
                            from usuario
-                           where tipo_de_usuario = 0
+                           where tipo_de_usuario = 2
                             and situacao in (0, 4)
                             AND UPPER(nome) LIKE UPPER(?)
                         """, (f"%{nome}%",))
         elif aprovacao == 1:
             cur.execute("""select count(id_usuario)
                            from usuario
-                           where tipo_de_usuario = 0 
+                           where tipo_de_usuario = 2 
                             and situacao not in (0, 4)
                             AND UPPER(nome) LIKE UPPER(?)
                         """, (f"%{nome}%",))
@@ -589,7 +589,7 @@ def editar_usuario(id_usuario):
                     'descricao': 'Usuário não encontrado'
                 }}), 404
 
-            cur.execute("""select tipo_de_usuario, nome, email, telefone, tipo_ong, descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong
+            cur.execute("""select tipo_de_usuario, nome, email, telefone, tipo_ong, descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong, cpf_cnpj
                            from usuario
                            where id_usuario = ?""", (id_usuario,))
             infos = cur.fetchone()
@@ -607,6 +607,7 @@ def editar_usuario(id_usuario):
             agencia_ong = request.form.get('agencia_ong') or infos[7]
             conta_ong = request.form.get('conta_ong') or infos[8]
             cidade_ong = request.form.get('cidade_ong') or infos[9]
+            cpf_cnpj = request.form.get('cpf_cnpj') or infos[10]
 
 
             cur.execute('select 1 from usuario where email = ? and id_usuario != ?', (email, id_usuario,))
@@ -670,7 +671,26 @@ def editar_usuario(id_usuario):
                     'tipo': 'sucesso',
                     'descricao': 'Usuário atualizado com sucesso'
                 }}), 201
-
+            cur.execute("""select tipo_de_usuario from usuario where id_usuario = ?""", (id_usuario,))
+            tipo_usuario = cur.fetchone()[0]
+            if int(tipo_usuario) == 0 or int(tipo_usuario) == 2:
+                cpfValido = validaCpfCnpj(cpf_cnpj)
+                if not cpfValido:
+                    return jsonify({
+                        'mensagem': {
+                            'tipo': 'erro',
+                            'descricao': 'Insira um cpf valido'
+                        }
+                    })
+            elif int(tipo_usuario) == 1:
+                cnpjValido = validaCpfCnpj(cpf_cnpj)
+                if not cnpjValido:
+                    return jsonify({
+                        'mensagem': {
+                            'tipo': 'erro',
+                            'descricao': 'Insira um cnpj valido'
+                        }
+                    })
             cur.execute("""update usuario
                            set nome            = ?,
                                email           = ?,
@@ -1328,7 +1348,6 @@ def cadastrar_projeto(id_usuario):
                 'tipo':"erro",
                 'descricao':'Meta de doação obrigatória'}}), 400
         try:
-            print(meta_doacao)
             meta_doacao = int(meta_doacao)
         except:
             return jsonify({'mensagem': {
@@ -3677,6 +3696,7 @@ def postar_comentario(id_usuario, id_post):
 
         # Conversão de Emoji para Shortcode (:rocket:)
         mensagem_banco = emoji.demojize(mensagem_front)
+        print('teste', mensagem_banco)
 
         # Verifica se o post existe na tabela de posts (ajuste o nome da coluna/tabela se necessário)
         cur.execute(
@@ -4382,15 +4402,24 @@ def enviar_pix():
             else:
                 nome_projeto = projeto_row[0]
 
-
                 cur.execute(
-                    'INSERT INTO DOACOES(FK_USUARIO_ONG, FK_USUARIO_DOADOR, FK_PROJETO, VALOR_DOADOR) VALUES (?, ?, ?, ?) RETURNING ID_DOACAO',
+                    """INSERT INTO DOACOES(
+                        FK_USUARIO_ONG,
+                        FK_USUARIO_DOADOR,
+                        FK_PROJETO,
+                        VALOR_DOADOR,
+                        STATUS
+                    )
+                    VALUES (?, ?, ?, ?, 'PENDENTE')
+                    RETURNING ID_DOACAO""",
                     (id_ong, id_token, id_projeto, valor_doacao)
                 )
                 id_doacao = cur.fetchone()[0]
     
                 arquivo = f"{id_doacao}.png"
-    
+
+                pay = gerar_qrcode_pix(chave_pix, nome_ong, cidade_ong, valor_doacao, arquivo)
+
                 con.commit()
 
         else:
@@ -4403,56 +4432,23 @@ def enviar_pix():
                 }))
 
             cur.execute(
-                'INSERT INTO DOACOES(FK_USUARIO_ONG, FK_USUARIO_DOADOR, VALOR_DOADOR) VALUES (?, ?, ?) RETURNING ID_DOACAO',
+                """INSERT INTO DOACOES(
+                    FK_USUARIO_ONG,
+                    FK_USUARIO_DOADOR,
+                    VALOR_DOADOR,
+                    STATUS
+                )
+                VALUES (?, ?, ?, 'PENDENTE')
+                RETURNING ID_DOACAO""",
                 (id_ong, id_token, valor_doacao)
             )
             id_doacao = cur.fetchone()[0]
 
             arquivo = f"{id_doacao}.png"
 
-            con.commit()
-
-        if nome_projeto:
-            pay = gerar_qrcode_pix(chave_pix, nome_projeto, cidade_ong, valor_doacao, arquivo)
-        
-            enviando_email(
-                usuario[2],
-                f"Pagamento efetuado com sucesso",
-                f"Valor de R$:{valor_doacao} enviado com sucesso para o Projeto: {nome_projeto}",
-                "",
-                usuario[1],
-                "Obrigado pela doação"
-            )
-        
-            enviando_email(
-                email_ong,
-                f"Valor recebido de {usuario[2]} para o projeto {nome_projeto}",
-                f"Valor recebido de R$:{valor_doacao}, do doador {usuario[1]}.",
-                "",
-                nome_ong,
-                ""
-            )
-
-        else:
             pay = gerar_qrcode_pix(chave_pix, nome_ong, cidade_ong, valor_doacao, arquivo)
 
-            enviando_email(
-                usuario[2],
-                f"Pagamento efetuado com sucesso",
-                f"Valor de R$:{valor_doacao} enviado com sucesso para a ONG: {nome_ong}",
-                "",
-                usuario[1],
-                "Obrigado pela a doação"
-            )
-
-            enviando_email(
-                email_ong,
-                f"Valor recebido de {usuario[2]}",
-                f"Valor recebido de R$:{valor_doacao}, do doador {usuario[1]}.",
-                "",
-                nome_ong,
-                "Gaste o Dinheiro em algum dos seus projeto"
-            )
+            con.commit()
 
         return jsonify({
             'mensagem': {
@@ -4460,6 +4456,7 @@ def enviar_pix():
                 'descricao': 'Pix gerado com sucesso'
             },
             'pix': {
+                'id_doacao': id_doacao,
                 'nome_ong': nome_ong,
                 'nome_projeto': nome_projeto,
                 'chave_pix': pay,
@@ -4473,6 +4470,170 @@ def enviar_pix():
             'mensagem': {
                 'tipo': 'erro',
                 'descricao': f'Erro ao fazer o pix: {str(e)}'
+            }
+        }), 500
+
+    finally:
+        cur.close()
+
+@app.route('/confirmar_pix/<int:id_doacao>', methods=['PUT'])
+def confirmar_pix(id_doacao):
+    cur = con.cursor()
+
+    try:
+
+        cur.execute("""
+            SELECT
+                D.VALOR_DOADOR,
+                D.FK_PROJETO,
+                U_DOADOR.NOME,
+                U_DOADOR.EMAIL,
+                U_ONG.NOME,
+                U_ONG.EMAIL
+            FROM DOACOES D
+            JOIN USUARIO U_DOADOR
+                ON U_DOADOR.ID_USUARIO = D.FK_USUARIO_DOADOR
+            JOIN USUARIO U_ONG
+                ON U_ONG.ID_USUARIO = D.FK_USUARIO_ONG
+            WHERE D.ID_DOACAO = ?
+        """, (id_doacao,))
+
+        dados = cur.fetchone()
+
+        if not dados:
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Doação não encontrada'
+                }
+            }), 404
+
+        valor_doacao = dados[0]
+        id_projeto = dados[1]
+
+        nome_doador = dados[2]
+        email_doador = dados[3]
+
+        nome_ong = dados[4]
+        email_ong = dados[5]
+
+        cur.execute("""
+            UPDATE DOACOES
+            SET STATUS = 'PAGO'
+            WHERE ID_DOACAO = ?
+        """, (id_doacao,))
+
+        nome_projeto = None
+
+        if id_projeto:
+            cur.execute("""
+                SELECT NOME
+                FROM PROJETO_ONG
+                WHERE ID_PROJETO = ?
+            """, (id_projeto,))
+
+            projeto = cur.fetchone()
+
+            if projeto:
+                nome_projeto = projeto[0]
+
+        con.commit()
+
+        # EMAILS APÓS A CONFIRMAÇÃO
+
+        if nome_projeto:
+
+            enviando_email(
+                email_doador,
+                "Pagamento efetuado com sucesso",
+                f"Valor de R$ {valor_doacao} enviado com sucesso para o projeto {nome_projeto}",
+                "",
+                nome_doador,
+                "Obrigado pela doação"
+            )
+
+            enviando_email(
+                email_ong,
+                f"Valor recebido de {email_doador} para o projeto {nome_projeto}",
+                f"Valor recebido de R$ {valor_doacao}, do doador {nome_doador}.",
+                "",
+                nome_ong,
+                ""
+            )
+
+        else:
+
+            enviando_email(
+                email_doador,
+                "Pagamento efetuado com sucesso",
+                f"Valor de R$ {valor_doacao} enviado com sucesso para a ONG {nome_ong}",
+                "",
+                nome_doador,
+                "Obrigado pela doação"
+            )
+
+            enviando_email(
+                email_ong,
+                f"Valor recebido de {email_doador}",
+                f"Valor recebido de R$ {valor_doacao}, do doador {nome_doador}.",
+                "",
+                nome_ong,
+                "Gaste o dinheiro em algum dos seus projetos"
+            )
+
+        return jsonify({
+            'mensagem': {
+                'tipo': 'sucesso',
+                'descricao': 'PIX Pago com sucesso'
+            }
+        }), 200
+
+    except Exception as e:
+        con.rollback()
+
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': str(e)
+            }
+        }), 500
+
+    finally:
+        cur.close()
+@app.route('/cancelar_pix/<int:id_doacao>', methods=['DELETE'])
+def cancelar_pix(id_doacao):
+    cur = con.cursor()
+
+    try:
+        cur.execute(
+            'DELETE FROM DOACOES WHERE ID_DOACAO = ?',
+            (id_doacao,)
+        )
+
+        if cur.rowcount == 0: #o rowcount faz a verificação de quantas linha foram alteradas com a ultima ação no caso o DELETE
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'Doação não encontrada'
+                }
+            }), 404
+
+        con.commit()
+
+        return jsonify({
+            'mensagem': {
+                'tipo': 'sucesso',
+                'descricao': 'PIX cancelado com sucesso'
+            }
+        }), 200
+
+    except Exception as e:
+        con.rollback()
+
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': str(e)
             }
         }), 500
 
@@ -4516,7 +4677,6 @@ def historico(pagina):
         tipo_usuario = cur.fetchone()[0]
 
         id_usuario_param = request.args.get('id_usuario')
-
         if id_usuario_param:
             if tipo_usuario != 2:
                 return jsonify({
@@ -4530,6 +4690,7 @@ def historico(pagina):
 
         else:
             id_usuario = id_token
+
         cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_usuario,))
         tipo_usuario_historico = cur.fetchone()
         if not tipo_usuario_historico:
@@ -4538,7 +4699,7 @@ def historico(pagina):
                 'descricao': 'Usuário não encontrado'
             }})
         tipo_usuario_historico = tipo_usuario_historico[0]
-        print(tipo_usuario_historico)
+
         filtro = request.args.get('nome', '')
         
         if tipo_usuario_historico == 0:
@@ -4827,38 +4988,42 @@ def estatisticas_admin():
         # =========================
         # GRÁFICO ANO ATUAL
         # =========================
+        data_inicio_atual = datetime(ano_atual, 1, 1, 0, 0, 0)
+        data_fim_atual = datetime(ano_atual, 12, 31, 23, 59, 59)
+
         cur.execute("""
-                    SELECT
-                        EXTRACT(MONTH FROM DATA_HORA) AS MES,
-                        COUNT(ID_DOACAO) AS QUANTIDADE_DOACOES,
-                        CAST(
-                                COALESCE(SUM(VALOR_DOADOR), 0)
-                            AS NUMERIC(15,2)
-                        ) AS VALOR_TOTAL
+                    SELECT EXTRACT(MONTH FROM DATA_HORA) AS MES,
+                           COUNT(ID_DOACAO)              AS QUANTIDADE_DOACOES,
+                           CAST(
+                                   COALESCE(SUM(VALOR_DOADOR), 0)
+                               AS NUMERIC(15, 2)
+                           )                             AS VALOR_TOTAL
                     FROM DOACOES
-                    WHERE EXTRACT(YEAR FROM DATA_HORA) = ?
+                    WHERE DATA_HORA BETWEEN ? AND ?
                     GROUP BY EXTRACT(MONTH FROM DATA_HORA)
                     ORDER BY MES
-                    """, (ano_atual,))
+                    """, (data_inicio_atual, data_fim_atual))
 
         resultado_ano_atual = cur.fetchall()
 
         # =========================
         # GRÁFICO ANO PASSADO
         # =========================
+        data_inicio_passado = datetime(ano_passado, 1, 1, 0, 0, 0)
+        data_fim_passado = datetime(ano_passado, 12, 31, 23, 59, 59)
+
         cur.execute("""
-                    SELECT
-                        EXTRACT(MONTH FROM DATA_HORA) AS MES,
-                        COUNT(ID_DOACAO) AS QUANTIDADE_DOACOES,
-                        CAST(
-                                COALESCE(SUM(VALOR_DOADOR), 0)
-                            AS NUMERIC(15,2)
-                        ) AS VALOR_TOTAL
+                    SELECT EXTRACT(MONTH FROM DATA_HORA) AS MES,
+                           COUNT(ID_DOACAO)              AS QUANTIDADE_DOACOES,
+                           CAST(
+                                   COALESCE(SUM(VALOR_DOADOR), 0)
+                               AS NUMERIC(15, 2)
+                           )                             AS VALOR_TOTAL
                     FROM DOACOES
-                    WHERE EXTRACT(YEAR FROM DATA_HORA) = ?
+                    WHERE DATA_HORA BETWEEN ? AND ?
                     GROUP BY EXTRACT(MONTH FROM DATA_HORA)
                     ORDER BY MES
-                    """, (ano_passado,))
+                    """, (data_inicio_passado, data_fim_passado))
 
         resultado_ano_passado = cur.fetchall()
 
@@ -5018,12 +5183,16 @@ def grafico_ong():
 
         tipo_usuario = cur.fetchone()[0]
 
+        id_usuario_param = request.args.get('id_usuario')
+        if id_usuario_param:
+            id_token = id_usuario_param
+
         ano_atual = request.args.get(
             'ano',
             datetime.now().year,
             type=int
         )
-        
+
         if int(ano_atual) > datetime.now().year:
             return jsonify({'mensagem': {
                 'tipo': 'erro',
@@ -5169,6 +5338,142 @@ def grafico_ong():
     finally:
         cur.close()
 
+@app.route('/grafico_doador', methods=['GET'])
+def grafico_doador():
+
+    token = request.cookies.get('access_token')
+
+    if not token:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Token necessário'
+            }
+        }), 401
+
+    cur = con.cursor()
+
+    try:
+        dados = jwt.decode(
+            token,
+            senha_secreta,
+            algorithms=['HS256']
+        )
+
+        id_token = dados['id_usuario']
+
+        id_usuario_param = request.args.get('id_usuario')
+
+        if id_usuario_param:
+            id_token = id_usuario_param
+
+        ano = request.args.get(
+            'ano',
+            datetime.now().year,
+            type=int
+        )
+
+        if ano > datetime.now().year:
+            return jsonify({
+                'mensagem': {
+                    'tipo': 'erro',
+                    'descricao': 'O ano não pode ser maior que o atual'
+                }
+            }), 400
+
+        cur.execute("""
+            SELECT
+                EXTRACT(MONTH FROM DATA_HORA) AS MES,
+                COUNT(ID_DOACAO) AS QUANTIDADE_DOACOES,
+                CAST(
+                    COALESCE(SUM(VALOR_DOADOR), 0)
+                    AS NUMERIC(15, 2)
+                ) AS VALOR_TOTAL
+            FROM DOACOES
+            WHERE EXTRACT(YEAR FROM DATA_HORA) = ?
+            AND FK_USUARIO_DOADOR = ?
+            GROUP BY EXTRACT(MONTH FROM DATA_HORA)
+            ORDER BY MES
+        """, (ano, id_token))
+
+        resultado = cur.fetchall()
+
+        cur.execute("""
+            SELECT
+                COUNT(ID_DOACAO) AS TOTAL_DOACOES_ANO,
+                CAST(
+                    COALESCE(SUM(VALOR_DOADOR), 0)
+                    AS NUMERIC(15, 2)
+                ) AS TOTAL_VALOR_ANO
+            FROM DOACOES
+            WHERE EXTRACT(YEAR FROM DATA_HORA) = ?
+            AND FK_USUARIO_DOADOR = ?
+        """, (ano, id_token))
+
+        total_ano = cur.fetchone()
+
+        total_doacoes_ano = int(total_ano[0]) if total_ano[0] is not None else 0
+        total_valor_ano = float(total_ano[1]) if total_ano[1] is not None else 0
+
+        meses = [
+            "Janeiro", "Fevereiro", "Março", "Abril",
+            "Maio", "Junho", "Julho", "Agosto",
+            "Setembro", "Outubro", "Novembro", "Dezembro"
+        ]
+
+        dados_grafico = []
+
+        for i, nome_mes in enumerate(meses, start=1):
+            dados_grafico.append({
+                "numero_mes": i,
+                "mes": nome_mes,
+                "valor_doacao_ano": 0,
+                "quantidade_de_doacoes_ano": 0,
+            })
+
+        for row in resultado:
+            numero_mes = int(row[0])
+            quantidade_doacoes = int(row[1])
+            valor_total = float(row[2]) if row[2] is not None else 0
+
+            dados_grafico[numero_mes - 1]["valor_doacao_ano"] = valor_total
+            dados_grafico[numero_mes - 1]["quantidade_de_doacoes_ano"] = quantidade_doacoes
+
+        return jsonify({
+            'estatisticas': {
+                'ano': ano,
+                'total_doacoes_ano': total_doacoes_ano,
+                'total_valor_ano': total_valor_ano,
+                'dados_grafico': dados_grafico
+            }
+        }), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Sessão expirada'
+            }
+        }), 401
+
+    except jwt.InvalidTokenError:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': 'Token inválido'
+            }
+        }), 401
+
+    except Exception as e:
+        return jsonify({
+            'mensagem': {
+                'tipo': 'erro',
+                'descricao': f'Erro ao buscar gráfico do doador: {e}'
+            }
+        }), 500
+
+    finally:
+        cur.close()
 
 @app.route('/gerar_relatorio', methods=['GET'])
 def gerar_relatorio():
@@ -5250,15 +5555,15 @@ def gerar_relatorio():
         filtro = request.args.get('nome', '')
 
         if tipo_usuario_relatorio == 0:
-            titulo = "Historico de Doacoes Feitas"
+            titulo = "Histórico de Doações Feitas"
             filtro_sql = "UPPER(ong.nome) LIKE UPPER(?)"
 
         elif tipo_usuario_relatorio == 1:
-            titulo = "Historico de Doacoes Recebidas"
+            titulo = "Histórico de Doações Recebidas"
             filtro_sql = "UPPER(doador.nome) LIKE UPPER(?)"
 
         elif tipo_usuario_relatorio == 2:
-            titulo = "Relatorio Administrativo"
+            titulo = "Relatório Administrativo"
             filtro_sql = None
 
         else:
@@ -5278,27 +5583,26 @@ def gerar_relatorio():
         cinza = (120, 120, 120)
 
         def limpar_texto(texto, limite=35):
-            texto = str(texto) if texto is not None else "-"
-
-            trocas = {
-                "ç": "c", "Ç": "C",
-                "ã": "a", "Ã": "A",
-                "á": "a", "Á": "A",
-                "à": "a", "À": "A",
-                "é": "e", "É": "E",
-                "ê": "e", "Ê": "E",
-                "í": "i", "Í": "I",
-                "ó": "o", "Ó": "O",
-                "õ": "o", "Õ": "O",
-                "ú": "u", "Ú": "U"
-            }
-
-            for antigo, novo in trocas.items():
-                texto = texto.replace(antigo, novo)
-
-            if len(texto) > limite:
-                return texto[:limite - 3] + "..."
-
+            # texto = str(texto) if texto is not None else "-"
+            #
+            # trocas = {
+            #     "ç": "c", "Ç": "C",
+            #     "ã": "a", "Ã": "A",
+            #     "á": "a", "Á": "A",
+            #     "à": "a", "À": "A",
+            #     "é": "e", "É": "E",
+            #     "ê": "e", "Ê": "E",
+            #     "í": "i", "Í": "I",
+            #     "ó": "o", "Ó": "O",
+            #     "õ": "o", "Õ": "O",
+            #     "ú": "u", "Ú": "U"
+            # }
+            #
+            # for antigo, novo in trocas.items():
+            #     texto = texto.replace(antigo, novo)
+            #
+            # if len(texto) > limite:
+            #     return texto[:limite - 3] + "..."
             return texto
 
         def cabecalho_pdf(titulo_pdf):

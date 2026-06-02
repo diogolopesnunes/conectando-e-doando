@@ -4,7 +4,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
 
-CORS(app, supports_credentials=True, origins=["http://10.92.3.155:5173"])
+CORS(app, supports_credentials=True, origins=["http://26.249.137.151:5173", "http://192.168.1.18:5173"])
 
 host = app.config['DB_HOST']
 data_base = app.config['DB_NAME']
@@ -12,7 +12,8 @@ user = app.config['DB_USER']
 password = app.config['DB_PASSWORD']
 
 try:
-    con = fdb.connect(host=host, database=data_base, user=user, password=password)
+    con = fdb.connect(host=host, database=data_base, user=user, password=password, charset='UTF8'
+)
     print('Conectado com sucesso!')
 except Exception as e:
     print(e)
