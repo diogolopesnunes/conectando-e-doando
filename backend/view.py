@@ -5560,7 +5560,7 @@ def gerar_relatorio():
 
             pdf.set_font("Arial", "B", 16)
             pdf.set_text_color(*roxo)
-            pdf.cell(0, 10, limpar_texto(titulo_pdf, 80), ln=True, align="C")
+            pdf.cell(0, 10, str(titulo_pdf), ln=True, align="C")
 
             pdf.set_font("Arial", "", 10)
             pdf.set_text_color(*cinza)
@@ -5575,7 +5575,7 @@ def gerar_relatorio():
             pdf.cell(
                 0,
                 5,
-                f"Usuario: {limpar_texto(nome_usuario_relatorio, 80)}",
+                f"Usuario: {nome_usuario_relatorio}",
                 ln=True,
                 align="C"
             )
@@ -5593,7 +5593,7 @@ def gerar_relatorio():
             pdf.set_text_color(255, 255, 255)
 
             for i, cabecalho in enumerate(cabecalhos):
-                pdf.cell(larguras[i], 8, limpar_texto(cabecalho), 1, 0, "C", True)
+                pdf.cell(larguras[i], 8, str(cabecalho), 1, 0, "C", True)
 
             pdf.ln()
 
@@ -5602,7 +5602,7 @@ def gerar_relatorio():
 
             for linha in linhas:
                 for i, item in enumerate(linha):
-                    pdf.cell(larguras[i], 8, limpar_texto(item), 1)
+                    pdf.cell(larguras[i], 8, str(item), 1)
 
                 pdf.ln()
 
