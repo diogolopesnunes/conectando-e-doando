@@ -6,6 +6,9 @@ export default function Doacao({ong, projeto, valor, data, tipoUsuario, nome, em
             <div className={`${css.linha}`}></div>
             {tipoUsuario==1?(
                 <>
+                    <div className={'col-12 p-2'}>
+                        <p className={'fw-bold'}>{projeto ? `Projeto: ${projeto}`: 'Geral'}</p>
+                    </div>
                     <div className={'col-12 col-lg-6 p-2'}>
                         <p className={`fs-4 ${css.limite}`}>Nome: {nome}</p>
                     </div>

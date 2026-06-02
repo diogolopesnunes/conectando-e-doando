@@ -220,13 +220,14 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
                                 <p className={`${css.descricao} mb-2`}>
                                     {descricao}
                                 </p>
-
-                                <h6
-                                    className={`my-3 text-center text-sm-end ${css.clicavel}`}
-                                    onClick={() => setModalAberto(true)}
-                                >
-                                    Ver descrição completa
-                                </h6>
+                                { descricao.length > 257 &&
+                                    <h6
+                                        className={`my-3 text-center text-sm-end ${css.clicavel}`}
+                                        onClick={() => setModalAberto(true)}
+                                    >
+                                        Ver descrição completa
+                                    </h6>
+                                }
                             </div>
                         </div>
                     </div>

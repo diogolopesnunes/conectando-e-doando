@@ -13,22 +13,16 @@ export default function OngsFavoritas({ ongs = [], api }) {
             <div className={css.favoritasLista}>
                 {ongs.length > 0 ? (
                     ongs.map((ong) => (
-                            <Link
-                                key={ong.id}
-                                to={`/previa_ong/${ong.id}`}
-                                className={css.linkFavorita}
-                                title={ong.nome}
-                            >
+
                                 <img
                                     src={ong.imagem ? `${api}${ong.imagem}` : "/public/SemImagemDisponivel.png"}
                                     alt={ong.nome}
-                                    className={`${css.favoritaLogo} m-1`}
+                                    className={`${css.favoritaLogo} m-1 cursor-pointer`}
                                     onError={(e) => {
                                         e.currentTarget.onerror = null;
                                         e.currentTarget.src="/public/SemImagemDisponivel.png"
                                     }}
                                 />
-                            </Link>
                         ))
                 ) : (
                     <div className={'d-flex flex-column flex-sm-row m-auto'}>
