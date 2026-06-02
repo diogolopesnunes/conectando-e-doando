@@ -9,7 +9,6 @@ import PaginaEsqueciMinhaSenha from "./pages/PaginaEsqueciMinhaSenha/PaginaEsque
 import Erro from "./pages/Erro/Erro.jsx"
 import PaginaValidarEmail from "./pages/PaginaValidarEmail/PaginaValidarEmail.jsx";
 import PaginaAlterarSenha from "./pages/PaginaAlterarSenha/PaginaAlterarSenha.jsx";
-import AreaRestrita from "./pages/AreaRestrita/AreaRestrita.jsx";
 import Projetos from "./pages/Ong/Projetos/Projetos.jsx"
 import AdicionarProjetos from "./pages/AdicionarProjetos/AdicionarProjetos.jsx";
 import AdicionarPost from "./pages/AdicionarPost/AdicionarPost.jsx";
@@ -33,7 +32,7 @@ import Pagamento from "./pages/Pagamento/Pagamento.jsx";
 
 export default function App() {
 
-    const api = "http://10.92.3.155:5000"
+    const api = "http://192.168.1.18:5000"
 
     const quemSomos = useRef(null);
     const doacoes = useRef(null);
@@ -117,7 +116,6 @@ export default function App() {
                 <Route path="/esqueciminhasenha" element={<PaginaEsqueciMinhaSenha api={api} />}/>
                 <Route path={"/validar"} element={<PaginaValidarEmail api={api} />}/>
                 <Route path={"/alterar_senha"} element={<PaginaAlterarSenha api={api} />} />
-                <Route path={"/dashboard"} element={<AreaRestrita />} />
                 <Route path={"/projetos_ong"} element={<Projetos api={api}/>} />
                 <Route path={"/adicionar_projetos"} element={<AdicionarProjetos api={api}/>} />
                 <Route path={"/adicionar_projetos/:id_usuario"} element={<AdicionarProjetos api={api}/>} />
@@ -141,6 +139,7 @@ export default function App() {
                 <Route path={'/feed'} element={<Feed api={api}/>} />
                 <Route path={'/novas_ongs'} element={<NovasOngs api={api}/>}/>
                 <Route path={'/historico_doador'} element={<Historico api={api}/>}/>
+                <Route path={'/historico_doador/:id_doador'} element={<Historico api={api}/>}/>
                 <Route path={'/historico_ong'} element={<Historico api={api}/>}/>
                 <Route path={'/historico_ong/:id_ong'} element={<Historico api={api}/>}/>
                 <Route path={'/estatisticas'} element={<EstatisticaAdm api={api}/>}/>
@@ -148,7 +147,7 @@ export default function App() {
 
                 <Route path="*" element={<Erro/>} />
             </Routes>
-            <Footer/>
+            <Footer scrollQuemSomos={scrollQuemSomos} scrollDoacoes={scrollDoacoes} scrollOngs={scrollOngs}/>
         </BrowserRouter>
     )
 }

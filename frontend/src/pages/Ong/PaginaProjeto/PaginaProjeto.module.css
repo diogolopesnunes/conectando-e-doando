@@ -23,10 +23,9 @@
     margin-bottom: 10px;
 }
 
-
 .containerProgresso {
     background-color: #fff;
-    border: 1px solid #000000; /* Borda leve como na imagem */
+    border: 1px solid #000000;
     border-radius: 15px;
     padding: 20px !important;
     margin: 25px 0;
@@ -45,7 +44,7 @@
 }
 
 .valorLaranja {
-    color: #FF8C69; /* Tom de laranja da imagem */
+    color: #FF8C69;
     font-weight: bold;
     margin-left: 5px;
 }
@@ -57,7 +56,7 @@
 }
 
 .porcentagemTexto {
-    font-weight: 800; /* Bem negrito como na imagem */
+    font-weight: 800;
     font-size: 24px;
     min-width: 70px;
     color: #000;
@@ -65,7 +64,7 @@
 
 .barraFundo {
     flex-grow: 1;
-    height: 38px; /* Altura generosa para a barra */
+    height: 38px;
     border-radius: 25px;
     overflow: hidden;
     border: 1px solid #d1d1d1;
@@ -123,10 +122,9 @@
         text-align: center;
     }
 }
-    .botaoVoltar {
-        padding-left: 15px !important;
-    }
-
+.botaoVoltar {
+    padding-left: 15px !important;
+}
 
 @media (max-width: 426px) {
     .containerPrincipal {
@@ -153,3 +151,4 @@
         gap: 15px;
     }
 }
+

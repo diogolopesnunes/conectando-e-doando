@@ -13,7 +13,6 @@ export default function PaginaAlterarSenha({api}) {
     const [email, setEmail] = useState("");
     const [mensagem, setMensagem] = useState("");
     const navigate = useNavigate();
-    const [tipoMensagem, setTipoMensagem] = useState('');
     const [sucessos, setSucessos] = useState(0);
 
     useEffect(() => {
@@ -63,11 +62,12 @@ export default function PaginaAlterarSenha({api}) {
         // }
 
         let retorno = await response.json();
-        console.log(retorno);
 
         if (retorno.mensagem){
-            setMensagem(retorno.mensagem.descricao)
-            setTipoMensagem(retorno.mensagem.tipo)
+            setMensagem({
+                ...retorno.mensagem,
+                id: Date.now()
+            });
             if (retorno.mensagem.tipo == 'redirecionamento'){
                 setTimeout(() => {
                     navigate("/validar");
@@ -88,7 +88,7 @@ export default function PaginaAlterarSenha({api}) {
         <div className="container m-auto">
             <div className="row">
                 <div className="col-12">
-                    {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={'10000'} descricao={mensagem} />}
+                    {mensagem && <Alerts key={mensagem.id} tipo={mensagem.tipo} imagem={`./public/${mensagem.tipo}.png`} duracao={'10000'} descricao={mensagem.descricao} />}
                     <Form largura={'maior'} titulo={'Alterar senha'} onSubmit={alterarSenha}>
                         <Input
                             placeholder={'Digite o email'}

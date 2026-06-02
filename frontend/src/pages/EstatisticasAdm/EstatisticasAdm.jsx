@@ -28,17 +28,17 @@ export default function EstatisticaAdm({api}) {
     const [ano, setAno] = useState(new Date().getFullYear());
     const [listaAnos, setListaAnos] = useState([]);
     const esteAno = new Date().getFullYear()
+    const [mensagem,setMensagem] = useState('')
 
     useEffect(() => {
         buscarEstatisticas();
-    }, []);
+    }, [ano]);
 
     async function buscarEstatisticas() {
-
         try {
 
             const resposta = await fetch(
-                `${api}/estatisticas_admin`,
+                `${api}/estatisticas_admin?ano=${ano}`,
                 {
                     method: "GET",
                     credentials: "include"
@@ -59,10 +59,12 @@ export default function EstatisticaAdm({api}) {
                     valorTotal = (valorTotal/1000).toFixed(3)
                     quantidade++
                 }
-                setValorDoacoes(`${valorTotal} ${monetario[quantidade]}`)
-                console.log(`${valorTotal} ${monetario[quantidade]}`)
+                if (quantidade == -1){
+                    setValorDoacoes(`${valorTotal}`)
+                } else {
+                    setValorDoacoes(`${valorTotal} ${monetario[quantidade]}`)
+                }
                 setListaAnos(retorno.estatisticas.anos)
-                console.log(retorno.estatisticas.anos)
             }
 
         } catch (erro) {
@@ -77,10 +79,15 @@ export default function EstatisticaAdm({api}) {
                 credentials: "include"
             });
 
+            const retorno = await resposta.json();
             if (!resposta.ok) {
-                const retorno = await resposta.json();
-                alert(retorno.mensagem.descricao);
                 return;
+            }
+            if (retorno.mensagem) {
+                setMensagem({
+                    ...retorno.mensagem,
+                    id: Date.now()
+                });
             }
 
             const blob = await resposta.blob();
@@ -104,7 +111,18 @@ export default function EstatisticaAdm({api}) {
         <>
             <Nav />
 
-            <div className={"row justify-content-center align-items-center m-auto flex-md-row flex-column "}>
+            <div className={"row justify-content-center align-items-center m-auto flex-md-row flex-column formataAltura"}>
+                {mensagem && (
+                    <div className="col-12">
+                        <Alerts
+                            key={mensagem.id}
+                            tipo={mensagem.tipo}
+                            imagem={`/public/${mensagem.tipo}.png`}
+                            duracao={10000}
+                            descricao={mensagem.descricao}
+                        />
+                    </div>
+                )}
                 <section className={"col-4 d-flex justify-content-center align-items-center flex-column " + css.containerEstatisticas}>
 
                     <CardEstatistica texto={"Total de doações do ano:"} valor={`R$${valorDoacoes.replace(".", ",")}`} />
@@ -122,8 +140,8 @@ export default function EstatisticaAdm({api}) {
 
                 </section>
 
-                <div className={"col-8 d-flex justify-content-center align-items-center m-auto flex-column" }>
-                    <select className={"w-50 m-auto px-2 mt-3"} onChange={(e) => setAno(Number(e.target.value))}>
+                <div className={"col-10 col-sm-8 d-flex justify-content-center align-items-center m-auto flex-column" }>
+                    <select className={"w-75 m-auto px-2 mt-3"} onChange={(e) => setAno(Number(e.target.value))}>
                         {listaAnos.map((ano) => (
                             ano == esteAno ? (
                                 <option selected={true} key={ano} value={ano} >{ano}</option>

@@ -39,6 +39,16 @@ export default function Feed({ api }) {
     const [comentariosPost, setComentariosPost] = useState(null);
     const [editar, setEditar] = useState(false);
 
+    useEffect(() => {
+        if (mensagem) {
+            const timer = setTimeout(() => {
+                setMensagem(null);
+            }, 10000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [mensagem]);
+
     async function carregarPosts(forcar = false) {
         if (carregandoRef.current || (!forcar && !temMais)) return;
         carregandoRef.current = true;
@@ -67,7 +77,10 @@ export default function Feed({ api }) {
             const retorno = await resposta.json();
 
             if (retorno.mensagem) {
-                setMensagem(retorno.mensagem);
+                setMensagem({
+                    ...retorno.mensagem,
+                    id: Date.now()
+                });
             }
 
             // Atualiza as ONGs seguidas (quando disponível)
@@ -120,7 +133,7 @@ export default function Feed({ api }) {
         setTimeout(() => {
             carregarPosts(true);
         }, 0);
-    }, [filtro, ordemData, tipoOng]);
+    }, [filtro, ordemData, tipoOng, favoritas]);
 
 
     // Scroll infinito
@@ -223,7 +236,10 @@ export default function Feed({ api }) {
         const retorno = await resposta.json();
 
         if (retorno.mensagem) {
-            setMensagem(retorno.mensagem);
+            setMensagem({
+                ...retorno.mensagem,
+                id: Date.now()
+            });
         }
 
         if (retorno.mensagens) {
@@ -259,7 +275,10 @@ export default function Feed({ api }) {
         const retorno = await resposta.json();
 
         if (retorno.mensagem) {
-            setMensagem(retorno.mensagem);
+            setMensagem({
+                ...retorno.mensagem,
+                id: Date.now()
+            });
 
             if (retorno.mensagem.tipo === 'sucesso') {
                 setComentario('');
@@ -298,7 +317,10 @@ export default function Feed({ api }) {
         const retorno = await resposta.json();
 
         if (retorno.mensagem) {
-            setMensagem(retorno.mensagem);
+            setMensagem({
+                ...retorno.mensagem,
+                id: Date.now()
+            });
 
             if (retorno.mensagem.tipo === 'sucesso') {
                 listarComentarios(idPostComentario);
@@ -356,7 +378,6 @@ export default function Feed({ api }) {
                 })
 
                 resposta = await resposta.json()
-                console.log(resposta)
 
                 setTiposOng(resposta.tipos)
 
@@ -380,6 +401,7 @@ export default function Feed({ api }) {
                     {mensagem && (
                         <div className="col-12">
                             <Alerts
+                                key={mensagem.id}
                                 tipo={mensagem.tipo}
                                 imagem={`/public/${mensagem.tipo}.png`}
                                 duracao={10000}
@@ -528,16 +550,7 @@ export default function Feed({ api }) {
                                     }}
                                 />
 
-                                {/*<Input*/}
-                                {/*    obrigatorio={"Não"}*/}
-                                {/*    htmlFor={'tipoOng'}*/}
-                                {/*    label={''}*/}
-                                {/*    tipoInp={'select'}*/}
-                                {/*    value={tipoOng}*/}
-                                {/*    opcoeslabel="Selecione o tipo da ONG"*/}
-                                {/*    opcoes={tiposOng}*/}
-                                {/*    funcao={(f) => setTipoOng(f.target.value)}*/}
-                                {/*/>*/}
+
                                 <select
                                     className={`my-3 form-select gap-2 m-auto ${css.selectTipo}`}
                                     value={tipoOng}

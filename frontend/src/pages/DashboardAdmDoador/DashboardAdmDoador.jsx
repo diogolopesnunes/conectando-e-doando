@@ -54,7 +54,6 @@ export default function DashboardAdmDoador({ api }) {
             credentials: "include"
         });
         const retorno = await resposta.json();
-        console.log(retorno)
         if (retorno.doadores) {
             setDoadores(retorno.doadores);
             setProximaPagina(retorno.proximaPagina);
@@ -95,7 +94,7 @@ export default function DashboardAdmDoador({ api }) {
     }, [pagina, aprovacao, filtro, mensagem]);
 
     return (
-        <section className={'container m-auto'}>
+        <section className={'container m-auto formataAltura'}>
             <div className={'row'}>
                 <div className={'col-12'}><Nav />
                     {mensagem && (

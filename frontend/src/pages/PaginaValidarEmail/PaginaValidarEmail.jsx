@@ -10,7 +10,6 @@ export default function PaginaValidarEmail({api}) {
     const [email, setEmail] = useState(localStorage.getItem("email"));
     const [codigo, setCodigo] = useState("");
     const [mensagem, setMensagem] = useState("");
-    const [tipoMensagem, setTipoMensagem] = useState("");
 
     const navegate = useNavigate()
 
@@ -46,12 +45,13 @@ export default function PaginaValidarEmail({api}) {
 
 
         let retorno = await response.json();
-        console.log(retorno);
 
 
         if (retorno.mensagem){
-            setMensagem(retorno.mensagem.descricao)
-            setTipoMensagem(retorno.mensagem.tipo)
+            setMensagem({
+                ...retorno.mensagem,
+                id: Date.now()
+            });
 
             if(retorno.mensagem.tipo !='erro'){
                 setTimeout(function () {
@@ -67,7 +67,7 @@ export default function PaginaValidarEmail({api}) {
         <div className="container m-auto formataAltura">
             <div className="row">
                 <div className="col-12">
-                    {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={'10000'} descricao={mensagem} />}
+                    {mensagem && <Alerts key={mensagem.id} tipo={mensagem.tipo} imagem={`./public/${mensagem.tipo}.png`} duracao={'10000'} descricao={mensagem.descricao} />}
                     <Form largura={'maior'} titulo={'Validar email'} onSubmit={validarEmail}>
                         <Input type={'email'} label={'Email:'} value={email} funcao={(e) => setEmail(e.target.value)} placeholder={"Digite seu email"} />
                         <Input

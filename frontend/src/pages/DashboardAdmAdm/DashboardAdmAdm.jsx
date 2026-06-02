@@ -47,7 +47,6 @@ export default function DashboardAdmAdm({ api }) {
             credentials: "include"
         });
         const retorno = await resposta.json();
-        console.log(retorno)
         if (retorno.adms) {
             setAdms(retorno.adms);
             setProximaPagina(retorno.proximaPagina);
@@ -83,7 +82,7 @@ export default function DashboardAdmAdm({ api }) {
     }, [pagina, aprovacao, filtro, mensagem]);
 
     return (
-        <section className={'container m-auto'}>
+        <section className={'container m-auto formataAltura'}>
             <div className={'row'}>
                 <div className={'col-12'}><Nav />
                     {mensagem && (
@@ -177,9 +176,9 @@ export default function DashboardAdmAdm({ api }) {
                         </div>
                     ) : (
                         aprovacao == 1 ?(
-                            <div className={'m-auto text-center mt-5 pt-5'}><Titulo texto={'Não há Adms cadastrados'} /></div>
+                            <div className={'m-auto text-center mt-5 pt-5'}><Titulo texto={'Não há Doadores Cadastrados'} /></div>
                         ):(
-                            <div className={'m-auto text-center mt-5 pt-5'}><Titulo texto={'Não há Adms não validados'} /></div>
+                            <div className={'m-auto text-center mt-5 pt-5'}><Titulo texto={'Não há Doadores Não Validados'} /></div>
                         )
                     )}
                 </div>

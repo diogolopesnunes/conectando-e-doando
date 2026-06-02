@@ -61,15 +61,16 @@ export default function Projetos({ api }) {
             {mensagem && (
                 <div className={'col-12'}>
                     <Alerts
+                        key={mensagem.id}
                         tipo={mensagem.tipo}
                         imagem={`/public/${mensagem.tipo}.png`}
                         duracao={10000}
-                        descricao={mensagem.texto}
+                        descricao={mensagem.descricao}
                     />
                 </div>
             )}
             <div className="col-12"><Nav /></div>
-            <div className={'container m-auto d-flex align-items-center justify-content-center'}>
+            <div className={'container m-auto d-flex align-items-center justify-content-center formataAltura'}>
                 <div className="row formataAltura justify-content-center w-75">
                     <div className={'col-12 m-auto justify-content-center'}>
                         <div className="d-flex align-items-center justify-content-between mt-3">

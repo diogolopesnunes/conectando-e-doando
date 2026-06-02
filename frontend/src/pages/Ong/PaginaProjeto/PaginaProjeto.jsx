@@ -60,8 +60,12 @@ export default function PaginaProjeto({ api, info }) {
             else{
                 setPorcentagem(0);
             }
-        } else if (retorno.mensagem) {
-            alert(retorno.mensagem.descricao || retorno.mensagem.mensagem);
+        }
+        if (retorno.mensagem) {
+            setMensagem({
+                ...retorno.mensagem,
+                id: Date.now()
+            });
         }
     }
 
@@ -90,9 +94,8 @@ export default function PaginaProjeto({ api, info }) {
         const retorno = await resposta.json();
         if (retorno.mensagem) {
             setMensagem({
-                id: Date.now(),
-                texto: retorno.mensagem.descricao,
-                tipo: retorno.mensagem.tipo
+                ...retorno.mensagem,
+                id: Date.now()
             });
         }
         setLoadingExcluir(false);
@@ -108,9 +111,8 @@ export default function PaginaProjeto({ api, info }) {
         const retorno = await resposta.json();
         if (retorno.mensagem) {
             setMensagem({
-                id: Date.now(),
-                texto: retorno.mensagem.descricao,
-                tipo: retorno.mensagem.tipo
+                ...retorno.mensagem,
+                id: Date.now()
             });
         }
         setLoadingAtivarDesativar(false);
@@ -133,7 +135,7 @@ export default function PaginaProjeto({ api, info }) {
     }
 
     return (
-        <div className={"m-auto container " + css.containerPrincipal}>
+        <div className={"m-auto container formataAltura " + css.containerPrincipal}>
             <Nav />
             <div className={'row'}>
                 <div className={'col  px-sm-0'}>
@@ -145,7 +147,7 @@ export default function PaginaProjeto({ api, info }) {
                                 tipo={mensagem.tipo}
                                 imagem={`/public/${mensagem.tipo}.png`}
                                 duracao={10000}
-                                descricao={mensagem.texto}
+                                descricao={mensagem.descricao}
                             />
                         )}
 

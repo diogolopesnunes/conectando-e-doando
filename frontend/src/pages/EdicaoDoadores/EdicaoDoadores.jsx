@@ -13,7 +13,6 @@ export default function EdicaoDoadores({ api }) {
     const inputImagemRef = useRef();
 
     const [mensagem, setMensagem] = useState('');
-    const [tipoMensagem, setTipoMensagem] = useState('');
 
     const [nome, setNome] = useState('');
     const [email, setEmail] = useState('');
@@ -50,9 +49,12 @@ export default function EdicaoDoadores({ api }) {
                 setEmail(res.usuario.email);
                 setCpfCnpj(res.usuario.cpf_cnpj);
                 setTelefone(res.usuario.telefone);
-            } else if (res.mensagem) {
-                setMensagem(res.mensagem.descricao);
-                setTipoMensagem(res.mensagem.tipo);
+            }
+            if (res.mensagem) {
+                setMensagem({
+                    ...res.mensagem,
+                    id: Date.now()
+                });
             }
         }
 
@@ -77,14 +79,12 @@ export default function EdicaoDoadores({ api }) {
     async function editar(e) {
         e.preventDefault();
 
-        console.log({
-            senha,
-            confirmarSenha
-        });
-
         if (senha && senha !== confirmarSenha) {
-            setMensagem("As senhas não coincidem");
-            setTipoMensagem("erro");
+            setMensagem({
+                descricao:"As senhas não coincidem",
+                tipo: "erro",
+                id: Date.now()
+            });
             return;
         }
 
@@ -107,9 +107,10 @@ export default function EdicaoDoadores({ api }) {
         res = await res.json();
 
         if (res.mensagem) {
-            setMensagem(res.mensagem.descricao);
-            setTipoMensagem(res.mensagem.tipo);
-
+            setMensagem({
+                ...res.mensagem,
+                id: Date.now()
+            });
             if (res.mensagem.tipo === 'sucesso') {
                 if (localStorage.getItem('tipo_usuario') != 2){
                     localStorage.setItem('nome', nome);
@@ -131,10 +132,11 @@ export default function EdicaoDoadores({ api }) {
 
                         {mensagem && (
                             <Alerts
-                                tipo={tipoMensagem}
-                                imagem={`/public/${tipoMensagem}.png`}
+                                key={mensagem.id}
+                                tipo={mensagem.tipo}
+                                imagem={`/public/${mensagem.tipo}.png`}
                                 duracao={'10000'}
-                                descricao={mensagem}
+                                descricao={mensagem.descricao}
                             />
                         )}
 

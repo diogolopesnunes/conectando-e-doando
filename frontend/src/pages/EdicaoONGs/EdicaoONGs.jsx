@@ -14,7 +14,6 @@ export default function EditarOng({ api }) {
     const inputBannerRef = useRef();
 
     const [mensagem, setMensagem] = useState('');
-    const [tipoMensagem, setTipoMensagem] = useState('');
 
     const [nome, setNome] = useState('');
     const [email, setEmail] = useState('');
@@ -73,9 +72,11 @@ export default function EditarOng({ api }) {
                 setTelefone(res.usuario.telefone);
                 setChavePix(res.usuario.chave_pix);
             }
-            else if (res.mensagem){
-                setMensagem(res.mensagem.descricao);
-                setTipoMensagem(res.mensagem.tipo);
+            if (res.mensagem){
+                setMensagem({
+                    ...res.mensagem,
+                    id: Date.now()
+                });
             }
         }
 
@@ -109,8 +110,11 @@ export default function EditarOng({ api }) {
         e.preventDefault();
 
         if (senha && senha != confirmarSenha) {
-            setMensagem("As senhas não coincidem");
-            setTipoMensagem("erro");
+            setMensagem({
+                descricao:"As senhas não coincidem",
+                tipo:'erro',
+                id: Date.now()
+            });
             return;
         }
 
@@ -142,8 +146,10 @@ export default function EditarOng({ api }) {
         res = await res.json();
 
         if (res.mensagem){
-            setMensagem(res.mensagem.descricao);
-            setTipoMensagem(res.mensagem.tipo);
+            setMensagem({
+                ...res.mensagem,
+                id: Date.now()
+            });
             if (res.mensagem.tipo == 'sucesso'){
                 setTimeout(function () {
                     navegate(localStorage.getItem("tipo_usuario") == 2 ? "/dashboard_adm_ong" : "/previa_ong")
@@ -164,7 +170,6 @@ export default function EditarOng({ api }) {
                 })
 
                 resposta = await resposta.json()
-                console.log(resposta)
 
                 setTiposOng(resposta.tipos)
 
@@ -186,10 +191,11 @@ export default function EditarOng({ api }) {
 
                         {mensagem && (
                             <Alerts
-                                tipo={tipoMensagem}
-                                imagem={`/public/${tipoMensagem}.png`}
+                                key={mensagem.id}
+                                tipo={mensagem.tipo}
+                                imagem={`/public/${mensagem.tipo}.png`}
                                 duracao={'10000'}
-                                descricao={mensagem}
+                                descricao={mensagem.descricao}
                             />
                         )}
 

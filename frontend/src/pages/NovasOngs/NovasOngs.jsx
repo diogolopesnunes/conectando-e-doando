@@ -69,7 +69,6 @@ export default function NovasOngs({api}) {
                 })
 
                 resposta = await resposta.json()
-                console.log(resposta)
 
                 setTiposOng(resposta.tipos)
 

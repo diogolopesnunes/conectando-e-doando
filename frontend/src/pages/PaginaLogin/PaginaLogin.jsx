@@ -40,7 +40,6 @@ export default function Login({ setLogado, api }) {
         });
 
         retorno = await retorno.json();
-        console.log(retorno);
 
         if (!retorno) {
             console.log("Erro do servidor:", retorno);

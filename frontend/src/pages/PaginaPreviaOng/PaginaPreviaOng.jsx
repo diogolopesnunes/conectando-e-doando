@@ -46,7 +46,6 @@ export function PaginaPreviaOng({api}) {
             setProximaPagina(retorno.proximaPagina);
             setIdOng(retorno.ong.id_usuario)
             setSeguindo(retorno.ong.seguindo);
-            console.log(retorno.ong.seguindo)
         }
     }
 
@@ -106,7 +105,7 @@ export function PaginaPreviaOng({api}) {
     }, [id, pagina]);
 
     return (
-        <div className={"m-auto " + css.containerPrincipal}>
+        <div className={"m-auto formataAltura " + css.containerPrincipal}>
             <Nav/>
             <div className={css.envoltorioConteudo}>
                 <div className={css.acoesCabecalho}>

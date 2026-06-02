@@ -19,7 +19,6 @@ export default function PaginaPost({ api }) {
     const [imagem, setImagem] = useState(null);
     const [preview, setPreview] = useState(null);
     const [mensagem, setMensagem] = useState('');
-    const [tipoMensagem, setTipoMensagem] = useState('');
     const inputImagemRef = useRef();
     const navigate = useNavigate();
     const editando = Boolean(id_post);
@@ -45,8 +44,10 @@ export default function PaginaPost({ api }) {
                 setAcao(retorno.post.acao || '');
                 setAtividade(retorno.post.atividade ?? 1);
             } else if (retorno.mensagem) {
-                setMensagem(retorno.mensagem.descricao);
-                setTipoMensagem(retorno.mensagem.tipo);
+                setMensagem({
+                    ...retorno.mensagem,
+                    id: Date.now()
+                });
             }
         }
         buscarPost();
@@ -72,14 +73,20 @@ export default function PaginaPost({ api }) {
         if (loading) return;
 
         if (!editando && !imagem) {
-            setMensagem("Por favor, selecione uma imagem para o post.");
-            setTipoMensagem("erro");
+            setMensagem({
+                descricao:"Por favor, selecione uma imagem para o post.",
+                tipo: 'erro',
+                id: Date.now()
+            });
             return;
         }
 
         if (!titulo || !acao) {
-            setMensagem("Título e Ação são campos obrigatórios.");
-            setTipoMensagem("erro");
+            setMensagem({
+                descricao:"Título e Ação são campos obrigatórios.",
+                tipo: 'erro',
+                id: Date.now()
+            });
             return;
         }
 
@@ -103,8 +110,10 @@ export default function PaginaPost({ api }) {
         resposta = await resposta.json();
         setLoading(false);
         if (resposta.mensagem) {
-            setMensagem(resposta.mensagem.descricao);
-            setTipoMensagem(resposta.mensagem.tipo);
+            setMensagem({
+                ...resposta.mensagem,
+                id: Date.now()
+            });
             if (resposta.mensagem.tipo === 'sucesso') {
                 setTimeout(() => navigate(`/projeto/${id_projeto}`), 1200);
             }
@@ -120,7 +129,7 @@ export default function PaginaPost({ api }) {
                 </div>
                 <div className="row">
                     <div className="col">
-                        {mensagem && <Alerts tipo={tipoMensagem} imagem={`/${tipoMensagem}.png`} duracao={'10000'} descricao={mensagem} />}
+                        {mensagem && <Alerts key={mensagem.id} tipo={mensagem.tipo} imagem={`/${mensagem.tipo}.png`} duracao={'10000'} descricao={mensagem.descricao} />}
                         <div className={'m-auto '}>
                             <Form largura="maior" titulo={editando ? "Editar Post" : "Adicionar Post"} onSubmit={publicar}>
                                 <Input obrigatorio={"Sim"} htmlFor="titulo" label="Título do Post:" tipoInp="text" placeholder="Digite o título do Post" value={titulo} funcao={(e) => setTitulo(e.target.value)} />

@@ -5,9 +5,23 @@ import Titulo from "../../components/Titulo/Titulo.jsx";
 import OngCausa from "../../components/Componentes Home/OngCausa/OngCausa.jsx";
 import css from "./Home.module.css"
 import Nav from "../../components/Nav/Nav.jsx";
+import {useEffect} from "react";
+import {useLocation} from "react-router-dom";
 
 export default function Home({quemSomos, ongs, doacoes}) {
+    const location = useLocation();
 
+    useEffect(() => {
+        const secao = location.state?.secao;
+
+        if (secao === "quemSomos") {
+            quemSomos.current?.scrollIntoView({ behavior: "smooth" });
+        }
+
+        if (secao === "ongs") {
+            ongs.current?.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [location]);
     return (
         <div className="container-fluid">
             {localStorage.getItem('id_usuario') && (

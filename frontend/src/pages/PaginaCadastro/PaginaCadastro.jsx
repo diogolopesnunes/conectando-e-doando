@@ -14,7 +14,6 @@ export default function PaginaCadastro({api}) {
 
     const [selecionado, setSelecionado] = useState('0')
     const [mensagem, setMensagem] = useState('')
-    const [tipoMensagem, setTipoMensagem] = useState('')
     const emailLogado = localStorage.getItem("email");
     const idLogado = localStorage.getItem("id_usuario");
     const logado = !!emailLogado && !!idLogado;
@@ -116,9 +115,7 @@ export default function PaginaCadastro({api}) {
             body: form
         })
         retorno = await retorno.json()
-        console.log(retorno)
-        console.log(retorno.mensagem.descricao)
-        console.log(retorno.mensagem.tipo)
+
         if (!retorno) {
             console.log("Erro do servidor:", retorno);
             alert("DEU RUIM DE MAIIIISSSS!!! APAGA, SOCORRO DEUS")
@@ -129,8 +126,10 @@ export default function PaginaCadastro({api}) {
 
         }
         if (retorno.mensagem){
-            setMensagem(retorno.mensagem.descricao)
-            setTipoMensagem(retorno.mensagem.tipo)
+            setMensagem({
+                ...retorno.mensagem,
+                id: Date.now()
+            });
         }
 
     }
@@ -146,7 +145,6 @@ export default function PaginaCadastro({api}) {
                 })
 
                 resposta = await resposta.json()
-                console.log(resposta)
 
                 setTiposOng(resposta.tipos)
 
@@ -168,7 +166,7 @@ export default function PaginaCadastro({api}) {
             <div className="container m-auto">
                 <div className="row">
                     <div className="col">
-                        {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={'10000'} descricao={mensagem} />}
+                        {mensagem && <Alerts key={mensagem.id} tipo={mensagem.tipo} imagem={`./public/${mensagem.tipo}.png`} duracao={'10000'} descricao={mensagem.descricao} />}
 
 
                         <Form largura="maior" titulo={"Cadastro"} onSubmit={cadastro}>

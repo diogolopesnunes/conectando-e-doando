@@ -13,7 +13,6 @@ export default function EdicaoAdm({ api }) {
     const inputImagemRef = useRef();
 
     const [mensagem, setMensagem] = useState('');
-    const [tipoMensagem, setTipoMensagem] = useState('');
 
     const [nome, setNome] = useState('');
     const [email, setEmail] = useState('');
@@ -50,9 +49,12 @@ export default function EdicaoAdm({ api }) {
                 setEmail(res.usuario.email);
                 setCpfCnpj(res.usuario.cpf_cnpj);
                 setTelefone(res.usuario.telefone);
-            } else if (res.mensagem) {
-                setMensagem(res.mensagem.descricao);
-                setTipoMensagem(res.mensagem.tipo);
+            }
+            if (res.mensagem) {
+                setMensagem({
+                    ...res.mensagem,
+                    id: Date.now()
+                });
             }
         }
 
@@ -78,8 +80,11 @@ export default function EdicaoAdm({ api }) {
         e.preventDefault();
 
         if (senha && senha !== confirmarSenha) {
-            setMensagem("As senhas não coincidem");
-            setTipoMensagem("erro");
+            setMensagem({
+                descricao:"As senhas não coincidem",
+                tipo: 'erro',
+                id: Date.now()
+            });
             return;
         }
 
@@ -90,7 +95,6 @@ export default function EdicaoAdm({ api }) {
         form.append("telefone", telefone);
 
         if (senha) form.append("senha", senha);
-        console.log(confirmarSenha)
         if (confirmarSenha) form.append("confirmar_senha", confirmarSenha);
         if (imagem) form.append("imagem", imagem);
 
@@ -103,9 +107,10 @@ export default function EdicaoAdm({ api }) {
         res = await res.json();
 
         if (res.mensagem) {
-            setMensagem(res.mensagem.descricao);
-            setTipoMensagem(res.mensagem.tipo);
-
+            setMensagem({
+                ...res.mensagem,
+                id: Date.now()
+            });
             if (res.mensagem.tipo === 'sucesso') {
                 if (localStorage.getItem('id_usuario') == idUsuario){
                     localStorage.setItem('nome', nome);
@@ -127,10 +132,11 @@ export default function EdicaoAdm({ api }) {
 
                         {mensagem && (
                             <Alerts
-                                tipo={tipoMensagem}
-                                imagem={`/public/${tipoMensagem}.png`}
+                                key={mensagem.id}
+                                tipo={mensagem.tipo}
+                                imagem={`/public/${mensagem.tipo}.png`}
                                 duracao={'10000'}
-                                descricao={mensagem}
+                                descricao={mensagem.descricao}
                             />
                         )}
 

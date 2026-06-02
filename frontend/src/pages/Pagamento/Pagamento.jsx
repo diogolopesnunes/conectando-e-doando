@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Input from "../../components/Input/Input.jsx";
 import Form from "../../components/Form/Form.jsx";
 import copy from "copy-to-clipboard";
+import Alerts from "../../components/Alerts/Alerts.jsx";
 
 export default function Pagamento({ api }) {
 
@@ -22,6 +23,8 @@ export default function Pagamento({ api }) {
     const [valorPix, setValorPix] = useState("");
     const [copiado, setCopiado] = useState(false);
     const [carregando, setCarregando] = useState(false)
+    const [mensagem, setMensagem] = useState('');
+    const [idDoacao, setIdDoacao] = useState("");
 
     useEffect(() => {
 
@@ -38,8 +41,6 @@ export default function Pagamento({ api }) {
             setIdUsuario(localStorage.getItem("id_usuario"));
 
             if (location.state) {
-
-                console.log(location.state);
 
                 setNomeOng(location.state.nome_ong || "");
 
@@ -76,15 +77,12 @@ export default function Pagamento({ api }) {
 
             const retorno = await resposta.json();
 
-            console.log(retorno);
-
             if (resposta.ok) {
                 setCarregando(false)
 
                 setNomeOng(retorno.pix.nome_ong);
 
                 if (retorno.pix.nome_projeto) {
-
                     setNomeProjeto(retorno.pix.nome_projeto);
                 }
 
@@ -94,9 +92,17 @@ export default function Pagamento({ api }) {
                     `${api}/qrcodes/${retorno.pix.qrcode}`
                 );
 
-            } else {
+                setIdDoacao(retorno.pix.id_doacao)
 
-                alert(retorno.mensagem.descricao);
+            }
+            if (retorno.mensagem){
+                setMensagem({
+                    ...retorno.mensagem,
+                    id: Date.now()
+                });
+                if (retorno.mensagem.tipo == 'sucesso'){
+                    sessionStorage.setItem("pagamento_pendente", 'true');
+                }
             }
 
         } catch (erro) {
@@ -122,15 +128,90 @@ export default function Pagamento({ api }) {
 
         } else {
 
-            alert("Não foi possível copiar o Pix");
+            setMensagem({
+                descricao:'Não foi possível copiar o pix',
+                tipo: 'erro',
+                id: Date.now()
+            });
         }
     }
+
+    async function confirmarPagamento() {
+        const resposta = await fetch(
+            `${api}/confirmar_pix/${idDoacao}`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include",
+            }
+        );
+
+        const retorno = await resposta.json();
+        console.log(retorno);
+        if (retorno.mensagem){
+            setMensagem({
+                ...retorno.mensagem,
+                id: Date.now()
+            });
+            if (retorno.mensagem.tipo == 'sucesso'){
+                sessionStorage.removeItem('pagamento_pendente')
+                navigate(-1)
+            }
+        }
+    }
+
+    async function cancelarPagamento() {
+        const resposta = await fetch(
+            `${api}/cancelar_pix/${idDoacao}`,
+            {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include",
+            }
+        );
+
+        const retorno = await resposta.json();
+        console.log(retorno);
+        if (retorno.mensagem){
+            setMensagem({
+                ...retorno.mensagem,
+                id: Date.now()
+            });
+            if (retorno.mensagem.tipo == 'sucesso'){
+                sessionStorage.removeItem('pagamento_pendente')
+                navigate(-1)
+            }
+        }
+    }
+
+    useEffect(() => {
+        const handleBackButton = () => {
+            if (sessionStorage.getItem("pagamento_pendente") == 'true') {
+                cancelarPagamento();
+            }
+        };
+
+        window.addEventListener("popstate", handleBackButton);
+
+        return () => {
+            window.removeEventListener("popstate", handleBackButton);
+        };
+    }, []);
 
     return (
         <div className={'container m-auto formataAltura'}>
 
             <div className={'row p-2'}>
 
+                {mensagem && (
+                    <div className={'col-12'}>
+                        <Alerts key={mensagem.id} tipo={mensagem.tipo} imagem={`./public/${mensagem.tipo}.png`} duracao={'10000'} descricao={mensagem.descricao} />
+                    </div>
+                )}
                 <div className={'col-10 m-auto d-flex flex-column my-3'}>
 
                     <p className={`fs-3 text-center text-sm-start ${css.maiuscula}`}>
@@ -187,6 +268,11 @@ export default function Pagamento({ api }) {
                                             onClick={copiarPix}
                                         />
 
+                                    </div>
+
+                                    <div className={'d-flex justify-content-evenly'}>
+                                        <Buton texto={'Pagar'} onClick={() => confirmarPagamento()} background={'laranja'} tamanho={'pequeno'}/>
+                                        <Buton texto={'Cancelar'} onClick={() => cancelarPagamento()} background={'roxo'} tamanho={'pequeno'}/>
                                     </div>
 
                                 </div>

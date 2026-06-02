@@ -15,7 +15,6 @@ export default function PaginaEnviarEmail({ api }) {
     const [mensagemEmail, setMensagemEmail] = useState("");
     const [mensagemSecundariaEmail, setMensagemSecundariaEmail] = useState("");
     const [mensagem, setMensagem] = useState("");
-    const [tipoMensagem, setTipoMensagem] = useState("");
     const idAdm = localStorage.getItem("id_usuario");
     const rotaReprovar = useMatch("/enviar_email/:id_ong");
     let resposta;
@@ -32,8 +31,10 @@ export default function PaginaEnviarEmail({ api }) {
     async function enviar(e) {
         e.preventDefault();
         if (!mensagemEmail.trim()) {
-            setMensagem("Por favor, preencha o assunto e a mensagem.");
-            setTipoMensagem("erro");
+            setMensagem({
+                descricao: "Por favor, preencha o assunto e a mensagem.",
+                tipo: 'erro'
+            });
             return;
         }
         setLoading(true);
@@ -55,8 +56,10 @@ export default function PaginaEnviarEmail({ api }) {
         const retorno = await resposta.json();
         const msg = retorno.mensagem;
         if (msg) {
-            setMensagem(msg.descricao || msg.mensagem);
-            setTipoMensagem(msg.tipo);
+            setMensagem({
+                ...msg,
+                id: Date.now()
+            });
             if (msg.tipo === "sucesso" && rotaReprovar) setTimeout(() => navigate("/dashboard_adm_ong"), 1200);
             else if (msg.tipo === "sucesso" && !rotaReprovar) setTimeout(() => navigate("/dashboard_adm_doador"), 1200);
         }
@@ -69,7 +72,7 @@ export default function PaginaEnviarEmail({ api }) {
             <div className="container m-auto formataAltura">
                 <div className={'row'}>
                     <div className="col align-self-center">
-                        {mensagem && <Alerts tipo={tipoMensagem} imagem={`/public/${tipoMensagem}.png`} duracao={10000} descricao={mensagem} />}
+                        {mensagem && <Alerts key={mensagem.id} tipo={mensagem.tipo} imagem={`/public/${mensagem.tipo}.png`} duracao={10000} descricao={mensagem.descricao} />}
                         <Form largura="maior" titulo={rotaReprovar ? 'Motivo da reprova' : 'Motivo do bloqueio'} onSubmit={enviar}>
                             <Input tipoInp={"textarea"} label={"Mensagem:"} htmlFor={"mensagem"} placeholder={"Digite a mensagem"} value={mensagemEmail} funcao={(e) => setMensagemEmail(e.target.value)} />
                             <Input tipoInp={"textarea"} label={"Descrição:"} htmlFor={"mensagem_secundaria"} placeholder={"Digite a descrição"} value={mensagemSecundariaEmail} funcao={(e) => setMensagemSecundariaEmail(e.target.value)} />

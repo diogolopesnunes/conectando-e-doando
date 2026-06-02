@@ -330,7 +330,7 @@ export default function DashboardAdmOng({ api }) {
     }, []);
 
     return (
-        <section className="container m-auto">
+        <section className="container m-auto formataAltura">
 
             <div className="row">
 
@@ -595,10 +595,11 @@ export default function DashboardAdmOng({ api }) {
                                 </>
                             )}
 
-                            <Buton
-                                texto={pagina}
-                                classe="paginaSelecionada"
-                            />
+                            {quantidade === 1 ? (
+                                <div className={'m-auto'}><Buton texto={pagina} classe={'paginaSelecionada'} /></div>
+                            ) : (
+                                <Buton texto={pagina} classe={'paginaSelecionada'} />
+                            )}
 
                             {proximaPagina !== 0 && (
                                 <>

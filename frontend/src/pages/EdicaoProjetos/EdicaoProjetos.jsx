@@ -10,8 +10,6 @@ import Nav from "../../components/Nav/Nav.jsx";
 export default function EditarProjeto({ api }) {
 
     const { id_projeto } = useParams();
-    console.log(id_projeto);
-    console.log(api);
 
     const [nome, setNome] = useState('');
     const [descricao, setDescricao] = useState('');
@@ -20,7 +18,6 @@ export default function EditarProjeto({ api }) {
     const [preview, setPreview] = useState(null);
 
     const [mensagem, setMensagem] = useState('');
-    const [tipoMensagem, setTipoMensagem] = useState('');
 
     const inputImagemRef = useRef();
     const navigate = useNavigate();
@@ -45,17 +42,14 @@ export default function EditarProjeto({ api }) {
                 credentials: "include"
             });
             resposta = await resposta.json();
-            console.log(resposta)
             if (resposta.projeto) {
                 setNome(resposta.projeto.nome);
                 setDescricao(resposta.projeto.descricao);
                 setMeta(resposta.projeto.meta_doacao);
                 setPreview(resposta.projeto.imagem);
-                console.log(localStorage.getItem("tipo_usuario"))
                 if (resposta.mensagem.tipo == 'sucesso'){
                     setTimeout(function () {
                         if (localStorage.getItem("tipo_usuario") == 2) {
-                            console.log(localStorage.getItem("tipo_usuario"))
                             navegate("/dashboard_adm_ong")
                         } else if (localStorage.getItem("tipo_usuario") == 1){
                             navegate("/projetos_ong")
@@ -109,13 +103,14 @@ export default function EditarProjeto({ api }) {
         resposta = await resposta.json();
 
         if (resposta.mensagem.tipo === "sucesso") {
-            setMensagem("Projeto atualizado com sucesso!");
-            setTipoMensagem("sucesso");
-
+            setMensagem({
+                descricao: "Projeto atualizado com sucesso!",
+                tipo: "sucesso",
+                id: Date.now()
+            });
             if (resposta.mensagem.tipo == 'sucesso'){
                 setTimeout(function () {
                     if (localStorage.getItem("tipo_usuario") == 2) {
-                        console.log(localStorage.getItem("tipo_usuario"))
                         navegate("/dashboard_adm_ong")
                     } else if (localStorage.getItem("tipo_usuario") == 1){
                         navegate("/projetos_ong")
@@ -124,8 +119,11 @@ export default function EditarProjeto({ api }) {
             }
 
         } else {
-            setMensagem("Erro ao atualizar projeto");
-            setTipoMensagem("erro");
+            setMensagem({
+                descricao:"Erro ao atualizar projeto",
+                tipo:"erro",
+                id: Date.now()
+            });
         }
     }
 
@@ -138,10 +136,11 @@ export default function EditarProjeto({ api }) {
 
                         {mensagem && (
                             <Alerts
-                                tipo={tipoMensagem}
-                                imagem={`/public/${tipoMensagem}.png`}
+                                key={mensagem.id}
+                                tipo={mensagem.tipo}
+                                imagem={`/public/${mensagem.tipo}.png`}
                                 duracao={'10000'}
-                                descricao={mensagem}
+                                descricao={mensagem.descricao}
                             />
                         )}
 

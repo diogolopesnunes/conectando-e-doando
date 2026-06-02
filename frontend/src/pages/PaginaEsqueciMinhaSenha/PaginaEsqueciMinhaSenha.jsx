@@ -10,7 +10,6 @@ export default function PaginaEsqueciMinhaSenha({api}){
     const [email, setEmail] = useState('');
     const [mensagem, setMensagem] = useState('');
     const navigate = useNavigate();
-    const [tipoMensagem, setTipoMensagem] = useState('');
 
     useEffect(()=>{
         if (mensagem) {
@@ -43,12 +42,13 @@ export default function PaginaEsqueciMinhaSenha({api}){
             // }
 
             let retorno = await response.json();
-            console.log(retorno);
+
 
             if (retorno.mensagem){
-                setMensagem(retorno.mensagem.descricao);
-                setTipoMensagem(retorno.mensagem.tipo);
-
+                setMensagem({
+                    ...retorno.mensagem,
+                    id: Date.now()
+                });
                 localStorage.setItem("email", email);
                 if (retorno.mensagem.tipo == 'redirecionamento'){
                     setTimeout(() => {
@@ -71,7 +71,7 @@ export default function PaginaEsqueciMinhaSenha({api}){
         <div className="container m-auto">
             <div className="row formataAltura d-flex justify-content-center align-items-center">
                 <div className="col">
-                    {mensagem && <Alerts tipo={tipoMensagem} imagem={`./public/${tipoMensagem}.png`} duracao={'10000'} descricao={mensagem} />}
+                    {mensagem && <Alerts key={mensagem.id} tipo={mensagem.tipo} imagem={`./public/${mensagem.tipo}.png`} duracao={'10000'} descricao={mensagem.descricao} />}
                     <Form largura={'maior'} titulo={'Esqueci minha senha'} onSubmit={esqueciMinhaSenha} >
 
                         <Input

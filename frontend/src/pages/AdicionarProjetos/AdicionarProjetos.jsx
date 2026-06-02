@@ -19,7 +19,6 @@ export default function PaginaProjeto({ api }) {
     const [preview, setPreview] = useState(null);
 
     const [mensagem, setMensagem] = useState('');
-    const [tipoMensagem, setTipoMensagem] = useState('');
 
     const [tipoUsuario, setTipoUsuario] = useState(localStorage.getItem('tipo_usuario'))
 
@@ -60,7 +59,6 @@ export default function PaginaProjeto({ api }) {
         form.append("nome", nome);
         form.append("descricao", descricao);
         form.append("meta_doacao", meta_doacao);
-        console.log(meta_doacao);
 
         if (imagem) {
             form.append("imagem", imagem);
@@ -73,19 +71,19 @@ export default function PaginaProjeto({ api }) {
         });
 
         resposta = await resposta.json();
-        console.log(resposta);
 
         
         if (resposta.mensagem) {
-            setMensagem(resposta.mensagem.descricao);
-            setTipoMensagem(resposta.mensagem.tipo);
+            setMensagem({
+                ...resposta.mensagem,
+                id: Date.now()
+            });
             if (resposta.mensagem.tipo == 'sucesso') {
                 if (tipoUsuario == 1){
                     setTimeout(() => {
                         navigate('/projetos_ong');
                     }, 2000);
                 } else if (tipoUsuario ==2){
-                    console.log()
                     setTimeout(() => {
                         navigate('/dashboard_adm_ong');
                     }, 2000);
@@ -106,10 +104,11 @@ export default function PaginaProjeto({ api }) {
 
                         {mensagem && (
                             <Alerts
-                                tipo={tipoMensagem}
-                                imagem={`/${tipoMensagem}.png`}
+                                key={mensagem.id}
+                                tipo={mensagem.tipo}
+                                imagem={`/${mensagem.tipo}.png`}
                                 duracao={'10000'}
-                                descricao={mensagem}
+                                descricao={mensagem.descricao}
                             />
                         )}
 
