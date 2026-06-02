@@ -79,16 +79,15 @@ export default function SeguirOng({
     return (
         <>
 
-                {mensagem && (
-                    <Alerts
-                        key={mensagem.id}
-                        tipo={mensagem.tipo}
-                        imagem={`/public/${mensagem.tipo}.png`}
-                        duracao={10000}
-                        descricao={mensagem.descricao}
-                    />
-                )}
-
+            {mensagem && (
+                <Alerts
+                    key={mensagem.id}
+                    tipo={mensagem.tipo}
+                    imagem={`/public/${mensagem.tipo}.png`}
+                    duracao={10000}
+                    descricao={mensagem.descricao}
+                />
+            )}
             <div
                 className={`${css.containerSeguir}`}
                 onClick={seguirDesseguirOng}>

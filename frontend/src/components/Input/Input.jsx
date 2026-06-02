@@ -66,7 +66,7 @@ export default function Input({tipoInp, label, htmlFor, placeholder, classe = ''
     }
 
     return (
-        <div className={`d-flex flex-column w-75 my-3 ${margin === "auto" && "m-auto "} `} >
+        <div className={`d-flex flex-column w-75 ${margin === "auto" && "m-auto my-3 "} `} >
             {obrigatorio == "Sim" && (
                 <span className={css.campoObrigatorio}>* Campo Obrigatório</span>
             )}

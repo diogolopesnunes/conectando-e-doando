@@ -15,9 +15,9 @@ export default function SecaoProjetos({ projetos, api, excluir, alternarStatus, 
                 <Buton texto={'Adicionar projeto'} tamanho={'medio'} background={'laranja'} rota={`/adicionar_projetos/${idUsuario}`}/>
             )}
 
-            {projetos?.length === 0 && (
-                <p>Nenhum projeto cadastrado.</p>
-            )}
+            {/*{projetos?.length === 0 && (*/}
+            {/*    <p>Nenhum projeto cadastrado.</p>*/}
+            {/*)}*/}
 
             {projetos?.map((proj) => {
                 const idProjeto = proj.id_projeto || proj.id;
@@ -29,7 +29,7 @@ export default function SecaoProjetos({ projetos, api, excluir, alternarStatus, 
                             <img
                                 src={proj.imagem ? `${api}${proj.imagem}` : "/img/projeto.jpg"}
                                 alt="Projeto"
-                                className={css.imagem}
+                                className={`object-fit-cover ${css.imagem}`}
                                 onError={(e) => {e.target.src = "/SemImagemDisponivel.png";}}
                             />
                             <div className={css.info + ' d-flex flex-column justify-content-center'}>

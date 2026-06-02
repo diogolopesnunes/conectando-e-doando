@@ -5,8 +5,8 @@ import SeguirOng from "../SeguirOng/SeguirOng.jsx";
 export default function InfoOng({rota ,info, texto, api, atualizarSeguimento, seguindo, nomeOng, nomeProjeto}) {
     return (
         <>
-            <section className={css.secaoInfoProjeto}>
-                <div className={css.envolverImagemProjeto}>
+            <section className={`align-items-center ${css.secaoInfoProjeto}`}>
+                <div className={`${css.envolverImagemProjeto}`}>
                     <img
                         src={`${api}${info.imagem}?t=${Date.now()}`}
                         alt={info.nome}
@@ -28,17 +28,16 @@ export default function InfoOng({rota ,info, texto, api, atualizarSeguimento, se
                         </p>
                     </div>
 
-                    <div className={`mt-2 flex-column flex-sm-row ${css.secaoChamadaAcao}`}>
-                        <img
-                            src={`${api}${info.logoInstituicao}?t=${Date.now()}`}
-                            alt="Logo Instituição"
-                            className={css.logoInstituicao + ' rounded'}
-                            onError={(e) => {
-                                e.target.src = "/public/SemImagemDisponivel.png";
-                            }}
-                        />
-
-                        <div className={'d-flex justify-content-center align-items-center'}>
+                    <div className={`mt-2 flex-column flex-md-row ${css.secaoChamadaAcao}`}>
+                        <div className={'w-50 d-flex flex-column align-items-center justify-content-center gap-2'}>
+                            <img
+                                src={`${api}${info.logoInstituicao}?t=${Date.now()}`}
+                                alt="Logo Instituição"
+                                className={css.logoInstituicao + ' object-fit-cover rounded'}
+                                onError={(e) => {
+                                    e.target.src = "/public/SemImagemDisponivel.png";
+                                }}
+                            />
                             <SeguirOng
                                 api={api}
                                 idOng={info.id_ong}
