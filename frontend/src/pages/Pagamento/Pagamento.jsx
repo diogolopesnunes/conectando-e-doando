@@ -108,6 +108,8 @@ export default function Pagamento({ api }) {
                 }
                 if(retorno.mensagem.tipo == 'erro'){
                     setCarregando(false)
+                    setQrCode('')
+                    setPix('')
                 }
             }
 
