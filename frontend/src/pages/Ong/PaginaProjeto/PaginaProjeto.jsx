@@ -175,11 +175,11 @@ export default function PaginaProjeto({ api, info }) {
                                     <div className={css.valoresMeta}>
                                         <span>
                                             <strong>Valor Arrecadado:</strong>
-                                            <span className={css.valorLaranja}>{` R$${formatarDinheiro(projeto.valor_arrecadado)}`}</span>
+                                            <span className={css.valorLaranja}>{` ${formatarDinheiro(projeto.valor_arrecadado)}`}</span>
                                         </span>
                                         <span>
                                             <strong>Meta de Doações:</strong>
-                                            <span className={css.valorLaranja}>{` R$${formatarDinheiro(projeto.meta_doacao)}`}</span>
+                                            <span className={css.valorLaranja}>{` ${formatarDinheiro(projeto.meta_doacao)}`}</span>
                                         </span>
                                     </div>
 
