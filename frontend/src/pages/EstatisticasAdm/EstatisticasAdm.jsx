@@ -8,9 +8,21 @@ import Input from "../../components/Input/Input.jsx";
 import CardOngAdm from "../../components/CardOngAdm/CardOngAdm.jsx";
 import Titulo from "../../components/Titulo/Titulo.jsx";
 import GraficoEstatisticasAdm from "../../components/GraficoEstatisticasAdm/GraficoEstatisticasAdm.jsx";
+import {useNavigate} from "react-router-dom";
 
 export default function EstatisticaAdm({api}) {
     const [valorDoacoes, setValorDoacoes] = useState('');
+    const navigate = useNavigate()
+    const [id,setId] = useState("");
+
+    useEffect(() => {
+        if (!localStorage.getItem("email") || !localStorage.getItem("id_usuario") || localStorage.getItem("tipo_usuario") != 2) {
+            navigate('/login');
+        } else {
+            setId(localStorage.getItem("id_usuario"));
+        }
+    }, [navigate]);
+    
     const monetario = {
         0:'Mil',
         1:'Mi',
