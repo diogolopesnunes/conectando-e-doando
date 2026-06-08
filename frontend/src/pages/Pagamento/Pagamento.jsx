@@ -265,9 +265,9 @@ export default function Pagamento({ api }) {
 
                                     </div>
 
-                                    <div className={`mb-4 d-flex justify-content-evenly ${processandoPagamento && css.carregando}`}>
-                                        <Buton texto={'Pagar'} onClick={() => confirmarPagamento()} background={'laranja'} tamanho={'pequeno'}/>
-                                        <Buton texto={'Cancelar'} onClick={() => cancelarPagamento()} background={'roxo'} tamanho={'pequeno'}/>
+                                    <div className={`mb-4 d-flex justify-content-evenly`}>
+                                        <Buton texto={'Pagar'} classe={`${processandoPagamento && 'carregando'}`} onClick={() => confirmarPagamento()} background={'laranja'} tamanho={'pequeno'}/>
+                                        <Buton texto={'Cancelar'} classe={`${processandoPagamento && 'carregando'}`} onClick={() => cancelarPagamento()} background={'roxo'} tamanho={'pequeno'}/>
                                     </div>
 
                                 </div>
