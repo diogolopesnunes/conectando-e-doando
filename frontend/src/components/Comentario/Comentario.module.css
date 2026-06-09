@@ -32,4 +32,12 @@
     border-radius: 100%;
 }
 
+.cursorClick {
+    cursor: pointer;
+}
+
+.tamanhoTexto {
+    font-size: 500px;
+}
+
 @media(max-width:300px){  }

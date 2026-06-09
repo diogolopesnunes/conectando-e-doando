@@ -12,15 +12,53 @@ export default function GraficoEstatisticasAdm({ dados }) {
         dado.quantidade_doacoes_ano || 0,
     ]);
 
+    const formatarTooltip = (mes, titulo, valor) =>
+        `${mes}
+    ${titulo}: R$ ${valor.toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        })}`;
+
+    const formatarReal = (valor) =>
+        `R$ ${valor.toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        })}`;
+
     const data = [
         [
             "Mês",
+
             "Valor Ano Passado",
+            { type: "string", role: "tooltip" },
+
             "Valor Ano Atual",
+            { type: "string", role: "tooltip" },
+
             "Doações Ano Passado",
             "Doações Ano Atual",
         ],
-        ...valores
+
+        ...dados.map((dado) => [
+            dado.mes,
+
+            dado.valor_doacao_ano_passado || 0,
+            formatarTooltip(
+                dado.mes,
+                "Valor Ano Passado",
+                dado.valor_doacao_ano_passado || 0
+            ),
+
+            dado.valor_doacao_ano || 0,
+            formatarTooltip(
+                dado.mes,
+                "Valor Ano Atual",
+                dado.valor_doacao_ano || 0
+            ),
+
+            dado.quantidade_doacoes_ano_passado || 0,
+            dado.quantidade_doacoes_ano || 0,
+        ]),
     ];
 
     const options = {
@@ -89,6 +127,8 @@ export default function GraficoEstatisticasAdm({ dados }) {
             height="500px"
             data={data}
             options={options}
+            language="pt-BR"
+            chartLanguage="pt-BR"
         />
     );
 }

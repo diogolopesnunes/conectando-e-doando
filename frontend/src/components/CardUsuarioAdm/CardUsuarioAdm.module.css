@@ -119,14 +119,20 @@
     text-overflow: ellipsis;
 }
 
+.tamanhoInfo {
+    font-size: 1em;
+}
+
 @media(max-width:426px){
-    .infos p{
-        font-size: 1.1em;
-    }
 
     .nome p{
         font-size: 0.9em !important;
     }
+
+    .tamanhoInfo {
+        font-size: 1em;
+    }
+
     .justify p{
         text-align: justify;
     }

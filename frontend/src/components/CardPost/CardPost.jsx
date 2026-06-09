@@ -275,7 +275,7 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
             {comentarios && (
                 <>
                     <div className={`${css.sobrepor} col-10 col-sm-8 d-flex px-4 pt-0 py-2 mt-0 mt-sm-3 flex-column position-fixed top-50 start-50 translate-middle bg-white ${css.cardPost}`}>
-                        <div className={`${css.bordaCabecalho} mt-0 p-3 d-flex justify-content-between mb-3 cor-fundo-laranja gap-3`}>
+                        <div className={`${css.bordaCabecalho} mt-0 p-3 py-2 d-flex justify-content-between mb-3 cor-fundo-laranja gap-3`}>
                             <h3 className={'d-flex align-items-center'}>
                                 Comentários
                             </h3>
@@ -345,8 +345,8 @@ export default function CardPost({logo, comentariosPost, setIdPost, nomeOng, ban
                                 }
                             >
                                 <div className={`d-flex flex-column flex-lg-row justify-content-around align-items-center px-2 py-1 m-auto gap-0 gap-lg-5 ${css.containterInput}`}>
-                                    <input
-                                        className={`w-100 rounded py-3 text-center text-sm-start px-0 px-sm-5 ${css.inpComentario}`}
+                                    <textarea
+                                        className={`w-100 rounded py-3 py-sm-3  text-start px-0 px-sm-5 mb-3 mb-sm-0 ${css.inpComentario}`}
                                         type={'text'} placeholder={!editar ? 'Deixe sua mensagem' : 'Editar mensagem'} value={!editar ? comentario : mensagemEditada} onChange={!editar ? (e) => setComentario(e.target.value) : (e) => setMensagemEditada(e.target.value)} disabled={!idUsuario ? true : false}/>
                                     <div className={`d-flex gap-3 gap-sm-5 ${css.botoes}`}>
                                         <Buton texto={!editar ? 'Comentar': 'Editar'} background={'laranja'} tamanho={'pequeno'} tipo={'submit'}/>

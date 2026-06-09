@@ -115,6 +115,16 @@
     color: white;
 }
 
+.nav_mobile_btn {
+    display: none;
+}
+
+@media (max-width: 1000px) {
+    .nav_mobile_btn {
+        display: flex;
+    }
+}
+
 @-moz-document url-prefix() {
     .botao {
         align-items: center;

@@ -63,7 +63,7 @@ export default function Header({scrollQuemSomos, scrollDoacoes, scrollOngs, loga
                     <span></span>
                 </div>
 
-                <nav className={`${css.menu} ${open ? css.menuOpen : ""}`}>
+                <nav className={`${css.menu} ${open ? css.menuOpen : ""}`} onClick={() => setOpen(false)}>
                     {!logado ? (
                         <>
                             <span></span>

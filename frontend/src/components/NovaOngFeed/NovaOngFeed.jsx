@@ -6,7 +6,7 @@ export default function NovaOngFeed({api, banner, descricao, nomeOng, logoOng, s
     const navigate = useNavigate();
     return(
         <div className={`col-12 col-sm-12 col-lg-4 rounded mx-2 my-4 shadow d-flex flex-column ${css.borda}`}>
-            <img onClick={() => navigate(`/previa_ong/${idOng}`)} src={`${api}${banner}`} className={`w-100 ${css.altura}`} onError={(e) => {
+            <img onClick={() => navigate(`/previa_ong/${idOng}`)} src={`${api}${banner}`} className={`w-100 ${css.imagemBanner}`} onError={(e) => {
                 e.target.src = "/public/SemImagemDisponivel.png";
             }}/>
 

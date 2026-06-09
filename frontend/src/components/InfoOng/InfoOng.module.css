@@ -13,7 +13,7 @@
 
 .imagemProjeto {
     width: 100%;
-    height: 295px;
+    aspect-ratio: 14 / 9;
     border-radius: 15px;
     object-fit: cover;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
@@ -80,7 +80,6 @@
     }
 
     .imagemProjeto {
-        height: 90%;
         width: 90%;
         max-width: 400px;
         border-radius: 10px;

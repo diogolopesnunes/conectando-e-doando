@@ -10,6 +10,10 @@
     max-width: 52%;
 }
 
+.melhor {
+    max-width: 100%;
+}
+
 .comentario {
     max-width: 100% !important;
     width: 100% !important;

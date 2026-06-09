@@ -1,6 +1,10 @@
 import css from './Doacao.module.css'
+import {NumericFormat, PatternFormat} from "react-number-format";
+
 
 export default function Doacao({ong, projeto, valor, data, tipoUsuario, nome, email, idOng, idDoador}){
+
+
     return(
         <div className={`row rounded shadow my-3 px-3 ${css.cardDoacao}`}>
             <div className={`${css.linha}`}></div>
@@ -38,7 +42,16 @@ export default function Doacao({ong, projeto, valor, data, tipoUsuario, nome, em
                 )
             )}
             <div className={'col-12 col-sm-6 p-2'}>
-                <p className={`fs-5 fs-sm-6 text-center text-sm-start ${css.textoMaior}`}>R${valor}</p>
+                <NumericFormat
+                    className={`fs-5 fs-sm-6 text-center text-sm-start ${css.textoMaior}`}
+                    value={valor}
+                    displayType="text"
+                    thousandSeparator="."
+                    decimalSeparator=","
+                    prefix="R$ "
+                    decimalScale={2}
+                    fixedDecimalScale={true}
+                />
             </div>
             <div className={'col-12 col-sm-6 p-2'}>
                 <p className={`text-center text-sm-end fs-5 fs-sm-6 ${css.textoMaior}`}>{data}</p>

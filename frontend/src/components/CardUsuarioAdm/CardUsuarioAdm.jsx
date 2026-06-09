@@ -132,7 +132,7 @@ export default function CardUsuarioAdm({
                 <Link to={usuarioOng ? `/previa_ong/${id}` : "#"} className={'d-flex w-75'}>
                     <div className={"w-100"}>
                         <div className={'d-flex gap-1 ' + css.nome}>
-                            <p className={'px-2 rounded ' + css.idStyle}>ID {id}</p>
+                            {/*<p className={'px-2 rounded ' + css.idStyle}>ID {id}</p>*/}
 
                             {status === 1 ? (
                                 <p className={'px-2 rounded d-none d-sm-block ' + css.ativo}>Ativado</p>
@@ -150,20 +150,17 @@ export default function CardUsuarioAdm({
                             {usuarioOng ? (
                                 <div className={'d-flex flex-column w-100'}>
                                     <div className={'d-flex justify-content-between flex-column flex-lg-row my-3 w-100 ' + css.infos}>
-                                        <p>CNPJ: {cpfCnpj}</p>
-                                        <p>Telefone: {telefone}</p>
-                                        <p>Registro: {registro}</p>
+                                        <p className={css.tamanhoInfo}>CNPJ: {cpfCnpj}</p>
+                                        <p className={css.tamanhoInfo}>Telefone: {telefone}</p>
+                                        <p className={css.tamanhoInfo}>Registro: {registro}</p>
                                     </div>
-                                    <div className={css.justify + ' ' + css.infos}>
-                                        <p className={css.nomeCortar}>Email: {email}</p>
-                                        <p>{descricao}</p>
-                                    </div>
+
                                 </div>
                             ) : (
                                 <div className={'d-flex justify-content-between flex-column flex-lg-row my-3 w-100 ' + css.infos}>
-                                    <p>CPF: {cpfCnpj}</p>
-                                    <p>Telefone: {telefone}</p>
-                                    <p>Registro: {registro}</p>
+                                    <p className={css.tamanhoInfo}>CPF: {cpfCnpj}</p>
+                                    <p className={css.tamanhoInfo}>Telefone: {telefone}</p>
+                                    <p className={css.tamanhoInfo}>Registro: {registro}</p>
                                 </div>
                             )
                             }

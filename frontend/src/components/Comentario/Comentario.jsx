@@ -35,7 +35,7 @@ export default function Comentario({comentario, idMensagem, excluirComentario, i
                             <img src={'/menuAcao3Pontos.png'} className={`${css.menu}`} onClick={() => setMenuAberto(!menuAberto)}></img>
                             {menuAberto && (
                                 <div className={`d-flex flex-column justify-content-between bg-white ${css.menuAberto}`}>
-                                    <p className={'rounded p-1 border'} onClick={() => {
+                                    <p className={`rounded p-1 border`} onClick={() => {
                                         setEditar(true)
                                         setMensagemEditada(comentario.mensagem)
                                         setIdMensagemEditada(idMensagem)
@@ -48,10 +48,10 @@ export default function Comentario({comentario, idMensagem, excluirComentario, i
                 </div>
 
             </div>
-            <p ref={mensagemRef} className={`${comentarioInteiro ? css.mensagemInteira : css.mensagem}`}>{comentario.mensagem}</p>
+            <p ref={mensagemRef} className={`fs-6 ${comentarioInteiro ? css.mensagemInteira : css.mensagem}`}>{comentario.mensagem}</p>
             {tem3Pontos && (
                 <div className={`d-flex justify-content-start ${css.botaoVer}`}>
-                    <Buton texto={`${!comentarioInteiro ?  'Ver tudo': 'Ver menos'}`} tamanho={'pequeno'} background={'branco'} onClick={()=> setComentarioInteiro(!comentarioInteiro) ? comentarioInteiro : !comentarioInteiro}/>
+                    <p tamanho={'pequeno'} className={"fw-semibold " + css.cursorClick} onClick={()=> setComentarioInteiro(!comentarioInteiro) ? comentarioInteiro : !comentarioInteiro}>{`${!comentarioInteiro ?  'Ver tudo': 'Ver menos'}`}</p>
                 </div>
             )}
         </div>

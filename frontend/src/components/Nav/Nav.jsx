@@ -1,6 +1,7 @@
 import {NavLink, useLocation, useNavigate} from "react-router-dom";
 import css from "./Nav.module.css";
 import {useEffect, useState} from "react";
+import Buton from "../Buton/Buton.jsx";
 
 export default function Nav() {
     const local = useLocation();
@@ -9,6 +10,8 @@ export default function Nav() {
     const [nome, setNome] = useState("");
     const [id, setId] = useState("");
     const [tipoUsuario, setTipoUsuario] = useState("");
+
+    const [aberto, setAberto] = useState(false);
 
     function cssAtivado({ isActive }) {
         var ativo = isActive ? "active" : "";
@@ -82,93 +85,106 @@ export default function Nav() {
     }, [])
 
     return (
+
         <div className={'m-auto justify-content-center w-75 '+ css.nav_container + "" }>
-            {tipoUsuario == 0 && (
-                <>
-                    <NavLink
-                        to={"/feed"}
-                        className={feedDoadores}>
-                        Feed
-                    </NavLink>
 
-                    <NavLink
-                        to={"/Historico_doador"}
-                        className={doadoresDashboard}>
-                        Histórico
-                    </NavLink>
+            <Buton
+                tipo={"button"}
+                texto={`Navegar Dashboard ${aberto ? "" : ""}`}
+                onClick={() => setAberto(!aberto)}
+                classe={"nav_mobile_btn"}
+                tamanho={"medio"}
+                background={"cinza"}
+            />
 
-                    <NavLink
-                        to={"/edicao_doadores"}
-                        className={doadoresDashboard}>
-                        Editar
-                    </NavLink>
-                </>
-            )}
-            {tipoUsuario == 1 && (
-                <>
-                    <NavLink
-                        to={"/previa_ong"}
-                        className={cssAtivado}>
-                        Prévia
-                    </NavLink>
+            <div className={`${css.nav_content} ${aberto ? css.aberto : ""}`}>
+                {tipoUsuario == 0 && (
+                    <>
+                        <NavLink
+                            to={"/feed"}
+                            className={feedDoadores}>
+                            Feed
+                        </NavLink>
 
-                    <NavLink
-                        to="/historico_ong"
-                        className={cssAtivado}>
-                        Histórico
-                    </NavLink>
+                        <NavLink
+                            to={"/Historico_doador"}
+                            className={doadoresDashboard}>
+                            Histórico
+                        </NavLink>
 
-                    <NavLink to={"/projetos_ong"} className={btnAddProjeto} >Projetos</NavLink>
+                        <NavLink
+                            to={"/edicao_doadores"}
+                            className={doadoresDashboard}>
+                            Editar
+                        </NavLink>
+                    </>
+                )}
+                {tipoUsuario == 1 && (
+                    <>
+                        <NavLink
+                            to={"/previa_ong"}
+                            className={cssAtivado}>
+                            Prévia
+                        </NavLink>
 
-                    <NavLink
-                        to="/edicao_ongs"
-                        className={cssAtivado}>
-                        Editar ONG
-                    </NavLink>
-                </>
-            )}
-            {tipoUsuario == 2 && (
-                <>
-                    <NavLink
-                        to="/cadastro"
-                        className={cssAtivado}>
-                        Cadastrar
-                    </NavLink>
+                        <NavLink
+                            to="/historico_ong"
+                            className={cssAtivado}>
+                            Histórico
+                        </NavLink>
 
-                    <NavLink
-                        to="/dashboard_adm_ong"
-                        className={ongsAdm}>
-                        ONGs
-                    </NavLink>
+                        <NavLink to={"/projetos_ong"} className={btnAddProjeto} >Projetos</NavLink>
 
-                    <NavLink
-                        to="/dashboard_adm_doador"
-                        className={doadoresAdm}>
-                        Doadores
-                    </NavLink>
+                        <NavLink
+                            to="/edicao_ongs"
+                            className={cssAtivado}>
+                            Editar ONG
+                        </NavLink>
+                    </>
+                )}
+                {tipoUsuario == 2 && (
+                    <>
+                        <NavLink
+                            to="/cadastro"
+                            className={cssAtivado}>
+                            Cadastrar
+                        </NavLink>
 
-                    <NavLink
-                        to="/dashboard_adm_adm"
-                        className={admAdms}>
-                        ADMs
-                    </NavLink>
+                        <NavLink
+                            to="/dashboard_adm_ong"
+                            className={ongsAdm}>
+                            ONGs
+                        </NavLink>
 
-                    <NavLink
-                        to="/estatisticas"
-                        className={cssAtivado}>
-                        Estatisticas
-                    </NavLink>
+                        <NavLink
+                            to="/dashboard_adm_doador"
+                            className={doadoresAdm}>
+                            Doadores
+                        </NavLink>
+
+                        <NavLink
+                            to="/dashboard_adm_adm"
+                            className={admAdms}>
+                            ADMs
+                        </NavLink>
+
+                        <NavLink
+                            to="/estatisticas"
+                            className={cssAtivado}>
+                            Estatisticas
+                        </NavLink>
 
 
-                    {/*<NavLink to={"/doacoes"} className={cssAtivado} >Doações</NavLink>*/}
+                        {/*<NavLink to={"/doacoes"} className={cssAtivado} >Doações</NavLink>*/}
 
-                    {/*<NavLink*/}
-                    {/*    to="/edicao_adm"*/}
-                    {/*    className={cssAtivado}>*/}
-                    {/*    Editar ADM*/}
-                    {/*</NavLink>*/}
-                </>
-            )}
+                        {/*<NavLink*/}
+                        {/*    to="/edicao_adm"*/}
+                        {/*    className={cssAtivado}>*/}
+                        {/*    Editar ADM*/}
+                        {/*</NavLink>*/}
+                    </>
+                )}
+            </div>
         </div>
     );
 }
