@@ -92,7 +92,7 @@ def cadastro():
                     return jsonify({
                         'mensagem': {
                             'tipo': 'erro',
-                            'descricao': 'Insira um cpf valido'
+                            'descricao': 'Insira um cpf válido'
                         }
                     })
             elif int(tipo_de_usuario) == 1:
@@ -101,7 +101,7 @@ def cadastro():
                     return jsonify({
                         'mensagem': {
                             'tipo': 'erro',
-                            'descricao': 'Insira um cnpj valido'
+                            'descricao': 'Insira um cnpj válido'
                         }
                     })
             if tipo_de_usuario == '1':
@@ -123,7 +123,7 @@ def cadastro():
                     return jsonify({
                         'mensagem': {
                             'tipo': 'erro',
-                            'descricao': 'Pode apenas Numeros no campo de Banco'
+                            'descricao': 'Pode apenas números no campo Banco'
                         }
                     }), 400
                 
@@ -131,7 +131,7 @@ def cadastro():
                     return jsonify({
                         'mensagem': {
                             'tipo': 'erro',
-                            'descricao': 'Pode apenas Numeros no campo de Conta'
+                            'descricao': 'Pode apenas números no campo Conta'
                         }
                     }), 400
 
@@ -282,7 +282,7 @@ def listar_adm_adm(pagina, aprovacao):
             cur.close()
             return jsonify({'mensagem': {
                 "tipo":"erro",
-                "descricao":'Apenas administradores podem acessar esta pagina'}}), 403
+                "descricao":'Apenas administradores podem acessar esta página'}}), 403
     except Exception as e:
         return jsonify({'mensagem': {
             "tipo":"erro",
@@ -428,7 +428,7 @@ def login():
             elif situacao == 5:
                 return jsonify({'mensagem':{
                     'tipo': 'erro',
-                    'descricao':"Sua Ong foi recusada reflita"
+                    'descricao':"Sua Ong foi recusada"
                 }})
             if check_password_hash(senha_armazenada, senha):
                 token = gerar_token(id_usuario,)
@@ -710,7 +710,7 @@ def editar_usuario(id_usuario):
                     return jsonify({
                         'mensagem': {
                             'tipo': 'erro',
-                            'descricao': 'Insira um cpf valido'
+                            'descricao': 'Insira um cpf válido'
                         }
                     })
             elif int(tipo_usuario) == 1:
@@ -719,7 +719,7 @@ def editar_usuario(id_usuario):
                     return jsonify({
                         'mensagem': {
                             'tipo': 'erro',
-                            'descricao': 'Insira um cnpj valido'
+                            'descricao': 'Insira um cnpj válido'
                         }
                     })
             cur.execute("""update usuario
@@ -799,7 +799,11 @@ def ativar_desativar_usuario(id_usuario_doador):
         email = info_usuario[1]
         nome = info_usuario[2]
 
-
+        if id_token == id_usuario_doador:
+            return jsonify({'mensagem': {
+                'tipo':'erro',
+                'descricao':'Você não pode se alto bloquear'
+            }})
 
         if situacao == 1:
             assunto = 'Conta Bloqueada'
@@ -1095,7 +1099,7 @@ def listar_ong_adm(pagina, aprovacao):
             cur.close()
             return jsonify({'mensagem': {
                 "tipo":"erro",
-                "descricao":'Apenas administradores podem acessar esta pagina'}}), 403
+                "descricao":'Apenas administradores podem acessar esta página'}}), 403
     except Exception as e:
         return jsonify({'mensagem': {
             "tipo":"erro",
@@ -1213,7 +1217,7 @@ def listar_doador_adm(pagina, aprovacao):
             cur.close()
             return jsonify({'mensagem': {
                 "tipo":"erro",
-                "descricao":'Apenas administradores podem acessar esta pagina'}}), 403
+                "descricao":'Apenas administradores podem acessar esta página'}}), 403
     except Exception as e:
         return jsonify({'mensagem': {
             "tipo":"erro",
@@ -1445,7 +1449,7 @@ def cadastrar_projeto(id_usuario):
     except jwt.InvalidTokenError:
         return jsonify({'mensagem': {
             'tipo': 'erro',
-            'descricao': 'Token invalido'
+            'descricao': 'Token inválido'
         }}), 401
 
     except Exception as e:
@@ -1581,7 +1585,7 @@ def postar(id_usuario, id_projeto):
             if idOngProjeto != id_token:
                 return jsonify({'mensagem': {
                     'tipo': 'erro',
-                    'descricao': 'O projeto pertence a outra ong'
+                    'descricao': 'O projeto pertence a outra ONG'
                 }})
         if not titulo or not str(titulo).strip():
             return jsonify({'mensagem': {
@@ -2873,6 +2877,11 @@ def excluir_usuario(id_usuario, id_excluir):
         id_token = dados['id_usuario']
         if id_usuario != id_token:
             return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Você não tem permissão'}}), 403
+        if id_excluir == id_token:
+            return jsonify({'mensagem':{
+                'tipo':'erro',
+                'descricao': 'Você não pode ser excluir'
+            }})
 
         cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
         admin = cur.fetchone()
@@ -2886,7 +2895,7 @@ def excluir_usuario(id_usuario, id_excluir):
             return jsonify({
                 'mensagem':{
                     'tipo':"erro",
-                    "descricao":"Esse Usuario não foi encontrada"
+                    "descricao":"Esse usuário não foi encontrada"
                 }
             })
 
@@ -2901,7 +2910,7 @@ def excluir_usuario(id_usuario, id_excluir):
                 return  jsonify({
                     'mensagem':{
                         'tipo':"erro",
-                        "descricao":"Essa Ong não pode ser excluida pois não foi recusada ou bloqueada"
+                        "descricao":"Essa ONG não pode ser excluída, pois não foi recusada ou bloqueada"
                     }
                 })
 
@@ -2910,14 +2919,14 @@ def excluir_usuario(id_usuario, id_excluir):
 
             return jsonify({'mensagem': {
                 "tipo": "sucesso",
-                "descricao": "Ong excluida com sucesso"
+                "descricao": "Ong excluída com sucesso"
             }})
         else:
             if situacao not in [2,3]:
                 return jsonify({
                     'mensagem': {
                         'tipo': "erro",
-                        "descricao": "Esse Doador não pode ser excluida pois não foi bloqueado"
+                        "descricao": "Esse doador não pode ser excluído, pois não foi bloqueado"
                     }
                 })
             else:
@@ -3714,7 +3723,7 @@ def postar_comentario(id_usuario, id_post):
         if not mensagem_front or not str(mensagem_front).strip():
             return jsonify({'mensagem': {
                 'tipo': 'erro',
-                'descricao': 'comentario obrigatória'
+                'descricao': 'Comentário obrigatório'
             }}), 400
 
         # Conversão de Emoji para Shortcode (:rocket:)
@@ -3755,7 +3764,7 @@ def postar_comentario(id_usuario, id_post):
         con.rollback()
         return jsonify({'mensagem': {
             'tipo': 'erro',
-            'descricao': f'Erro ao processar comentario: {str(e)}'
+            'descricao': f'Erro ao processar comentário: {str(e)}'
         }}), 500
     finally:
         cur.close()
@@ -3887,7 +3896,7 @@ def excluir_comentario(id_mensagem):
         if not resultado:
             return jsonify({'mensagem': {
                 'tipo': 'erro',
-                'descricao': 'comentario não encontrado'
+                'descricao': 'Comentário não encontrado'
             }}), 404
         # Verificação de existência e permissão em uma única lógica
         if tipo_usuario == 2:
@@ -3908,14 +3917,14 @@ def excluir_comentario(id_mensagem):
             else:
                 return jsonify({'mensagem': {
                     'tipo': 'erro',
-                    'descricao': 'Você não tem permissão para excluir esse comentario'
+                    'descricao': 'Você não tem permissão para excluir esse comentário'
                 }}), 403
         else:
             # DOADOR: Deleta apenas se a mensagem for dele
             if resultado[0] != id_token:
                 return jsonify({'mensagem': {
                     'tipo': 'erro',
-                    'descricao': 'Você não tem permissão para excluir esse comentario'
+                    'descricao': 'Você não tem permissão para excluir esse comentário'
                 }}), 403
             else:
                 cur.execute("""
@@ -3927,7 +3936,7 @@ def excluir_comentario(id_mensagem):
 
         return jsonify({'mensagem': {
             'tipo': 'sucesso',
-            'descricao': 'comentario excluído com sucesso'
+            'descricao': 'Comentário excluído com sucesso'
         }}), 200 # 200 é mais comum para DELETE bem-sucedido que 201
 
     except jwt.ExpiredSignatureError:
@@ -3982,7 +3991,7 @@ def editar_comentario(id_mensagem):
         if not resultado:
             return jsonify({'mensagem': {
                 'tipo': 'erro',
-                'descricao': 'comentario não encontrado'
+                'descricao': 'Comentário não encontrado'
             }}), 404
 
         dono_mensagem = resultado[0]
@@ -4001,7 +4010,7 @@ def editar_comentario(id_mensagem):
         if not nova_mensagem or not str(nova_mensagem).strip():
             return jsonify({'mensagem': {
                 'tipo': 'erro',
-                'descricao': 'comentario obrigatório'
+                'descricao': 'Comentário obrigatório'
             }}), 400
 
         mensagem_banco = emoji.demojize(nova_mensagem.strip())
@@ -4016,7 +4025,7 @@ def editar_comentario(id_mensagem):
 
         return jsonify({'mensagem': {
             'tipo': 'sucesso',
-            'descricao': 'comentario editada com sucesso'
+            'descricao': 'Comentário editada com sucesso'
         }}), 200
 
     except jwt.ExpiredSignatureError:
@@ -4035,7 +4044,7 @@ def editar_comentario(id_mensagem):
         con.rollback()
         return jsonify({'mensagem': {
             'tipo': 'erro',
-            'descricao': f'Erro ao editar comentario: {str(e)}'
+            'descricao': f'Erro ao editar comentário: {str(e)}'
         }}), 500
 
     finally:
@@ -4061,7 +4070,6 @@ def adicionar_tipo_ong():
             }), 400
 
         nome_tipo = novo_tipo.strip().upper()
-        print(nome_tipo)
         cur.execute("""SELECT id_tipo_ong 
                         FROM tipo_ong
                         WHERE UPPER(nome) = ?
@@ -4364,11 +4372,8 @@ def enviar_pix():
 
     id_projeto = dados.get('id_projeto')
     id_ong = dados.get('id_ong')
-    valor_doacao = float(dados.get('valor')) or 0
-    valor_etapa = int(dados.get('etapa')) or 1
-
-    print(valor_etapa)
-
+    valor_doacao = float(dados.get('valor', 0))
+    valor_etapa = int(dados.get('etapa', 1))
 
     token = request.cookies.get('access_token')
 
@@ -4410,7 +4415,7 @@ def enviar_pix():
         nome_doador = usuario[1]
         email_doador = usuario[2]
 
-        print(email_doador)
+
 
         if res_usuario != 0:
             return jsonify({
@@ -4433,10 +4438,10 @@ def enviar_pix():
         chave_pix = dados_ong[2]
         email_ong = dados_ong[3]
 
-        if valor_doacao > 1000000000000 or valor_doacao <= 0:
+        if valor_doacao > 1000000000000 or valor_doacao <= 0 or not valor_doacao:
             return jsonify({'mensagem':{
                 'tipo':'erro',
-                'descricao':'O valor não pode passar de um Trilhão e nem ser 0 ou menos'
+                'descricao':'O valor não pode passar de um Trilhão e nem ser zero ou menos'
             }}), 400
 
         nome_projeto = None
@@ -4445,6 +4450,7 @@ def enviar_pix():
                 cur.execute('SELECT NOME, FK_USUARIO_ONG FROM PROJETO_ONG WHERE ID_PROJETO = ?', (id_projeto,))
                 projeto_row = cur.fetchone()
 
+
                 if not projeto_row[0]:
                     return jsonify({
                         'mensagem': {'tipo': 'erro', 'descricao': 'Projeto não existe'}
@@ -4452,15 +4458,17 @@ def enviar_pix():
 
                 id_projeto_ong = projeto_row[1]
 
+
+
                 if int(id_projeto_ong) != int(id_ong):
                     return jsonify({
                         'mensagem':{
                             'tipo':'erro',
-                            'descricao':'Esse projeto não é dessa ong'
+                            'descricao':'Esse projeto não é dessa ONG'
                         }
                     })
 
-                if not chave_pix:
+                elif not chave_pix:
                         return jsonify(({
                             'mensagem':{
                                 "tipo":"erro",
@@ -4504,7 +4512,7 @@ def enviar_pix():
             }), 200
 
         elif valor_etapa == 2:
-            print(valor_etapa)
+
             if id_projeto is not None:
                 cur.execute(
                     """INSERT INTO DOACOES(FK_USUARIO_ONG,
@@ -4517,11 +4525,16 @@ def enviar_pix():
                 id_doacao = cur.fetchone()[0]
 
                 con.commit()
+                
+                cur.execute("""select nome from projeto_ong where id_projeto = ?""", (id_projeto,))
+                nome_projeto = cur.fetchone()[0]
+
+                valor_formatado = f"{valor_doacao:.2f}"
 
                 enviando_email(
                     email_doador,
                     "Pagamento efetuado com sucesso",
-                    f"Valor de R$ {valor_doacao} enviado com sucesso para o projeto {nome_projeto}",
+                    f"Valor de R$ {valor_formatado} enviado com sucesso para o projeto {nome_projeto}",
                     "",
                     nome_doador,
                     "Obrigado pela doação"
@@ -4530,7 +4543,7 @@ def enviar_pix():
                 enviando_email(
                     email_ong,
                     f"Valor recebido de {nome_doador} para o projeto {nome_projeto}",
-                    f"Valor recebido de R$ {valor_doacao}, do doador {nome_doador}.",
+                    f"Valor recebido de R$ {valor_formatado}, do doador {nome_doador}.",
                     "",
                     nome_ong,"")
 
@@ -4654,6 +4667,42 @@ def historico(pagina):
         filtro = request.args.get('nome', '')
 
         filtroso = int(request.args.get('filtroso',2))
+
+        inicio = request.args.get('inicio')
+
+        final = request.args.get('final')
+
+        filtro_data_sql = ""
+        params_data = []
+
+        if inicio and final:
+            inicio_data = datetime.strptime(inicio, "%Y-%m-%d")
+            final_data = datetime.strptime(final, "%Y-%m-%d")
+
+            if inicio_data > final_data:
+                return jsonify({
+                    'mensagem': {
+                        "tipo": 'erro',
+                        "descricao": "A data inicial não pode ser maior que a data final."
+                    }
+                }), 400
+
+            if final_data < inicio_data:
+                return jsonify({
+                    'mensagem': {
+                        "tipo": 'erro',
+                        "descricao": "A data final não pode ser menor que a data inicial."
+                    }
+                }), 400
+
+            filtro_data_sql = "AND CAST(d.data_hora AS DATE) BETWEEN ? AND ?"
+            params_data = [inicio_data.date(), final_data.date()]
+
+        ordem = request.args.get("ordem", "DESC").upper()
+
+
+        if ordem not in ["ASC", "DESC"]:
+            ordem = "DESC"
         
         if tipo_usuario_historico == 0:
             filtro_sql = " UPPER(ong.nome) LIKE UPPER(?)"
@@ -4691,10 +4740,12 @@ def historico(pagina):
                     )
                     AND {filtro_sql}
                     AND {doacao}
+                    {filtro_data_sql}
             """, (
                 id_usuario,
                 id_usuario,
-                f"%{filtro}%"
+                f"%{filtro}%",
+                *params_data
             ))
         else:
             cur.execute(f"""
@@ -4713,10 +4764,12 @@ def historico(pagina):
                                     OR d.fk_usuario_ong = ?
                                 )
                                 AND {filtro_sql}
+                                {filtro_data_sql}
                         """, (
                 id_usuario,
                 id_usuario,
-                f"%{filtro}%"
+                f"%{filtro}%",
+                *params_data
             ))
         quantidade = cur.fetchone()[0]
 
@@ -4765,14 +4818,16 @@ def historico(pagina):
                     )
                     AND {filtro_sql}
                     AND {doacao}
+                    {filtro_data_sql}
                     
     
-                ORDER BY d.data_hora DESC
+                ORDER BY d.data_hora {ordem}
                 ROWS ? TO ?
             """, (
                 id_usuario,
                 id_usuario,
                 f"%{filtro}%",
+                *params_data,
                 minimo,
                 maximo
             ))
@@ -4804,14 +4859,15 @@ def historico(pagina):
                         OR d.fk_usuario_ong = ?
                     )
                     AND {filtro_sql}
-
-
-                ORDER BY d.data_hora DESC
-                ROWS ? TO ?
+                    {filtro_data_sql}
+                    
+                    ORDER BY d.data_hora {ordem}
+                    ROWS ? TO ?
             """, (
                 id_usuario,
                 id_usuario,
                 f"%{filtro}%",
+                *params_data,
                 minimo,
                 maximo
             ))
@@ -5540,6 +5596,53 @@ def gerar_relatorio():
 
         id_usuario_param = request.args.get('id_usuario')
 
+        inicio = request.args.get('inicio')
+
+        final = request.args.get('final')
+
+        filtro_data_sql = ""
+        params_data = []
+
+        if inicio and final:
+            inicio_data = datetime.strptime(inicio, "%Y-%m-%d")
+            final_data = datetime.strptime(final, "%Y-%m-%d")
+
+            if inicio_data > final_data:
+                return jsonify({
+                    'mensagem': {
+                        "tipo": 'erro',
+                        "descricao": "A data inicial não pode ser maior que a data final."
+                    }
+                }), 400
+
+            if final_data < inicio_data:
+                return jsonify({
+                    'mensagem': {
+                        "tipo": 'erro',
+                        "descricao": "A data final não pode ser menor que a data inicial."
+                    }
+                }), 400
+
+            filtro_data_sql = "AND CAST(d.data_hora AS DATE) BETWEEN ? AND ?"
+            params_data = [inicio_data.date(), final_data.date()]
+
+
+            if final_data < inicio_data:
+                return jsonify({
+                    'mensagem' :{
+                        "tipo": 'erro',
+                        "descricao": "A data final não pode ser menor que a data inicial."
+                    }
+                }), 400
+
+        else:
+            print("a")
+
+        ordem = request.args.get("ordem", "DESC").upper()
+
+        if ordem not in ["ASC", "DESC"]:
+            ordem = "DESC"
+
         if id_usuario_param:
             if tipo_usuario_logado != 2:
                 return jsonify({
@@ -5581,7 +5684,7 @@ def gerar_relatorio():
 
         elif tipo_usuario_relatorio == 1:
             titulo = "Histórico de Doações Recebidas"
-            filtro_sql = "UPPER(doador.nome) LIKE UPPER(?)"
+            filtro_sql = f"UPPER(doador.nome) LIKE UPPER(?)"
 
         elif tipo_usuario_relatorio == 2:
             titulo = "Relatório Administrativo"
@@ -5711,12 +5814,14 @@ def gerar_relatorio():
                         OR d.fk_usuario_ong = ?
                     )
                     AND {filtro_sql}
+                    {filtro_data_sql}
 
-                ORDER BY d.data_hora DESC
+                ORDER BY d.data_hora {ordem}
             """, (
                 id_usuario,
                 id_usuario,
-                f"%{filtro}%"
+                f"%{filtro}%",
+                *params_data
             ))
 
             resultados = cursor.fetchall()
@@ -5983,4 +6088,3 @@ def gerar_relatorio():
 
     finally:
         cursor.close()
-
