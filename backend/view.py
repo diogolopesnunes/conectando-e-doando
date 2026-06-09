@@ -802,7 +802,7 @@ def ativar_desativar_usuario(id_usuario_doador):
         if id_token == id_usuario_doador:
             return jsonify({'mensagem': {
                 'tipo':'erro',
-                'descricao':'Você não pode se alto bloquear'
+                'descricao':'Você não pode se bloquear'
             }})
 
         if situacao == 1:
