@@ -11,7 +11,6 @@ import GraficoEstatisticasAdm from "../../components/GraficoEstatisticasAdm/Graf
 import {useNavigate} from "react-router-dom";
 
 export default function EstatisticaAdm({api}) {
-    const [valorDoacoes, setValorDoacoes] = useState('');
     const navigate = useNavigate()
     const [id,setId] = useState("");
 
@@ -22,7 +21,7 @@ export default function EstatisticaAdm({api}) {
             setId(localStorage.getItem("id_usuario"));
         }
     }, [navigate]);
-    
+    const [valorDoacoes, setValorDoacoes] = useState('');
     const monetario = {
         0:'Mil',
         1:'Mi',

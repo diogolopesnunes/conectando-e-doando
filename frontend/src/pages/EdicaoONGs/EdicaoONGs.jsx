@@ -252,7 +252,7 @@ export default function EditarOng({ api }) {
 
                             <div className="text-center mt-3">
                                 <strong>Dados Bancários</strong>
-                                <p>Esses dados serão usados para enviar os valores para suas contas bancárias</p>
+                                <p className={"px-3"}>Esses dados serão usados para enviar os valores para suas contas bancárias</p>
                             </div>
 
                             <Input obrigatorio={"Sim"} label="Cidade" tipoInp="text" value={cidadeOng} funcao={(e)=>setCidadeOng(e.target.value)} />

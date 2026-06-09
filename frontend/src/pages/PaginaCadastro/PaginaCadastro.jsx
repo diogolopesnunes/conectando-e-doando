@@ -234,10 +234,10 @@ export default function PaginaCadastro({api}) {
 
                                     <Input obrigatorio={"Sim"} htmlFor={'causaOng'} label={'Causa da ONG'} tipoInp={'textarea'}
                                            placeholder={'Digite a causa da ONG'} value={descricaoCausa} funcao={(f) => setDescricaoCausa(f.target.value)}/>
-                                    <div className={"d-flex justify-content-center"}>
+                                    <div className={"d-flex justify-content-center px-4 text-center"}>
                                         <Titulo texto={"Dados Bancários"} />
                                     </div>
-                                    <p className={'text-center w-100 m-auto'}>Esses dados serão usados para enviar os valores para suas contas bancárias</p>
+                                    <p className={'text-center w-100 m-auto px-4'}>Esses dados serão usados para enviar os valores para suas contas bancárias</p>
 
                                     <Input obrigatorio={"Sim"} htmlFor={'cidade'} label={'Cidade:'} tipoInp={'text'} placeholder={'Digite a cidade da ONG'} value={cidadeOng} funcao={(f) => setCidadeOng(f.target.value.replace(/[^a-zA-Zá-úÁ-Úâ-ûÂ-Ûã-õÃ-ÕçÇ\s]/g, ""))} inputMode="text"/>
                                     <Input obrigatorio={"Sim"} htmlFor={'banco'} label={'Banco:'} tipoInp={'text'} placeholder={'Informe qual seu banco'} value={bacoOng} funcao={(f) => setBacoOng(f.target.value.replace(/\D/g, "").slice(0, 3))} minLength={3} maxlength={3}/>

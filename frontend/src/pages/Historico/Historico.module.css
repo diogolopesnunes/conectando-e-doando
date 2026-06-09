@@ -1,0 +1,6 @@
+.input3{
+    border: 1px solid var(--cor-borda);
+    padding: 3px !important;
+    padding-left: 5px !important;
+    border-radius: var(--bs-border-radius);
+}

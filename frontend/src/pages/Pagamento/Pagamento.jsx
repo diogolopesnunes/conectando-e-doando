@@ -60,6 +60,16 @@ export default function Pagamento({ api }) {
         e.preventDefault();
 
         try {
+            if(!valorPix || valorPix <= 0){
+                setMensagem({
+                    tipo:'erro',
+                    descricao:'É necessário um valor válido para gerar o QrCode',
+                    id:Date.now()
+                })
+                setQrCode('')
+                setPix('')
+                return
+            }
             setCarregando(true)
             const resposta = await fetch(
                 `${api}/enviar_pix`,

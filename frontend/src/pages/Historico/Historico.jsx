@@ -1,3 +1,4 @@
+import css from "./Historico.module.css"
 import Nav from "../../components/Nav/Nav.jsx";
 import {useEffect, useState} from "react";
 import {useLocation, useNavigate, useParams} from "react-router-dom";
@@ -31,6 +32,9 @@ export default function Historico({api}){
     const [dadosGraficoDoador, setDadosGraficoDoador] = useState([]);
     const local = useLocation();
     const [filtroso, setFiltroso] = useState(2);
+    const [dataInicial, setDataInicial] = useState('');
+    const [dataFinal, setDataFinal] = useState('');
+    const [ordem, setOrdem] = useState('');
 
     useEffect(() => {
 
@@ -46,8 +50,9 @@ export default function Historico({api}){
     }, [navigate]);
 
     async function listarHistorico() {
+        console.log(ordem)
         try {
-            var rota=`${api}/historico/${pagina}?nome=${filtro}&filtroso=${filtroso}`
+            var rota=`${api}/historico/${pagina}?nome=${filtro}&filtroso=${filtroso}&ordem=${ordem}&inicio=${dataInicial}&final=${dataFinal}`
             if(id_ong){
                 rota += `&id_usuario=${id_ong}`
             }
@@ -93,7 +98,7 @@ export default function Historico({api}){
     useEffect(() => {
         setHistorico([])
         listarHistorico();
-    }, [filtroso]);
+    }, [filtroso, ordem, dataInicial, dataFinal]);
 
     useEffect(() => {
         carregarGrafico()
@@ -165,7 +170,7 @@ export default function Historico({api}){
     async function gerarRelatorio() {
         try {
 
-            let rota = `${api}/gerar_relatorio`;
+            let rota = `${api}/gerar_relatorio?inicio=${dataInicial}&final=${dataFinal}&ordem=${ordem}`;
 
             if (id_ong) {
                 rota += `?id_usuario=${id_ong}`;
@@ -179,11 +184,18 @@ export default function Historico({api}){
                 }
             );
 
+            console.log(await resposta);
+
             if (!resposta.ok) {
 
                 const erro = await resposta.json();
 
-                setMensagem(erro.mensagem);
+                if (erro.mensagem){
+                    console.log(erro.mensagem);
+                }
+
+
+                setMensagem({...erro.mensagem,id:Date.now()});
 
                 return;
             }
@@ -245,23 +257,46 @@ export default function Historico({api}){
                     )}
 
                 </div>
-                <div className={'col-9 m-auto d-flex align-items-center'}>
+                <div className={'col-9 m-auto d-flex align-items-center flex-column'}>
 
 
-                    <Input
-                        tipoInp={'text'}
-                        htmlFor={'projetos'}
-                        placeholder={'Digite o nome para o filtro'}
-                        value={filtro}
-                        funcao={(e) => {
-                            setFiltro(e.target.value);
-                        }}
-                    />
-                    <select className={'py-1 px-2'} onChange={(e) => setFiltroso(Number(e.target.value))}>
-                        <option value={2}>Geral</option>
-                        <option value={0}>Doações para a ONG</option>
-                        <option value={1}>Doações para projetos</option>
-                    </select>
+                    <div className={'w-100 d-flex gap-4 justify-content-center align-items-center flex-column flex-sm-row'}>
+                            <Input
+                                tipoInp={'text'}
+                                htmlFor={'projetos'}
+                                placeholder={'Digite o nome para o filtro'}
+                                value={filtro}
+                                funcao={(e) => {
+                                    setFiltro(e.target.value);
+                                }}
+                                margin={0}
+                            />
+                        <select className={`d-flex my-3 col-12 col-sm-6 ${css.input3}`} onChange={(e) => setFiltroso(Number(e.target.value))}>
+                            <option value={2}>Geral</option>
+                            <option value={0}>Doações para a ONG</option>
+                            <option value={1}>Doações para projetos</option>
+                        </select>
+                    </div>
+
+                    <div className={'w-100 d-flex justify-content-between align-items-center mb-4 flex-column flex-sm-row m-auto gap-4'}>
+                        <div className={`d-flex flex-row align-items-center gap-3 flex-column flex-lg-row w-100`}>
+                            <div className={'m-auto w-100'}>
+                                <label className={'d-block'}>Inicio</label>
+                                <input className={`mt-auto w-100 ${css.input3}`} type="date" id="inicio" name="inicio" onChange={(e) => {setDataInicial(e.target.value)}}/>
+                            </div>
+
+                            <div className={'m-auto w-100'}>
+                                <label className={'d-block'}>Final</label>
+                                <input className={`mt-auto w-100 ${css.input3}`} type="date" id="final" name="final" onChange={(e) => {setDataFinal(e.target.value)}} />
+                            </div>
+                        </div>
+
+                        <select className={`mt-auto w-100 ${css.input3} ${css.selectBonito}`} name="ordem" onChange={(e) => {setOrdem(e.target.value)} }>
+                            <option value="DESC">Mais recentes</option>
+                            <option value="ASC">Mais antigas</option>
+                        </select>
+                    </div>
+
                 </div>
                 <Buton
                     texto={"Gerar Relatório"}

@@ -15,6 +15,8 @@ export default function Login({ setLogado, api }) {
 
     const navegate = useNavigate();
 
+    const mobile = window.innerWidth <= 768;
+
     useEffect(() => {
         if (mensagem) {
             const timer = setTimeout(() => {
@@ -94,7 +96,7 @@ export default function Login({ setLogado, api }) {
                         />
                     )}
 
-                    <Form largura="maior" onSubmit={login} titulo={'Login'}>
+                    <Form largura={mobile ? "melhor" : "maior"} onSubmit={login} titulo={'Login'}>
 
                         <Input
                             tipoInp={"email"}
@@ -115,7 +117,7 @@ export default function Login({ setLogado, api }) {
                         />
 
                         <div className="my-3">
-                            <Buton texto={"Login"} tamanho={"medio"} background={"laranja"} tipo={'submit'} />
+                            <Buton texto={"Login"} tamanho={mobile ? "pequeno" : "medio"} background={"laranja"} tipo={'submit'} />
                         </div>
 
                         <div className={'row'}>
