@@ -12,8 +12,14 @@ user = app.config['DB_USER']
 password = app.config['DB_PASSWORD']
 
 try:
-    con = fdb.connect(host=host, database=data_base, user=user, password=password, charset='UTF8'
-)
+    con = psycopg.connect(
+        host=host,
+        dbname=data_base,
+        user=user,
+        password=password,
+        port=port
+    )
+
     print('Conectado com sucesso!')
 except Exception as e:
     print(e)

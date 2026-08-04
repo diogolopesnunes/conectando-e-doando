@@ -106,7 +106,7 @@ def email_verificacao(destinatario, assunto, mensagem, mensagem_secundaria=""):
 
     cur.execute("""SELECT id_usuario, nome
                    FROM USUARIO
-                   WHERE email = ?""", (destinatario,))
+                   WHERE email = %s""", (destinatario,))
     usuario = cur.fetchone()
     if usuario:
         try:
@@ -114,7 +114,7 @@ def email_verificacao(destinatario, assunto, mensagem, mensagem_secundaria=""):
             nome = usuario[1]
             assunto_email = f"{assunto}"
             codigo = random.randint(100000, 999999)
-            cur.execute("""UPDATE USUARIO SET codigo = ? WHERE id_usuario = ?""", (codigo, id_usuario))
+            cur.execute("""UPDATE USUARIO SET codigo = %s WHERE id_usuario = %s""", (codigo, id_usuario))
             con.commit()
 
             mensagem_email = f"{mensagem}:"
@@ -135,7 +135,7 @@ def email_verificacao(destinatario, assunto, mensagem, mensagem_secundaria=""):
 def verificar_codigo(email, codigo):
     cur = con.cursor()
 
-    cur.execute("""SELECT codigo from USUARIO where email = ?""", (email,))
+    cur.execute("""SELECT codigo from USUARIO where email = %s""", (email,))
     codigo_real = cur.fetchone()
 
     if not codigo_real:
@@ -150,7 +150,7 @@ def verificar_codigo(email, codigo):
 def valida_nova_senha(senha, id_usuario, cur):
     cur.execute("""select senha, senha_antiga_2, senha_antiga_3
                    from usuario
-                   where id_usuario = ?""", (id_usuario,))
+                   where id_usuario = %s""", (id_usuario,))
     senhas = cur.fetchone()
     senha_criptografada = senhas[0]
 

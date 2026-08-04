@@ -1,6 +1,6 @@
 flask
 pyjwt
-fdb
+psycopg
 flask-bcrypt
 flask-cors
 datetime

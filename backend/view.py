@@ -144,9 +144,9 @@ def cadastro():
                 }}), 400
             senha_cript = criptografar(senha)
 
-            cur.execute('select 1 from usuario where email = ?', (email,))
+            cur.execute('select 1 from usuario where email = %s', (email,))
             if cur.fetchone():
-                cur.execute('select situacao from usuario where email = ?', (email,))
+                cur.execute('select situacao from usuario where email = %s', (email,))
                 resultado = cur.fetchone()
             else:
                 resultado = None
@@ -157,18 +157,18 @@ def cadastro():
                 }}), 400
             else:
                 if resultado == 5:
-                    cur.execute("""DELETE FROM usuario WHERE email = ?""", (email,))
+                    cur.execute("""DELETE FROM usuario WHERE email = %s""", (email,))
                     con.commit()
                 cur.execute("""insert into usuario (nome, email, senha, tipo_de_usuario, cpf_cnpj, tipo_ong,
                                                     descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong,
                                                     telefone, senha_antiga_2, senha_antiga_3, chave_pix)
-                               values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, null, null, ?) RETURNING id_usuario """,
+                               values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, null, null, %s) RETURNING id_usuario """,
                             (nome, email, senha_cript, tipo_de_usuario, cpf_cnpj,
                              tipo_ong, descricao_causa, banco_ong, agencia_ong,
                              conta_ong, cidade_ong, telefone, chave_pix))
                 con.commit()
 
-                cur.execute("""select id_usuario from usuario where email = ?""", (email,))
+                cur.execute("""select id_usuario from usuario where email = %s""", (email,))
                 codigo_usuario = cur.fetchone()[0]
 
                 caminho_imagem = None
@@ -229,7 +229,7 @@ def buscar_usuarios():
         cur = con.cursor()
         dados = request.get_json()
         nome = dados.get('nome')
-        cur.execute('select id_usuario, nome, cpf_cnpj, email, telefone, tipo_de_usuario from usuario where UPPER(nome) LIKE UPPER(?)',
+        cur.execute('select id_usuario, nome, cpf_cnpj, email, telefone, tipo_de_usuario from usuario where UPPER(nome) LIKE UPPER(%s)',
                     (f"{nome}%",))
         usuarios = cur.fetchall()
         usuarios_lista = []
@@ -276,7 +276,7 @@ def listar_adm_adm(pagina, aprovacao):
         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
         id_token = dados['id_usuario']
         cur = con.cursor()
-        cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
+        cur.execute('select tipo_de_usuario from usuario where id_usuario = %s', (id_token,))
         tipo_usuario = cur.fetchone()[0]
         if tipo_usuario != 2:
             cur.close()
@@ -299,14 +299,14 @@ def listar_adm_adm(pagina, aprovacao):
                            from usuario
                            where tipo_de_usuario = 2
                             and situacao in (0, 4)
-                            AND UPPER(nome) LIKE UPPER(?)
+                            AND UPPER(nome) LIKE UPPER(%s)
                         """, (f"%{nome}%",))
         elif aprovacao == 1:
             cur.execute("""select count(id_usuario)
                            from usuario
                            where tipo_de_usuario = 2 
                             and situacao not in (0, 4)
-                            AND UPPER(nome) LIKE UPPER(?)
+                            AND UPPER(nome) LIKE UPPER(%s)
                         """, (f"%{nome}%",))
         else:
             return jsonify({'mensagem': {
@@ -327,8 +327,8 @@ def listar_adm_adm(pagina, aprovacao):
                         FROM usuario
                         WHERE tipo_de_usuario = 2
                           AND situacao IN (0, 4)
-                                  AND UPPER(nome) LIKE UPPER(?)
-                        ORDER BY id_usuario DESC ROWS ? TO ?
+                                  AND UPPER(nome) LIKE UPPER(%s)
+                        ORDER BY id_usuario DESC ROWS %s TO %s
                         """, (f"%{nome}%", minimo, maximo))
         elif aprovacao == 1:
             cur.execute("""
@@ -336,8 +336,8 @@ def listar_adm_adm(pagina, aprovacao):
                         FROM usuario
                         WHERE tipo_de_usuario = 2
                           AND situacao NOT IN (0, 4)
-                          AND UPPER(nome) LIKE UPPER(?)
-                        ORDER BY id_usuario DESC ROWS ? TO ?
+                          AND UPPER(nome) LIKE UPPER(%s)
+                        ORDER BY id_usuario DESC ROWS %s TO %s
                         """, (f"%{nome}%", minimo, maximo))
         else:
             return jsonify({'mensagem': {
@@ -391,9 +391,9 @@ def login():
         senha = data.get('senha')
 
         cur = con.cursor()
-        cur.execute('SELECT 1 FROM USUARIO WHERE EMAIL = ?', (email,))
+        cur.execute('SELECT 1 FROM USUARIO WHERE EMAIL = %s', (email,))
         if cur.fetchone():
-            cur.execute('SELECT SENHA, ID_USUARIO, SITUACAO FROM USUARIO WHERE EMAIL = ?', (email,))
+            cur.execute('SELECT SENHA, ID_USUARIO, SITUACAO FROM USUARIO WHERE EMAIL = %s', (email,))
             infos = cur.fetchone()
 
             if not infos:
@@ -433,7 +433,7 @@ def login():
             if check_password_hash(senha_armazenada, senha):
                 token = gerar_token(id_usuario,)
 
-                cur.execute('SELECT NOME, TIPO_DE_USUARIO, SITUACAO FROM USUARIO WHERE ID_USUARIO = ?', (id_usuario,))
+                cur.execute('SELECT NOME, TIPO_DE_USUARIO, SITUACAO FROM USUARIO WHERE ID_USUARIO = %s', (id_usuario,))
                 resultado = cur.fetchone()
                 nome = resultado[0]
                 tipoUsuario = resultado[1]
@@ -472,13 +472,13 @@ def login():
                     max_age=60000
                 )
 
-                cur.execute('UPDATE USUARIO SET TENTATIVAS = 0 WHERE EMAIL = ?', (email,))
+                cur.execute('UPDATE USUARIO SET TENTATIVAS = 0 WHERE EMAIL = %s', (email,))
                 con.commit()
 
                 return resp
 
             else:
-                cur.execute('SELECT TENTATIVAS FROM USUARIO WHERE EMAIL = ?', (email,))
+                cur.execute('SELECT TENTATIVAS FROM USUARIO WHERE EMAIL = %s', (email,))
                 resultado = cur.fetchone()
 
                 if not resultado:
@@ -490,13 +490,13 @@ def login():
                 tentativas = resultado[0] + 1
 
                 cur.execute(
-                    'UPDATE USUARIO SET TENTATIVAS = ? WHERE EMAIL = ? AND TIPO_DE_USUARIO != 2',
+                    'UPDATE USUARIO SET TENTATIVAS = %s WHERE EMAIL = %s AND TIPO_DE_USUARIO != 2',
                     (tentativas, email)
                 )
                 con.commit()
 
                 if tentativas >= 3 or situacao == 2:
-                    cur.execute('UPDATE USUARIO SET SITUACAO = 2, TENTATIVAS = 0 WHERE EMAIL = ?', (email,))
+                    cur.execute('UPDATE USUARIO SET SITUACAO = 2, TENTATIVAS = 0 WHERE EMAIL = %s', (email,))
                     con.commit()
                     return jsonify({'mensagem': {
                         'tipo': 'redirecionamento',
@@ -536,7 +536,7 @@ def editar_usuario(id_usuario):
         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
         id_token = dados['id_usuario']
         cur = con.cursor()
-        cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
+        cur.execute('select tipo_de_usuario from usuario where id_usuario = %s', (id_token,))
         tipo_usuario = cur.fetchone()[0]
         if tipo_usuario == 2:
             pass
@@ -556,7 +556,7 @@ def editar_usuario(id_usuario):
             if id_usuario == 0:
                 cur.execute("""select nome, email, telefone, cpf_cnpj 
                                from usuario
-                               where id_usuario = ?""",
+                               where id_usuario = %s""",
                             (id_usuario,))
                 usuario = cur.fetchone()
                 if not usuario:
@@ -575,7 +575,7 @@ def editar_usuario(id_usuario):
             else:
                 cur.execute("""select nome, email, telefone, cpf_cnpj, tipo_ong, descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong, chave_pix
                                from usuario
-                               where id_usuario = ?""",
+                               where id_usuario = %s""",
                             (id_usuario,))
                 usuario = cur.fetchone()
                 if not usuario:
@@ -608,7 +608,7 @@ def editar_usuario(id_usuario):
         try:
             cur.execute("""select 1
                             from usuario
-                            where id_usuario = ?""", (id_usuario,))
+                            where id_usuario = %s""", (id_usuario,))
             tem_user = cur.fetchone()
 
             if not tem_user:
@@ -620,7 +620,7 @@ def editar_usuario(id_usuario):
 
             cur.execute("""select tipo_de_usuario, nome, email, telefone, tipo_ong, descricao_causa, banco_ong, agencia_ong, conta_ong, cidade_ong, cpf_cnpj, chave_pix
                            from usuario
-                           where id_usuario = ?""", (id_usuario,))
+                           where id_usuario = %s""", (id_usuario,))
             infos = cur.fetchone()
 
             nome = request.form.get('nome') or infos[1]
@@ -640,7 +640,7 @@ def editar_usuario(id_usuario):
             chave_pix = request.form.get('chave_pix') or infos[11]
 
 
-            cur.execute('select 1 from usuario where email = ? and id_usuario != ?', (email, id_usuario,))
+            cur.execute('select 1 from usuario where email = %s and id_usuario != %s', (email, id_usuario,))
             if cur.fetchone():
                 return jsonify({'mensagem': {
                     'tipo': 'erro',
@@ -680,20 +680,20 @@ def editar_usuario(id_usuario):
 
                 nova_senha = criptografar(senha)
                 cur.execute("""update usuario
-                               set nome            = ?,
-                                   email           = ?,
-                                   senha           = ?,
-                                   telefone        = ?,
-                                   tipo_ong        = ?,
-                                   descricao_causa = ?,
-                                   banco_ong       = ?,
-                                   agencia_ong     = ?,
-                                   conta_ong       = ?,
-                                   cidade_ong      = ?,
-                                   senha_antiga_2 = ?,
+                               set nome            = %s,
+                                   email           = %s,
+                                   senha           = %s,
+                                   telefone        = %s,
+                                   tipo_ong        = %s,
+                                   descricao_causa = %s,
+                                   banco_ong       = %s,
+                                   agencia_ong     = %s,
+                                   conta_ong       = %s,
+                                   cidade_ong      = %s,
+                                   senha_antiga_2 = %s,
                                    senha_antiga_3 = senha_antiga_2,
-                    chave_pix =?
-                               where id_usuario = ?""",
+                    chave_pix = %s
+                               where id_usuario = %s""",
                             (nome, email, nova_senha, telefone, tipo_ong, descricao_causa, banco_ong, agencia_ong, conta_ong,
                              cidade_ong, senha_criptografada, chave_pix, id_usuario))
 
@@ -702,7 +702,7 @@ def editar_usuario(id_usuario):
                     'tipo': 'sucesso',
                     'descricao': 'Usuário atualizado com sucesso'
                 }}), 201
-            cur.execute("""select tipo_de_usuario from usuario where id_usuario = ?""", (id_usuario,))
+            cur.execute("""select tipo_de_usuario from usuario where id_usuario = %s""", (id_usuario,))
             tipo_usuario = cur.fetchone()[0]
             if int(tipo_usuario) == 0 or int(tipo_usuario) == 2:
                 cpfValido = validaCpfCnpj(cpf_cnpj)
@@ -723,17 +723,17 @@ def editar_usuario(id_usuario):
                         }
                     })
             cur.execute("""update usuario
-                           set nome            = ?,
-                               email           = ?,
-                               telefone        = ?,
-                               tipo_ong        = ?,
-                               descricao_causa = ?,
-                               banco_ong       = ?,
-                               agencia_ong     = ?,
-                               conta_ong       = ?,
-                               cidade_ong      = ?,
-                               chave_pix = ?
-                           where id_usuario = ?""",
+                           set nome            = %s,
+                               email           = %s,
+                               telefone        = %s,
+                               tipo_ong        = %s,
+                               descricao_causa = %s,
+                               banco_ong       = %s,
+                               agencia_ong     = %s,
+                               conta_ong       = %s,
+                               cidade_ong      = %s,
+                               chave_pix = %s
+                           where id_usuario = %s""",
                         (nome, email, telefone, tipo_ong, descricao_causa, banco_ong, agencia_ong, conta_ong,
                          cidade_ong, chave_pix,id_usuario))
             con.commit()
@@ -762,7 +762,7 @@ def ativar_desativar_usuario(id_usuario_doador):
         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
         id_token = dados['id_usuario']
         cur = con.cursor()
-        cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
+        cur.execute('select tipo_de_usuario from usuario where id_usuario = %s', (id_token,))
         tipo_usuario = cur.fetchone()[0]
 
         if tipo_usuario != 2:
@@ -783,17 +783,17 @@ def ativar_desativar_usuario(id_usuario_doador):
     try:
         cur = con.cursor()
 
-        cur.execute('select id_usuario from usuario where id_usuario= ?', (id_usuario_doador,))
+        cur.execute('select id_usuario from usuario where id_usuario= %s', (id_usuario_doador,))
 
         if not cur.fetchone():
             return jsonify({"mensagem": {
                 "tipo":"erro",
                 "mensagem":"Usuário não encontrado"}}), 404
 
-        cur.execute('select situacao from usuario where id_usuario =?',(id_usuario_doador,))
+        cur.execute('select situacao from usuario where id_usuario = %s',(id_usuario_doador,))
         situacao = cur.fetchone()[0]
 
-        cur.execute('select tipo_de_usuario, email, nome  from usuario where id_usuario =?', (id_usuario_doador,))
+        cur.execute('select tipo_de_usuario, email, nome  from usuario where id_usuario = %s', (id_usuario_doador,))
         info_usuario = cur.fetchone()
         tipo_usuario_select = info_usuario[0]
         email = info_usuario[1]
@@ -808,7 +808,7 @@ def ativar_desativar_usuario(id_usuario_doador):
         if situacao == 1:
             assunto = 'Conta Bloqueada'
 
-            cur.execute("""update usuario set situacao = 3 where id_usuario = ?""", (id_usuario_doador,))
+            cur.execute("""update usuario set situacao = 3 where id_usuario = %s""", (id_usuario_doador,))
             con.commit()
 
             if tipo_usuario_select == 0:
@@ -823,7 +823,7 @@ def ativar_desativar_usuario(id_usuario_doador):
             assunto = 'Conta Desbloqueada'
             mensagem_email = 'Sua conta foi reativada e pode ser usada novamente'
 
-            cur.execute("""update usuario set situacao = 1 where id_usuario = ?""", (id_usuario_doador,))
+            cur.execute("""update usuario set situacao = 1 where id_usuario = %s""", (id_usuario_doador,))
             con.commit()
             enviando_email(email,assunto, mensagem_email, "", nome, "")
             return jsonify({"mensagem": {
@@ -874,7 +874,7 @@ def alterar_senha():
 
         cur.execute("""select 1
                        from usuario
-                       where email = ?""", (email,))
+                       where email = %s""", (email,))
         if not cur.fetchone():
             return jsonify({"mensagem": {
                 'tipo': 'erro',
@@ -908,7 +908,7 @@ def alterar_senha():
 
             cur.execute("""select 1
                            from usuario
-                           where email = ?""", (email,))
+                           where email = %s""", (email,))
             if not cur.fetchone():
                 return jsonify({"mensagem": {
                     'tipo': 'erro',
@@ -932,7 +932,7 @@ def alterar_senha():
             cur.execute("""
                 SELECT ID_USUARIO, SENHA
                 FROM USUARIO
-                WHERE EMAIL = ?
+                WHERE EMAIL = %s
             """, (email,))
             usuario = cur.fetchone()
 
@@ -960,11 +960,11 @@ def alterar_senha():
             # Atualiza senha e limpa código
             cur.execute("""
                 UPDATE USUARIO
-                SET SENHA = ?,
+                SET SENHA = %s,
                     SENHA_ANTIGA_3 = SENHA_ANTIGA_2,
-                    SENHA_ANTIGA_2 = ?,
+                    SENHA_ANTIGA_2 = %s,
                     CODIGO = NULL
-                WHERE ID_USUARIO = ?
+                WHERE ID_USUARIO = %s
             """, (senha, senha_criptografada, usuario[0]))
             con.commit()
 
@@ -1021,10 +1021,10 @@ def validar_conta():
         email = data.get('email')
         codigo = data.get('codigo')
 
-        cur.execute("""select 1, situacao from usuario where email = ? """,(email, ))
+        cur.execute("""select 1, situacao from usuario where email = %s """,(email, ))
         infos = cur.fetchone()
 
-        cur.execute("select tipo_de_usuario from usuario where email = ?", (email,))
+        cur.execute("select tipo_de_usuario from usuario where email = %s", (email,))
         tipo_usuario = cur.fetchone()[0]
 
 
@@ -1038,7 +1038,7 @@ def validar_conta():
 
             if tipo_usuario == 0 or tipo_usuario == 2:
                 if sucesso:
-                    cur.execute("""UPDATE usuario SET situacao = 1, codigo = NULL WHERE email = ? AND situacao != 1 """, (email,))
+                    cur.execute("""UPDATE usuario SET situacao = 1, codigo = NULL WHERE email = %s AND situacao != 1 """, (email,))
                     con.commit()
                     return jsonify({"mensagem": {
                         'tipo': 'sucesso',
@@ -1051,7 +1051,7 @@ def validar_conta():
                     }})
             elif tipo_usuario == 1:
                 if sucesso:
-                    cur.execute("""UPDATE usuario SET situacao = 4, codigo = NULL WHERE email = ? AND situacao != 1 """, (email,))
+                    cur.execute("""UPDATE usuario SET situacao = 4, codigo = NULL WHERE email = %s AND situacao != 1 """, (email,))
                     con.commit()
                     return jsonify({"mensagem": {
                         'tipo': 'sucesso',
@@ -1093,7 +1093,7 @@ def listar_ong_adm(pagina, aprovacao):
         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
         id_token = dados['id_usuario']
         cur = con.cursor()
-        cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
+        cur.execute('select tipo_de_usuario from usuario where id_usuario = %s', (id_token,))
         tipo_usuario = cur.fetchone()[0]
         if tipo_usuario != 2:
             cur.close()
@@ -1116,14 +1116,14 @@ def listar_ong_adm(pagina, aprovacao):
                            from usuario
                            where tipo_de_usuario = 1
                             and situacao in (0, 4)
-                            AND UPPER(nome) LIKE UPPER(?)
+                            AND UPPER(nome) LIKE UPPER(%s)
                         """, (f"%{nome}%",))
         elif aprovacao == 1:
             cur.execute("""select count(id_usuario)
                            from usuario
                            where tipo_de_usuario = 1 
                             and situacao not in (0, 4)
-                            AND UPPER(nome) LIKE UPPER(?)
+                            AND UPPER(nome) LIKE UPPER(%s)
                         """, (f"%{nome}%",))
         else:
             return jsonify({'mensagem': {
@@ -1144,8 +1144,8 @@ def listar_ong_adm(pagina, aprovacao):
                         FROM usuario
                         WHERE tipo_de_usuario = 1
                           AND situacao IN (0, 4)
-                                  AND UPPER(nome) LIKE UPPER(?)
-                        ORDER BY id_usuario DESC ROWS ? TO ?
+                                  AND UPPER(nome) LIKE UPPER(%s)
+                        ORDER BY id_usuario DESC ROWS %s TO %s
                         """, (f"%{nome}%", minimo, maximo))
         elif aprovacao == 1:
             cur.execute("""
@@ -1153,8 +1153,8 @@ def listar_ong_adm(pagina, aprovacao):
                         FROM usuario
                         WHERE tipo_de_usuario = 1
                           AND situacao NOT IN (0, 4)
-                          AND UPPER(nome) LIKE UPPER(?)
-                        ORDER BY id_usuario DESC ROWS ? TO ?
+                          AND UPPER(nome) LIKE UPPER(%s)
+                        ORDER BY id_usuario DESC ROWS %s TO %s
                         """, (f"%{nome}%", minimo, maximo))
         else:
             return jsonify({'mensagem': {
@@ -1211,7 +1211,7 @@ def listar_doador_adm(pagina, aprovacao):
         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
         id_token = dados['id_usuario']
         cur = con.cursor()
-        cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
+        cur.execute('select tipo_de_usuario from usuario where id_usuario = %s', (id_token,))
         tipo_usuario = cur.fetchone()[0]
         if tipo_usuario != 2:
             cur.close()
@@ -1234,14 +1234,14 @@ def listar_doador_adm(pagina, aprovacao):
                            from usuario
                            where tipo_de_usuario = 0
                             and situacao in (0, 4)
-                            AND UPPER(nome) LIKE UPPER(?)
+                            AND UPPER(nome) LIKE UPPER(%s)
                         """, (f"%{nome}%",))
         elif aprovacao == 1:
             cur.execute("""select count(id_usuario)
                            from usuario
                            where tipo_de_usuario = 0 
                             and situacao not in (0, 4)
-                            AND UPPER(nome) LIKE UPPER(?)
+                            AND UPPER(nome) LIKE UPPER(%s)
                         """, (f"%{nome}%",))
         else:
             return jsonify({'mensagem': {
@@ -1262,8 +1262,8 @@ def listar_doador_adm(pagina, aprovacao):
                         FROM usuario
                         WHERE tipo_de_usuario = 0
                           AND situacao IN (0, 4)
-                                  AND UPPER(nome) LIKE UPPER(?)
-                        ORDER BY id_usuario DESC ROWS ? TO ?
+                                  AND UPPER(nome) LIKE UPPER(%s)
+                        ORDER BY id_usuario DESC ROWS %s TO %s
                         """, (f"%{nome}%", minimo, maximo))
         elif aprovacao == 1:
             cur.execute("""
@@ -1271,8 +1271,8 @@ def listar_doador_adm(pagina, aprovacao):
                         FROM usuario
                         WHERE tipo_de_usuario = 0
                           AND situacao NOT IN (0, 4)
-                          AND UPPER(nome) LIKE UPPER(?)
-                        ORDER BY id_usuario DESC ROWS ? TO ?
+                          AND UPPER(nome) LIKE UPPER(%s)
+                        ORDER BY id_usuario DESC ROWS %s TO %s
                         """, (f"%{nome}%", minimo, maximo))
         else:
             return jsonify({'mensagem': {
@@ -1329,7 +1329,7 @@ def cadastrar_projeto(id_usuario):
         id_token = dados['id_usuario']
         cur = con.cursor()
         cur.execute(
-            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
+            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = %s',
             (id_token,)
         )
 
@@ -1363,7 +1363,7 @@ def cadastrar_projeto(id_usuario):
         atividade = request.form.get('atividade', 1)
         imagem = request.files.get('imagem')
 
-        cur.execute('select 1 from projeto_ong where lower(nome) = lower(?) and fk_usuario_ong = ?', (nome, id_usuario))
+        cur.execute('select 1 from projeto_ong where lower(nome) = lower(%s) and fk_usuario_ong = %s', (nome, id_usuario))
         if cur.fetchone():
             return jsonify({'mensagem': {
                 'tipo': 'erro',
@@ -1413,7 +1413,7 @@ def cadastrar_projeto(id_usuario):
                         META_DOACAO,
                         ATIVIDADE
                     )
-                    VALUES (?, ?, ?, ?, ?)
+                    VALUES (%s, %s, %s, %s, %s)
                         RETURNING ID_PROJETO
                     """, (id_usuario, nome.strip(), descricao.strip(), meta_doacao, atividade))
 
@@ -1471,7 +1471,7 @@ def listar_projetos(id_usuario, pagina):
         nome = request.args.get('nome', '')
         cur.execute("""select count(id_projeto)
                        from projeto_ong
-                       where fk_usuario_ong = ? AND UPPER(nome) LIKE UPPER(?)""", (id_usuario, f"%{nome}%"))
+                       where fk_usuario_ong = %s AND UPPER(nome) LIKE UPPER(%s)""", (id_usuario, f"%{nome}%"))
         quantidade = cur.fetchone()[0]
 
         numeroPaginas = math.ceil(quantidade/quantidadePorPagina)
@@ -1482,10 +1482,10 @@ def listar_projetos(id_usuario, pagina):
         cur.execute("""
                     SELECT id_projeto, nome, descricao, atividade
                     FROM projeto_ong
-                    WHERE fk_usuario_ong = ?
-                      AND UPPER(nome) LIKE UPPER(?)
+                    WHERE fk_usuario_ong = %s
+                      AND UPPER(nome) LIKE UPPER(%s)
                     ORDER BY id_projeto desc
-                    ROWS ? TO ?
+                    ROWS %s TO %s
                     """, (id_usuario, f"%{nome}%", minimo, maximo))
         resultado = cur.fetchall()
 
@@ -1528,7 +1528,7 @@ def postar(id_usuario, id_projeto):
         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
         id_token = dados['id_usuario']
         cur.execute(
-            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
+            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = %s',
             (id_token,)
         )
 
@@ -1556,7 +1556,7 @@ def postar(id_usuario, id_projeto):
 
         
         cur.execute(
-            'SELECT ID_PROJETO FROM PROJETO_ONG WHERE ID_PROJETO = ?', (id_projeto,)
+            'SELECT ID_PROJETO FROM PROJETO_ONG WHERE ID_PROJETO = %s', (id_projeto,)
         )
 
         projeto = cur.fetchone()
@@ -1578,7 +1578,7 @@ def postar(id_usuario, id_projeto):
         imagem = request.files.get('imagem')
         cur.execute("""select fk_usuario_ong 
                        from projeto_ong
-                       where id_projeto = ?""", (id_projeto,))
+                       where id_projeto = %s""", (id_projeto,))
         idOngProjeto = cur.fetchone()[0]
 
         if usuario[0] == 1:
@@ -1604,7 +1604,7 @@ def postar(id_usuario, id_projeto):
                                              TITULO,
                                              ACAO,
                                              ATIVIDADE)
-                    VALUES (?, ?, ?, ?) RETURNING ID_POST_PROJETO
+                    VALUES (%s, %s, %s, %s) RETURNING ID_POST_PROJETO
                     """, (id_projeto, titulo.strip(), acao.strip(), atividade))
 
         id_post = cur.fetchone()[0]
@@ -1652,7 +1652,7 @@ def editar_projeto(id_projeto, id_usuario):
         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
         id_token = dados['id_usuario']
         cur.execute(
-            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
+            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = %s',
             (id_token,)
         )
         tipo_de_usuario = cur.fetchone()[0]
@@ -1683,7 +1683,7 @@ def editar_projeto(id_projeto, id_usuario):
         try:
             if tipo_de_usuario == 1:
                 cur.execute(
-                    'select nome, meta_doacao, descricao from projeto_ong where id_projeto = ? and fk_usuario_ong = ? ',
+                    'select nome, meta_doacao, descricao from projeto_ong where id_projeto = %s and fk_usuario_ong = %s ',
                     (id_projeto, id_usuario))
                 info_projeto_ong = cur.fetchone()
                 if not info_projeto_ong:
@@ -1698,7 +1698,7 @@ def editar_projeto(id_projeto, id_usuario):
                 }})
 
             if tipo_de_usuario == 2:
-                cur.execute('select nome, meta_doacao, descricao from projeto_ong where id_projeto = ?', (id_projeto, ))
+                cur.execute('select nome, meta_doacao, descricao from projeto_ong where id_projeto = %s', (id_projeto, ))
                 projeto_ong = cur.fetchone()
 
                 if not projeto_ong:
@@ -1755,20 +1755,20 @@ def editar_projeto(id_projeto, id_usuario):
             if tipo_de_usuario == 2:
                 cur.execute("""
                             UPDATE PROJETO_ONG
-                            SET NOME        =?,
-                                DESCRICAO   = ?,
-                                META_DOACAO = ?
-                            WHERE ID_PROJETO = ?
+                            SET NOME        = %s,
+                                DESCRICAO   = %s,
+                                META_DOACAO = %s
+                            WHERE ID_PROJETO = %s
 
                             """, (nome.strip(), descricao.strip(), meta_doacao, id_projeto))
             elif tipo_de_usuario == 1:
                 cur.execute("""
                         UPDATE PROJETO_ONG
-                        SET NOME        =?,
-                            DESCRICAO   = ?,
-                            META_DOACAO = ?
-                        WHERE ID_PROJETO = ?
-                          AND FK_USUARIO_ONG = ?
+                        SET NOME        = %s,
+                            DESCRICAO   = %s,
+                            META_DOACAO = %s
+                        WHERE ID_PROJETO = %s
+                          AND FK_USUARIO_ONG = %s
 
                         """, (nome.strip(), descricao.strip(), meta_doacao, id_projeto, id_usuario))
             con.commit()
@@ -1820,7 +1820,7 @@ def editar_post(id_projeto, id_usuario, id_post):
 
         cur = con.cursor()
         cur.execute(
-            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
+            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = %s',
             (id_token,)
         )
         usuario = cur.fetchone()
@@ -1839,7 +1839,7 @@ def editar_post(id_projeto, id_usuario, id_post):
             }}), 403
 
         if request.method == "GET":
-            cur.execute('select titulo, atividade, acao from post_projeto where fk_projeto = ? and id_post_projeto = ? ',(id_projeto, id_post))
+            cur.execute('select titulo, atividade, acao from post_projeto where fk_projeto = %s and id_post_projeto = %s ',(id_projeto, id_post))
             info_post = cur.fetchone()
             return jsonify({'post':{
                 'titulo': info_post[0],
@@ -1872,7 +1872,7 @@ def editar_post(id_projeto, id_usuario, id_post):
                 "descricao": 'Atividade inválida'}}), 400
 
         if tipo_usuario ==1:
-            cur.execute('select 1 from projeto_ong where id_projeto = ? and fk_usuario_ong = ?', (id_projeto, id_usuario))
+            cur.execute('select 1 from projeto_ong where id_projeto = %s and fk_usuario_ong = %s', (id_projeto, id_usuario))
             projeto_ong = cur.fetchone()
             if not projeto_ong:
                 return jsonify({'mensagem': {
@@ -1881,7 +1881,7 @@ def editar_post(id_projeto, id_usuario, id_post):
                 }})
 
         elif tipo_usuario == 2:
-            cur.execute('select 1 from projeto_ong where id_projeto = ? ', (id_projeto,))
+            cur.execute('select 1 from projeto_ong where id_projeto = %s ', (id_projeto,))
             projeto_ong = cur.fetchone()
             if not projeto_ong:
                 return jsonify({'mensagem': {
@@ -1891,10 +1891,10 @@ def editar_post(id_projeto, id_usuario, id_post):
 
         cur.execute("""
                     UPDATE POST_PROJETO
-                    SET TITULO   =?,
-                        ACAO      = ?,
-                        ATIVIDADE      = ?
-                    WHERE ID_POST_PROJETO = ? AND FK_PROJETO = ?
+                    SET TITULO   = %s,
+                        ACAO      = %s,
+                        ATIVIDADE      = %s
+                    WHERE ID_POST_PROJETO = %s AND FK_PROJETO = %s
 
                     """, (titulo.strip(), acao.strip(), atividade, id_post ,id_projeto))
         con.commit()
@@ -1957,7 +1957,7 @@ def ativar_desativar_projeto(id_usuario, id_projeto):
         dados = jwt.decode(token, senha_secreta, algorithms=['HS256'])
         id_token = dados['id_usuario']
         if id_usuario != id_token:
-            cur.execute("""select tipo_de_usuario from usuario where id_usuario = ?""", (id_token,))
+            cur.execute("""select tipo_de_usuario from usuario where id_usuario = %s""", (id_token,))
             tipo = cur.fetchone()
             if tipo == 2 or tipo == 1:
                 pass
@@ -1968,7 +1968,7 @@ def ativar_desativar_projeto(id_usuario, id_projeto):
                 }}), 403
 
         cur.execute(
-            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',(id_token,)
+            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = %s',(id_token,)
         )
         usuario = cur.fetchone()
         if not usuario:
@@ -1993,18 +1993,18 @@ def ativar_desativar_projeto(id_usuario, id_projeto):
 
     try:
         if tipo_usuario == 1:
-            cur.execute('select 1 from projeto_ong where id_projeto = ? and fk_usuario_ong = ?', (id_projeto, id_usuario))
+            cur.execute('select 1 from projeto_ong where id_projeto = %s and fk_usuario_ong = %s', (id_projeto, id_usuario))
             projeto_ong = cur.fetchone()
             if not projeto_ong:
                 return jsonify({'mensagem': {
                     'tipo': 'erro',
                     'descricao': 'Projeto não encontrado'
                 }})
-            cur.execute('select atividade from projeto_ong where id_projeto = ? and fk_usuario_ong = ?', (id_projeto, id_usuario))
+            cur.execute('select atividade from projeto_ong where id_projeto = %s and fk_usuario_ong = %s', (id_projeto, id_usuario))
             atividade = cur.fetchone()[0]
 
         if tipo_usuario == 2:
-            cur.execute('select 1 from projeto_ong where id_projeto = ?',
+            cur.execute('select 1 from projeto_ong where id_projeto = %s',
                         (id_projeto,))
             projeto_ong = cur.fetchone()
 
@@ -2013,20 +2013,20 @@ def ativar_desativar_projeto(id_usuario, id_projeto):
                     'tipo': 'erro',
                     'descricao': 'Projeto não encontrado'
                 }})
-            cur.execute('select atividade from projeto_ong where id_projeto = ?', (id_projeto,))
+            cur.execute('select atividade from projeto_ong where id_projeto = %s', (id_projeto,))
             atividade = cur.fetchone()[0]
 
 
         nova_atividade = 0 if atividade == 1 else 1
 
-        cur.execute('select atividade from post_projeto where fk_projeto =  ?', (id_projeto,))
+        cur.execute('select atividade from post_projeto where fk_projeto = %s', (id_projeto,))
         atividade_post = cur.fetchone()
         if atividade_post:
             if atividade_post[0] == 1:
-                cur.execute('update post_projeto set atividade = 2 where fk_PROJETO = ? and atividade = 1', (id_projeto,))
+                cur.execute('update post_projeto set atividade = 2 where fk_PROJETO = %s and atividade = 1', (id_projeto,))
             else:
-                cur.execute('update post_projeto set atividade = 1 where fk_PROJETO = ? and atividade = 2', (id_projeto,))
-        cur.execute('update projeto_ong set atividade = ? where ID_PROJETO = ?', (nova_atividade, id_projeto))
+                cur.execute('update post_projeto set atividade = 1 where fk_PROJETO = %s and atividade = 2', (id_projeto,))
+        cur.execute('update projeto_ong set atividade = %s where ID_PROJETO = %s', (nova_atividade, id_projeto))
         con.commit()
 
         status = 'ativado' if nova_atividade == 1 else 'desativado'
@@ -2063,7 +2063,7 @@ def excluir_projeto(id_usuario, id_projeto):
 
         # Verifica o tipo do usuário logado
         cur.execute(
-            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
+            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = %s',
             (id_token,)
         )
         tipo = cur.fetchone()
@@ -2083,7 +2083,7 @@ def excluir_projeto(id_usuario, id_projeto):
 
         # Verifica se o projeto existe
         cur.execute(
-            'SELECT 1 FROM projeto_ong WHERE id_projeto = ?',
+            'SELECT 1 FROM projeto_ong WHERE id_projeto = %s',
             (id_projeto,)
         )
         if not cur.fetchone():
@@ -2096,7 +2096,7 @@ def excluir_projeto(id_usuario, id_projeto):
 
         # Busca todos os posts vinculados ao projeto
         cur.execute(
-            'SELECT id_post_projeto FROM post_projeto WHERE fk_projeto = ?',
+            'SELECT id_post_projeto FROM post_projeto WHERE fk_projeto = %s',
             (id_projeto,)
         )
         posts = cur.fetchall()
@@ -2106,30 +2106,30 @@ def excluir_projeto(id_usuario, id_projeto):
             id_post = post[0]
 
             cur.execute(
-                'DELETE FROM mensagens_postagem WHERE fk_post = ?',
+                'DELETE FROM mensagens_postagem WHERE fk_post = %s',
                 (id_post,)
             )
             cur.execute(
-                'DELETE FROM curtidas_postagem WHERE fk_post = ?',
+                'DELETE FROM curtidas_postagem WHERE fk_post = %s',
                 (id_post,)
             )
 
         # Exclui os posts do projeto
         cur.execute(
-            'DELETE FROM post_projeto WHERE fk_projeto = ?',
+            'DELETE FROM post_projeto WHERE fk_projeto = %s',
             (id_projeto,)
         )
 
         # Exclui o projeto
         if e_admin:
             cur.execute(
-                'DELETE FROM projeto_ong WHERE id_projeto = ?',
+                'DELETE FROM projeto_ong WHERE id_projeto = %s',
                 (id_projeto,)
             )
         else:
             cur.execute(
                 'DELETE FROM projeto_ong '
-                'WHERE id_projeto = ? AND fk_usuario_ong = ?',
+                'WHERE id_projeto = %s AND fk_usuario_ong = %s',
                 (id_projeto, id_token)
             )
 
@@ -2166,12 +2166,12 @@ def listar_posts(id_projeto, pagina):
 
     try:
 
-        cur.execute("""select id_post_projeto, acao, titulo, atividade from post_projeto where fk_projeto = ?""", (id_projeto,))
+        cur.execute("""select id_post_projeto, acao, titulo, atividade from post_projeto where fk_projeto = %s""", (id_projeto,))
         resultado = cur.fetchall()
 
         cur.execute("""select count(id_post_projeto)
                        from post_projeto
-                       where fk_projeto = ?""", (id_projeto,))
+                       where fk_projeto = %s""", (id_projeto,))
         quantidade = cur.fetchone()[0]
 
         numeroPaginas = math.ceil(quantidade / quantidadePorPagina)
@@ -2182,8 +2182,8 @@ def listar_posts(id_projeto, pagina):
         cur.execute("""
                     SELECT id_post_projeto, titulo, acao, atividade, data_hora
                     FROM post_projeto
-                    WHERE fk_projeto = ?
-                    ORDER BY data_hora DESC ROWS ? TO ?
+                    WHERE fk_projeto = %s
+                    ORDER BY data_hora DESC ROWS %s TO %s
                     """, (id_projeto, minimo, maximo))
         resultado = cur.fetchall()
 
@@ -2247,7 +2247,7 @@ def excluir_post(id_usuario, id_projeto, id_post):
             }}), 403
 
         cur.execute(
-            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
+            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = %s',
             (id_token,)
         )
         usuario = cur.fetchone()
@@ -2272,7 +2272,7 @@ def excluir_post(id_usuario, id_projeto, id_post):
         'descricao': 'Post excluído com sucesso'
     }}), 200
     try:
-        cur.execute('select 1 from projeto_ong where id_projeto = ?', (id_projeto,))
+        cur.execute('select 1 from projeto_ong where id_projeto = %s', (id_projeto,))
         projeto_ong = cur.fetchone()
         if not projeto_ong:
             return jsonify({'mensagem': {
@@ -2280,9 +2280,9 @@ def excluir_post(id_usuario, id_projeto, id_post):
                 'descricao': 'Projeto não encontrado'
             }})
 
-        cur.execute('select atividade from post_projeto where ID_POST_PROJETO = ? and fk_projeto = ?', (id_post, id_projeto))
+        cur.execute('select atividade from post_projeto where ID_POST_PROJETO = %s and fk_projeto = %s', (id_post, id_projeto))
         post_projeto = cur.fetchone()
-        cur.execute('select 1 from projeto_ong where fk_usuario_ong = ? and id_projeto = ?', (id_usuario, id_projeto))
+        cur.execute('select 1 from projeto_ong where fk_usuario_ong = %s and id_projeto = %s', (id_usuario, id_projeto))
         id_projeto_verificado = cur.fetchone()
         if not post_projeto:
             return jsonify({'mensagem': {
@@ -2295,9 +2295,9 @@ def excluir_post(id_usuario, id_projeto, id_post):
                 'descricao': 'Não é possível excluir um post ativo'
             }})
         if tipo_usuario == 2:
-            cur.execute('delete from mensagens_postagem where fk_post =?', (id_post,))
-            cur.execute('delete from curtidas_postagem where fk_post =?', (id_post,))
-            cur.execute('delete from post_projeto where ID_POST_PROJETO = ? and fk_projeto = ?', (id_post, id_projeto))
+            cur.execute('delete from mensagens_postagem where fk_post = %s', (id_post,))
+            cur.execute('delete from curtidas_postagem where fk_post = %s', (id_post,))
+            cur.execute('delete from post_projeto where ID_POST_PROJETO = %s and fk_projeto = %s', (id_post, id_projeto))
             con.commit()
             return jsonify({'mensagem': {
                 'tipo': 'sucesso',
@@ -2305,9 +2305,9 @@ def excluir_post(id_usuario, id_projeto, id_post):
             }})
         elif id_projeto_verificado:
             if tipo_usuario == 1 and id_usuario == id_token :
-                cur.execute('delete from mensagens_postagem where id_post_projeto =?',(id_post,))
-                cur.execute('delete from curtidas_postagem where id_post_projeto =?',(id_post,))
-                cur.execute('delete from post_projeto where ID_POST_PROJETO = ? and fk_projeto = (select id_projeto from projeto_ong where fk_usuario_ong = ? and id_projeto = ?)',
+                cur.execute('delete from mensagens_postagem where id_post_projeto = %s',(id_post,))
+                cur.execute('delete from curtidas_postagem where id_post_projeto = %s',(id_post,))
+                cur.execute('delete from post_projeto where ID_POST_PROJETO = %s and fk_projeto = (select id_projeto from projeto_ong where fk_usuario_ong = %s and id_projeto = %s)',
                     (id_post,id_usuario, id_projeto))
                 con.commit()
                 return jsonify({'mensagem': {
@@ -2346,7 +2346,7 @@ def ativar_desativar_post(id_usuario, id_projeto, id_post):
             }}), 403
 
         cur.execute(
-            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
+            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = %s',
             (id_token,)
         )
         usuario = cur.fetchone()
@@ -2377,7 +2377,7 @@ def ativar_desativar_post(id_usuario, id_projeto, id_post):
     }}), 200
     try:
         if tipo_usuario == 1:
-            cur.execute('select 1 from projeto_ong where id_projeto = ? and fk_usuario_ong = ?', (id_projeto, id_usuario))
+            cur.execute('select 1 from projeto_ong where id_projeto = %s and fk_usuario_ong = %s', (id_projeto, id_usuario))
             projeto_ong = cur.fetchone()[0]
             if not projeto_ong:
                 return jsonify({'mensagem': {
@@ -2386,7 +2386,7 @@ def ativar_desativar_post(id_usuario, id_projeto, id_post):
                 }})
 
         elif tipo_usuario == 2:
-            cur.execute('select 1 from projeto_ong where id_projeto = ?', (id_projeto, ))
+            cur.execute('select 1 from projeto_ong where id_projeto = %s', (id_projeto, ))
             projeto_ong = cur.fetchone()[0]
             if not projeto_ong:
                 return jsonify({'mensagem': {
@@ -2394,7 +2394,7 @@ def ativar_desativar_post(id_usuario, id_projeto, id_post):
                     'descricao': 'Projeto não encontrado'
                 }})
 
-        cur.execute('select atividade from post_projeto where ID_POST_PROJETO = ? and fk_projeto = ?', (id_post, id_projeto))
+        cur.execute('select atividade from post_projeto where ID_POST_PROJETO = %s and fk_projeto = %s', (id_post, id_projeto))
         post_projeto = cur.fetchone()
         if not post_projeto:
             return jsonify({'mensagem': {
@@ -2404,7 +2404,7 @@ def ativar_desativar_post(id_usuario, id_projeto, id_post):
 
 
         nova_atividade = 0 if post_projeto[0] == 1 else 1
-        cur.execute('update post_projeto set atividade = ? where ID_POST_PROJETO = ? and fk_projeto = ?', (nova_atividade, id_post, id_projeto))
+        cur.execute('update post_projeto set atividade = %s where ID_POST_PROJETO = %s and fk_projeto = %s', (nova_atividade, id_post, id_projeto))
         con.commit()
         status = 'ativado' if nova_atividade == 1 else 'desativado'
         return jsonify({'mensagem': {
@@ -2443,7 +2443,7 @@ def buscar_ong(id_ong, pagina):
                    telefone,
                    cidade_ong
             FROM usuario
-            WHERE id_usuario = ?
+            WHERE id_usuario = %s
               AND tipo_de_usuario = 1
         """, (id_ong,))
 
@@ -2457,7 +2457,7 @@ def buscar_ong(id_ong, pagina):
                 }
             }), 404
 
-        cur.execute("""select nome from tipo_ong where id_tipo_ong = ?""", (usuario[2],))
+        cur.execute("""select nome from tipo_ong where id_tipo_ong = %s""", (usuario[2],))
         tipo_ong = cur.fetchone()[0]
 
         # Verifica se o usuário logado segue a ONG
@@ -2466,8 +2466,8 @@ def buscar_ong(id_ong, pagina):
             cur.execute("""
                 SELECT id_seguidores
                 FROM seguidores
-                WHERE fk_usuario_ong = ?
-                  AND fk_usuario_doador = ?
+                WHERE fk_usuario_ong = %s
+                  AND fk_usuario_doador = %s
             """, (id_ong, id_usuario_logado))
 
             segue = cur.fetchone()
@@ -2478,7 +2478,7 @@ def buscar_ong(id_ong, pagina):
         cur.execute("""
             SELECT COUNT(id_projeto)
             FROM projeto_ong
-            WHERE fk_usuario_ong = ?
+            WHERE fk_usuario_ong = %s
         """, (id_ong,))
 
         quantidade = cur.fetchone()[0]
@@ -2498,9 +2498,9 @@ def buscar_ong(id_ong, pagina):
                    descricao,
                    atividade
             FROM projeto_ong
-            WHERE fk_usuario_ong = ?
+            WHERE fk_usuario_ong = %s
             ORDER BY id_projeto DESC
-            ROWS ? TO ?
+            ROWS %s TO %s
         """, (id_ong, minimo, maximo))
 
         resultado = cur.fetchall()
@@ -2611,7 +2611,7 @@ def detalhar_projeto(id_projeto, pagina):
             FROM projeto_ong p
             JOIN usuario u
                 ON u.id_usuario = p.fk_usuario_ong
-            WHERE p.id_projeto = ?
+            WHERE p.id_projeto = %s
         """, (id_projeto,))
 
         info = cur.fetchone()
@@ -2632,8 +2632,8 @@ def detalhar_projeto(id_projeto, pagina):
             cur.execute("""
                 SELECT id_seguidores
                 FROM seguidores
-                WHERE fk_usuario_doador = ?
-                  AND fk_usuario_ong = ?
+                WHERE fk_usuario_doador = %s
+                  AND fk_usuario_ong = %s
             """, (id_usuario_logado, info[5]))
 
             segue = cur.fetchone()
@@ -2643,7 +2643,7 @@ def detalhar_projeto(id_projeto, pagina):
         cur.execute("""
             SELECT COUNT(id_post_projeto)
             FROM post_projeto
-            WHERE fk_projeto = ?
+            WHERE fk_projeto = %s
         """, (id_projeto,))
 
         quantidade = cur.fetchone()[0]
@@ -2661,9 +2661,9 @@ def detalhar_projeto(id_projeto, pagina):
                    atividade,
                    data_hora
             FROM post_projeto
-            WHERE fk_projeto = ?
+            WHERE fk_projeto = %s
             ORDER BY data_hora DESC
-            ROWS ? TO ?
+            ROWS %s TO %s
         """, (id_projeto, minimo, maximo))
 
         atualizacoes = []
@@ -2677,7 +2677,7 @@ def detalhar_projeto(id_projeto, pagina):
             cur.execute("""
                         SELECT COUNT(id_curtidas)
                         FROM curtidas_postagem
-                        WHERE fk_post = ?
+                        WHERE fk_post = %s
                           AND situacao_curtida = 1
                         """, (post[0],))
 
@@ -2687,8 +2687,8 @@ def detalhar_projeto(id_projeto, pagina):
             cur.execute("""
                         SELECT id_curtidas
                         FROM curtidas_postagem
-                        WHERE fk_post = ?
-                          AND fk_usuario_doador = ?
+                        WHERE fk_post = %s
+                          AND fk_usuario_doador = %s
                           AND situacao_curtida = 1
                         """, (post[0], id_usuario_logado))
 
@@ -2714,7 +2714,7 @@ def detalhar_projeto(id_projeto, pagina):
         cur.execute("""
                     SELECT CAST(COALESCE(SUM(valor_doador), 0) AS DOUBLE PRECISION)
                     FROM doacoes
-                    WHERE fk_projeto = ?
+                    WHERE fk_projeto = %s
                     """, (id_projeto,))
 
         resultado = cur.fetchone()
@@ -2816,7 +2816,7 @@ def permitir_recusar_ong(id_usuario, id_ong):
         if id_usuario != id_token:
             return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Você não tem permissão'}}), 403
 
-        cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
+        cur.execute('select tipo_de_usuario from usuario where id_usuario = %s', (id_token,))
         admin = cur.fetchone()
         if not admin or admin[0] != 2:
             return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Você não tem permissão'}}), 403
@@ -2825,7 +2825,7 @@ def permitir_recusar_ong(id_usuario, id_ong):
         acao = int(data.get('acao')) if data.get('acao') is not None else None
         mensagem = data.get('mensagem') or ''
 
-        cur.execute('select email, situacao, nome from usuario where id_usuario = ? and tipo_de_usuario = 1', (id_ong,))
+        cur.execute('select email, situacao, nome from usuario where id_usuario = %s and tipo_de_usuario = 1', (id_ong,))
         ong = cur.fetchone()
 
         if not ong:
@@ -2836,7 +2836,7 @@ def permitir_recusar_ong(id_usuario, id_ong):
             return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'ONG já foi analisada'}}), 400
 
         if acao == 1:
-            cur.execute('update usuario set situacao = 1 where id_usuario = ?', (id_ong,))
+            cur.execute('update usuario set situacao = 1 where id_usuario = %s', (id_ong,))
             con.commit()
             try:
                 enviando_email(email, 'ONG aprovada', 'Sua ONG foi aprovada. Você já pode utilizar o sistema.', '', nome_ong, '')
@@ -2845,7 +2845,7 @@ def permitir_recusar_ong(id_usuario, id_ong):
             return jsonify({'mensagem': {'tipo': 'sucesso', 'descricao': 'ONG aprovada com sucesso'}}), 200
 
         if acao == 0:
-            cur.execute('update usuario set situacao = 5 where id_usuario = ?', (id_ong,))
+            cur.execute('update usuario set situacao = 5 where id_usuario = %s', (id_ong,))
             con.commit()
             try:
                 enviando_email(email, "Sua Ong foi recusada", mensagem, '', nome_ong, '')
@@ -2883,12 +2883,12 @@ def excluir_usuario(id_usuario, id_excluir):
                 'descricao': 'Você não pode ser excluir'
             }})
 
-        cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_token,))
+        cur.execute('select tipo_de_usuario from usuario where id_usuario = %s', (id_token,))
         admin = cur.fetchone()
         if not admin or admin[0] != 2:
             return jsonify({'mensagem': {'tipo': 'erro', 'descricao': 'Você não tem permissão'}}), 403
 
-        cur.execute('select id_usuario from usuario where id_usuario = ?', (id_excluir,))
+        cur.execute('select id_usuario from usuario where id_usuario = %s', (id_excluir,))
         existe = cur.fetchone()
 
         if not existe:
@@ -2899,10 +2899,10 @@ def excluir_usuario(id_usuario, id_excluir):
                 }
             })
 
-        cur.execute('select situacao from usuario where id_usuario = ?', (id_excluir,))
+        cur.execute('select situacao from usuario where id_usuario = %s', (id_excluir,))
         situacao = cur.fetchone()[0]
 
-        cur.execute('select TIPO_DE_USUARIO from usuario where id_usuario = ?',(id_excluir,))
+        cur.execute('select TIPO_DE_USUARIO from usuario where id_usuario = %s',(id_excluir,))
         tipo_excluir = cur.fetchone()[0]
 
         if tipo_excluir == 1:
@@ -2914,7 +2914,7 @@ def excluir_usuario(id_usuario, id_excluir):
                     }
                 })
 
-            cur.execute('delete from usuario where id_usuario =?', (id_excluir,))
+            cur.execute('delete from usuario where id_usuario = %s', (id_excluir,))
             con.commit()
 
             return jsonify({'mensagem': {
@@ -2930,7 +2930,7 @@ def excluir_usuario(id_usuario, id_excluir):
                     }
                 })
             else:
-                cur.execute('delete from usuario where id_usuario =?', (id_excluir,))
+                cur.execute('delete from usuario where id_usuario = %s', (id_excluir,))
                 con.commit()
 
                 return jsonify({'mensagem': {
@@ -3014,7 +3014,7 @@ def pagina_feed(pagina):
                              WHEN EXISTS (
                                  SELECT 1
                                  FROM seguidores s
-                                 WHERE s.FK_USUARIO_DOADOR = ?
+                                 WHERE s.FK_USUARIO_DOADOR = %s
                                    AND s.FK_USUARIO_ONG = u.id_usuario
                              ) THEN 1
                              ELSE 0
@@ -3024,18 +3024,18 @@ def pagina_feed(pagina):
                               JOIN usuario u ON pr.FK_USUARIO_ONG = u.id_usuario
                               LEFT JOIN CURTIDAS_POSTAGEM c
                                         ON c.FK_POST = p.id_post_projeto
-                                            AND c.FK_USUARIO_DOADOR = ?
+                                            AND c.FK_USUARIO_DOADOR = %s
                      WHERE p.atividade = 1 \
                      """
 
         filtros = [id_usuario_consulta, id_usuario_consulta]
 
         if nome:
-            selectBase += " AND UPPER(p.titulo) LIKE UPPER(?)"
+            selectBase += " AND UPPER(p.titulo) LIKE UPPER(%s)"
             filtros.append(f"%{nome}%")
 
         if tema:
-            selectBase += " AND u.tipo_ong = ?"
+            selectBase += " AND u.tipo_ong = %s"
             filtros.append(tema)
 
 
@@ -3052,7 +3052,7 @@ def pagina_feed(pagina):
             cur.execute("""
                         SELECT COUNT(*)
                         FROM curtidas_postagem
-                        WHERE FK_POST = ? AND SITUACAO_CURTIDA = 1
+                        WHERE FK_POST = %s AND SITUACAO_CURTIDA = 1
                         """, (p[0],))
             total_curtidas = cur.fetchone()[0]
 
@@ -3060,7 +3060,7 @@ def pagina_feed(pagina):
             cur.execute("""
                         SELECT COUNT(*)
                         FROM mensagens_postagem
-                        WHERE FK_POST = ?
+                        WHERE FK_POST = %s
                         """, (p[0],))
             total_comentarios = cur.fetchone()[0]
 
@@ -3090,7 +3090,7 @@ def pagina_feed(pagina):
                         SELECT u.id_usuario, u.nome, u.tipo_ong
                         FROM seguidores s
                                  JOIN usuario u ON s.FK_USUARIO_ONG = u.id_usuario
-                        WHERE s.FK_USUARIO_DOADOR = ?
+                        WHERE s.FK_USUARIO_DOADOR = %s
                         """, (id_usuario,))
 
             ongs_seguidas = [{
@@ -3108,13 +3108,13 @@ def pagina_feed(pagina):
         if id_usuario:
             addSelect += """ AND id_usuario NOT IN (SELECT FK_USUARIO_ONG
                                                  FROM seguidores
-                                                 WHERE FK_USUARIO_DOADOR = ?)"""
+                                                 WHERE FK_USUARIO_DOADOR = %s)"""
             parametros.append(id_usuario)
         if nome:
-            addSelect += """ AND UPPER(nome) LIKE '%' || UPPER(?) || '%'"""
+            addSelect += """ AND UPPER(nome) LIKE '%' || UPPER(%s) || '%'"""
             parametros.append(nome)
         if tema:
-            addSelect += " AND tipo_ong = ?"
+            addSelect += " AND tipo_ong = %s"
             parametros.append(tema)
 
 
@@ -3145,13 +3145,13 @@ def pagina_feed(pagina):
         if id_usuario:
             addSelect += """ AND id_usuario NOT IN (SELECT FK_USUARIO_ONG
                                                      FROM seguidores
-                                                     WHERE FK_USUARIO_DOADOR = ?)"""
+                                                     WHERE FK_USUARIO_DOADOR = %s)"""
             parametros.append(id_usuario)
         if nome:
-            addSelect += """ AND UPPER(nome) LIKE '%' || UPPER(?) || '%'"""
+            addSelect += """ AND UPPER(nome) LIKE '%' || UPPER(%s) || '%'"""
             parametros.append(nome)
         if tema:
-            addSelect += " AND tipo_ong = ?"
+            addSelect += " AND tipo_ong = %s"
             parametros.append(tema)
         addSelect += f""" ORDER BY data_hora_registro {ordem}"""
 
@@ -3165,7 +3165,7 @@ def pagina_feed(pagina):
                     WHERE tipo_de_usuario = 1
                       AND situacao = 1
                         {addSelect}
-                    ROWS ? TO ?
+                    ROWS %s TO %s
                     """, tuple(parametros))
 
         novas_ongs = [{
@@ -3265,27 +3265,27 @@ def pagina_feed_favoritas(pagina):
                     ON s.FK_USUARIO_ONG = u.id_usuario
                 LEFT JOIN CURTIDAS_POSTAGEM c
                     ON c.FK_POST = p.id_post_projeto
-                   AND c.FK_USUARIO_DOADOR = ?
+                   AND c.FK_USUARIO_DOADOR = %s
             WHERE p.atividade = 1
-              AND s.FK_USUARIO_DOADOR = ?
+              AND s.FK_USUARIO_DOADOR = %s
         """
 
         filtros = [id_usuario, id_usuario]
 
         if nome:
-            selectBase += " AND UPPER(p.titulo) LIKE UPPER(?)"
+            selectBase += " AND UPPER(p.titulo) LIKE UPPER(%s)"
             filtros.append(f"%{nome}%")
 
         if ong:
-            selectBase += " AND UPPER(u.nome) LIKE UPPER(?)"
+            selectBase += " AND UPPER(u.nome) LIKE UPPER(%s)"
             filtros.append(f"%{ong}%")
 
         if tema:
-            selectBase += " AND u.tipo_ong = ?"
+            selectBase += " AND u.tipo_ong = %s"
             filtros.append(tema)
 
         if data:
-            selectBase += " AND CAST(p.data_hora AS DATE) = ?"
+            selectBase += " AND CAST(p.data_hora AS DATE) = %s"
             filtros.append(data)
 
         selectBase += f"""
@@ -3301,7 +3301,7 @@ def pagina_feed_favoritas(pagina):
             cur.execute("""
                 SELECT COUNT(*)
                 FROM curtidas_postagem
-                WHERE FK_POST = ?
+                WHERE FK_POST = %s
                   AND SITUACAO_CURTIDA = 1
             """, (p[0],))
             total_curtidas = cur.fetchone()[0]
@@ -3310,7 +3310,7 @@ def pagina_feed_favoritas(pagina):
             cur.execute("""
                 SELECT COUNT(*)
                 FROM mensagens_postagem
-                WHERE FK_POST = ?
+                WHERE FK_POST = %s
             """, (p[0],))
             total_comentarios = cur.fetchone()[0]
 
@@ -3336,7 +3336,7 @@ def pagina_feed_favoritas(pagina):
             FROM seguidores s
                 JOIN usuario u
                     ON s.FK_USUARIO_ONG = u.id_usuario
-            WHERE s.FK_USUARIO_DOADOR = ?
+            WHERE s.FK_USUARIO_DOADOR = %s
         """, (id_usuario,))
 
         ongs_seguidas = [{
@@ -3351,13 +3351,13 @@ def pagina_feed_favoritas(pagina):
 
         addSelect = """ AND id_usuario NOT IN (SELECT FK_USUARIO_ONG
                                                          FROM seguidores
-                                                         WHERE FK_USUARIO_DOADOR = ?)"""
+                                                         WHERE FK_USUARIO_DOADOR = %s)"""
         parametros = [id_usuario]
         if nome:
-            addSelect += """ AND UPPER(nome) LIKE '%' || UPPER(?) || '%'"""
+            addSelect += """ AND UPPER(nome) LIKE '%' || UPPER(%s) || '%'"""
             parametros.append(nome)
         if tema:
-            addSelect += """ AND tipo_ong = ?"""
+            addSelect += """ AND tipo_ong = %s"""
             parametros.append(tema)
 
         cur.execute(f"""SELECT COUNT(id_usuario)
@@ -3381,13 +3381,13 @@ def pagina_feed_favoritas(pagina):
 
         addSelect = """ AND id_usuario NOT IN (SELECT FK_USUARIO_ONG
                                                                  FROM seguidores
-                                                                 WHERE FK_USUARIO_DOADOR = ?)"""
+                                                                 WHERE FK_USUARIO_DOADOR = %s)"""
         parametros = [id_usuario]
         if nome:
-            addSelect += """ AND UPPER(nome) LIKE '%' || UPPER(?) || '%'"""
+            addSelect += """ AND UPPER(nome) LIKE '%' || UPPER(%s) || '%'"""
             parametros.append(nome)
         if tema:
-            addSelect += """ AND tipo_ong = ?"""
+            addSelect += """ AND tipo_ong = %s"""
             parametros.append(tema)
         parametros.append(minimoNovasOngs)
         parametros.append(maximoNovasOngs)
@@ -3400,7 +3400,7 @@ def pagina_feed_favoritas(pagina):
                             WHERE tipo_de_usuario = 1
                               AND situacao = 1
                                 {addSelect}
-                            ROWS ? TO ?
+                            ROWS %s TO %s
                             """, tuple(parametros))
 
         novas_ongs = [{
@@ -3491,7 +3491,7 @@ def deseguir_seguir_ong(id_ong):
         cur.execute("""
             SELECT tipo_de_usuario
             FROM usuario
-            WHERE id_usuario = ?
+            WHERE id_usuario = %s
         """, (id_ong,))
         resultado = cur.fetchone()
 
@@ -3514,7 +3514,7 @@ def deseguir_seguir_ong(id_ong):
         cur.execute("""
             SELECT ID_SEGUIDORES
             FROM seguidores
-            WHERE FK_USUARIO_DOADOR = ? AND FK_USUARIO_ONG = ?
+            WHERE FK_USUARIO_DOADOR = %s AND FK_USUARIO_ONG = %s
         """, (id_usuario, id_ong))
 
         ja_segue = cur.fetchone()
@@ -3522,7 +3522,7 @@ def deseguir_seguir_ong(id_ong):
         if ja_segue:
             cur.execute("""
                             DELETE FROM seguidores
-                WHERE FK_USUARIO_DOADOR = ? AND FK_USUARIO_ONG = ?
+                WHERE FK_USUARIO_DOADOR = %s AND FK_USUARIO_ONG = %s
             """, (id_usuario, id_ong))
 
             con.commit()
@@ -3538,7 +3538,7 @@ def deseguir_seguir_ong(id_ong):
         else:
             cur.execute("""
                 INSERT INTO seguidores (FK_USUARIO_DOADOR, FK_USUARIO_ONG)
-                VALUES (?, ?)
+                VALUES (%s, %s)
             """, (id_usuario, id_ong))
 
             con.commit()
@@ -3600,7 +3600,7 @@ def descurtir_curtir_post(id_post):
         cur.execute("""
             SELECT ID_CURTIDAS, SITUACAO_CURTIDA
             FROM curtidas_postagem
-            WHERE FK_POST = ? AND FK_USUARIO_DOADOR = ?
+            WHERE FK_POST = %s AND FK_USUARIO_DOADOR = %s
         """, (id_post, id_usuario))
 
         resultado = cur.fetchone()
@@ -3612,9 +3612,9 @@ def descurtir_curtir_post(id_post):
 
             cur.execute("""
                         UPDATE curtidas_postagem
-                        SET SITUACAO_CURTIDA = ?,
+                        SET SITUACAO_CURTIDA = %s,
                             DATA_HORA        = CURRENT_TIMESTAMP
-                        WHERE ID_CURTIDAS = ?
+                        WHERE ID_CURTIDAS = %s
                         """, (nova_situacao, id_curtida))
 
             con.commit()
@@ -3622,7 +3622,7 @@ def descurtir_curtir_post(id_post):
             cur.execute("""
                         SELECT COUNT(ID_CURTIDAS)
                         FROM curtidas_postagem
-                        WHERE FK_POST = ?
+                        WHERE FK_POST = %s
                           AND SITUACAO_CURTIDA = 1
                         """, (id_post,))
 
@@ -3638,7 +3638,7 @@ def descurtir_curtir_post(id_post):
             cur.execute("""
                         INSERT INTO curtidas_postagem (FK_POST,
                                                        FK_USUARIO_DOADOR)
-                        VALUES (?, ?)
+                        VALUES (%s, %s)
                         """, (id_post, id_usuario))
 
             con.commit()
@@ -3646,7 +3646,7 @@ def descurtir_curtir_post(id_post):
             cur.execute("""
                         SELECT COUNT(ID_CURTIDAS)
                         FROM curtidas_postagem
-                        WHERE FK_POST = ?
+                        WHERE FK_POST = %s
                           AND SITUACAO_CURTIDA = 1
                         """, (id_post,))
 
@@ -3703,7 +3703,7 @@ def postar_comentario(id_usuario, id_post):
         id_token = dados_token['id_usuario']
 
         cur.execute(
-            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
+            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = %s',
             (id_token,)
         )
         res_usuario = cur.fetchone()
@@ -3732,7 +3732,7 @@ def postar_comentario(id_usuario, id_post):
 
         # Verifica se o post existe na tabela de posts (ajuste o nome da coluna/tabela se necessário)
         cur.execute(
-            'SELECT ID_POST_projeto FROM POST_PROJETO WHERE ID_POST_projeto = ?',
+            'SELECT ID_POST_projeto FROM POST_PROJETO WHERE ID_POST_projeto = %s',
             (id_post,)
         )
         if not cur.fetchone():
@@ -3744,7 +3744,7 @@ def postar_comentario(id_usuario, id_post):
         # Inserção da Mensagem (Sintaxe SQL Corrigida)
         cur.execute("""
                     INSERT INTO MENSAGENS_POSTAGEM (FK_POST, FK_USUARIO_DOADOR, MENSAGEM)
-                    VALUES (?, ?, ?) RETURNING ID_MENSAGEM
+                    VALUES (%s, %s, %s) RETURNING ID_MENSAGEM
                     """, (id_post, id_token, mensagem_banco.strip()))
 
         id_mensagem = cur.fetchone()[0]
@@ -3786,7 +3786,7 @@ def listar_comentario(id_post):
             cur.execute("""
                         SELECT tipo_de_usuario
                         FROM usuario
-                        WHERE id_usuario = ?
+                        WHERE id_usuario = %s
                         """, (id_usuario,))
             tipo_usuario = cur.fetchone()
 
@@ -3807,7 +3807,7 @@ def listar_comentario(id_post):
                                   ON m.FK_POST = p.ID_POST_PROJETO
                              JOIN PROJETO_ONG pr
                                   ON p.FK_PROJETO = pr.ID_PROJETO
-                    WHERE m.FK_POST = ?
+                    WHERE m.FK_POST = %s
                     ORDER BY m.DATA_HORA DESC
                     """, (id_post,))
 
@@ -3883,7 +3883,7 @@ def excluir_comentario(id_mensagem):
         id_token = dados_token['id_usuario']
 
         # Busca tipo de usuário e extrai o valor da tupla [0]
-        cur.execute('SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?', (id_token,))
+        cur.execute('SELECT tipo_de_usuario FROM usuario WHERE id_usuario = %s', (id_token,))
         res_usuario = cur.fetchone()
 
         if not res_usuario:
@@ -3891,7 +3891,7 @@ def excluir_comentario(id_mensagem):
 
         tipo_usuario = res_usuario[0] # Agora é um inteiro (0, 1 ou 2)
 
-        cur.execute("""select FK_USUARIO_DOADOR, FK_POST from MENSAGENS_POSTAGEM where ID_MENSAGEM = ?""", (id_mensagem,))
+        cur.execute("""select FK_USUARIO_DOADOR, FK_POST from MENSAGENS_POSTAGEM where ID_MENSAGEM = %s""", (id_mensagem,))
         resultado = cur.fetchone()
         if not resultado:
             return jsonify({'mensagem': {
@@ -3901,19 +3901,19 @@ def excluir_comentario(id_mensagem):
         # Verificação de existência e permissão em uma única lógica
         if tipo_usuario == 2:
             # ADM: Deleta qualquer mensagem pelo ID
-            cur.execute("DELETE FROM MENSAGENS_POSTAGEM WHERE ID_MENSAGEM = ?", (id_mensagem,))
+            cur.execute("DELETE FROM MENSAGENS_POSTAGEM WHERE ID_MENSAGEM = %s", (id_mensagem,))
         elif tipo_usuario == 1:
             cur.execute("""select pr.FK_USUARIO_ONG, m.fk_usuario_doador
                            from MENSAGENS_POSTAGEM m
                            join post_projeto p on m.fk_post = p.id_post_projeto
                            join projeto_ong pr on p.fk_projeto = pr.id_projeto
-                           where m.ID_MENSAGEM = ?
+                           where m.ID_MENSAGEM = %s
                            """, (id_mensagem,))
             resultado_ong = cur.fetchone()
             if resultado_ong[1] == id_token:
-                cur.execute("DELETE FROM MENSAGENS_POSTAGEM WHERE ID_MENSAGEM = ? and FK_USUARIO_DOADOR = ?", (id_mensagem, resultado_ong[1]))
+                cur.execute("DELETE FROM MENSAGENS_POSTAGEM WHERE ID_MENSAGEM = %s and FK_USUARIO_DOADOR = %s", (id_mensagem, resultado_ong[1]))
             elif resultado_ong[0] == id_token:
-                cur.execute("DELETE FROM MENSAGENS_POSTAGEM WHERE ID_MENSAGEM = ?", (id_mensagem,))
+                cur.execute("DELETE FROM MENSAGENS_POSTAGEM WHERE ID_MENSAGEM = %s", (id_mensagem,))
             else:
                 return jsonify({'mensagem': {
                     'tipo': 'erro',
@@ -3929,7 +3929,7 @@ def excluir_comentario(id_mensagem):
             else:
                 cur.execute("""
                             DELETE FROM MENSAGENS_POSTAGEM
-                            WHERE ID_MENSAGEM = ? AND FK_USUARIO_DOADOR = ?
+                            WHERE ID_MENSAGEM = %s AND FK_USUARIO_DOADOR = %s
                             """, (id_mensagem, id_token))
 
         con.commit()
@@ -3968,7 +3968,7 @@ def editar_comentario(id_mensagem):
         cur.execute("""
                     SELECT tipo_de_usuario
                     FROM usuario
-                    WHERE id_usuario = ?
+                    WHERE id_usuario = %s
                     """, (id_usuario,))
         tipo_usuario = cur.fetchone()
         if not tipo_usuario:
@@ -3984,7 +3984,7 @@ def editar_comentario(id_mensagem):
                     FROM MENSAGENS_POSTAGEM m
                              JOIN POST_PROJETO p ON m.FK_POST = p.ID_POST_PROJETO
                              JOIN PROJETO_ONG pr ON p.FK_PROJETO = pr.ID_PROJETO
-                    WHERE m.ID_MENSAGEM = ?
+                    WHERE m.ID_MENSAGEM = %s
                     """, (id_mensagem,))
         resultado = cur.fetchone()
 
@@ -4017,8 +4017,8 @@ def editar_comentario(id_mensagem):
 
         cur.execute("""
             UPDATE MENSAGENS_POSTAGEM
-            SET MENSAGEM = ?
-            WHERE ID_MENSAGEM = ?
+            SET MENSAGEM = %s
+            WHERE ID_MENSAGEM = %s
         """, (mensagem_banco, id_mensagem))
 
         con.commit()
@@ -4072,7 +4072,7 @@ def adicionar_tipo_ong():
         nome_tipo = novo_tipo.strip().upper()
         cur.execute("""SELECT id_tipo_ong 
                         FROM tipo_ong
-                        WHERE UPPER(nome) = ?
+                        WHERE UPPER(nome) = %s
                     """,(nome_tipo,))
 
         if cur.fetchone():
@@ -4085,7 +4085,7 @@ def adicionar_tipo_ong():
 
         cur.execute("""
                     INSERT INTO tipo_ong (nome)
-                    VALUES (?)
+                    VALUES (%s)
                         RETURNING id_tipo_ong
                     """, (nome_tipo,))
 
@@ -4139,7 +4139,7 @@ def excluir_tipo_ong(id_tipo_ong):
         id_token = dados_token['id_usuario']
 
         cur.execute(
-            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
+            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = %s',
             (id_token,)
         )
 
@@ -4166,7 +4166,7 @@ def excluir_tipo_ong(id_tipo_ong):
         cur.execute("""
                     SELECT COUNT(ID_USUARIO)
                     FROM USUARIO
-                    WHERE TIPO_ONG = ?
+                    WHERE TIPO_ONG = %s
                     """, (id_tipo_ong,))
 
         quantidade_ongs = cur.fetchone()[0]
@@ -4180,7 +4180,7 @@ def excluir_tipo_ong(id_tipo_ong):
             }), 400
 
         cur.execute(
-            'SELECT 1 FROM TIPO_ONG WHERE ID_TIPO_ONG = ?',
+            'SELECT 1 FROM TIPO_ONG WHERE ID_TIPO_ONG = %s',
             (id_tipo_ong,)
         )
 
@@ -4195,7 +4195,7 @@ def excluir_tipo_ong(id_tipo_ong):
             }), 404
 
         cur.execute(
-            'DELETE FROM TIPO_ONG WHERE ID_TIPO_ONG = ?',
+            'DELETE FROM TIPO_ONG WHERE ID_TIPO_ONG = %s',
             (id_tipo_ong,)
         )
 
@@ -4284,7 +4284,7 @@ def relatorio_doacoes():
         id_token = dados_token['id_usuario']
 
         cur.execute(
-            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = ?',
+            'SELECT tipo_de_usuario FROM usuario WHERE id_usuario = %s',
             (id_token,)
         )
 
@@ -4397,7 +4397,7 @@ def enviar_pix():
         id_token = dados_token['id_usuario']
 
         cur.execute(
-            'SELECT tipo_de_usuario, nome, email FROM usuario WHERE id_usuario = ?',
+            'SELECT tipo_de_usuario, nome, email FROM usuario WHERE id_usuario = %s',
             (id_token,)
         )
 
@@ -4425,7 +4425,7 @@ def enviar_pix():
                 }
             }), 403
 
-        cur.execute('SELECT NOME, CIDADE_ONG, CHAVE_PIX, EMAIL FROM USUARIO WHERE ID_USUARIO = ?', (id_ong,))
+        cur.execute('SELECT NOME, CIDADE_ONG, CHAVE_PIX, EMAIL FROM USUARIO WHERE ID_USUARIO = %s', (id_ong,))
         dados_ong = cur.fetchone()
 
         if not dados_ong:
@@ -4447,7 +4447,7 @@ def enviar_pix():
         nome_projeto = None
         if valor_etapa == 1:
             if id_projeto is not None:
-                cur.execute('SELECT NOME, FK_USUARIO_ONG FROM PROJETO_ONG WHERE ID_PROJETO = ?', (id_projeto,))
+                cur.execute('SELECT NOME, FK_USUARIO_ONG FROM PROJETO_ONG WHERE ID_PROJETO = %s', (id_projeto,))
                 projeto_row = cur.fetchone()
 
 
@@ -4519,14 +4519,14 @@ def enviar_pix():
                                            FK_USUARIO_DOADOR,
                                            FK_PROJETO,
                                            VALOR_DOADOR)
-                       VALUES (?, ?, ?, ?) RETURNING ID_DOACAO""",
+                       VALUES (%s, %s, %s, %s) RETURNING ID_DOACAO""",
                     (id_ong, id_token, id_projeto, valor_doacao)
                 )
                 id_doacao = cur.fetchone()[0]
 
                 con.commit()
                 
-                cur.execute("""select nome from projeto_ong where id_projeto = ?""", (id_projeto,))
+                cur.execute("""select nome from projeto_ong where id_projeto = %s""", (id_projeto,))
                 nome_projeto = cur.fetchone()[0]
 
                 valor_formatado = f"{valor_doacao:.2f}"
@@ -4561,7 +4561,7 @@ def enviar_pix():
                     """INSERT INTO DOACOES(FK_USUARIO_ONG,
                                            FK_USUARIO_DOADOR,
                                            VALOR_DOADOR)
-                       VALUES (?, ?, ?) RETURNING ID_DOACAO""",
+                       VALUES (%s, %s, %s) RETURNING ID_DOACAO""",
                     (id_ong, id_token, valor_doacao)
                 )
                 id_doacao = cur.fetchone()[0]
@@ -4635,7 +4635,7 @@ def historico(pagina):
         cur.execute("""
             SELECT tipo_de_usuario
             FROM usuario
-            WHERE id_usuario = ?
+            WHERE id_usuario = %s
         """, (id_token,))
 
         tipo_usuario = cur.fetchone()[0]
@@ -4655,7 +4655,7 @@ def historico(pagina):
         else:
             id_usuario = id_token
 
-        cur.execute('select tipo_de_usuario from usuario where id_usuario = ?', (id_usuario,))
+        cur.execute('select tipo_de_usuario from usuario where id_usuario = %s', (id_usuario,))
         tipo_usuario_historico = cur.fetchone()
         if not tipo_usuario_historico:
             return jsonify({'mensagem': {
@@ -4695,7 +4695,7 @@ def historico(pagina):
                     }
                 }), 400
 
-            filtro_data_sql = "AND CAST(d.data_hora AS DATE) BETWEEN ? AND ?"
+            filtro_data_sql = "AND CAST(d.data_hora AS DATE) BETWEEN %s AND %s"
             params_data = [inicio_data.date(), final_data.date()]
 
         ordem = request.args.get("ordem", "DESC").upper()
@@ -4705,10 +4705,10 @@ def historico(pagina):
             ordem = "DESC"
         
         if tipo_usuario_historico == 0:
-            filtro_sql = " UPPER(ong.nome) LIKE UPPER(?)"
+            filtro_sql = " UPPER(ong.nome) LIKE UPPER(%s)"
 
         elif tipo_usuario_historico == 1:
-            filtro_sql = " UPPER(doador.nome) LIKE UPPER(?)"
+            filtro_sql = " UPPER(doador.nome) LIKE UPPER(%s)"
         else:
             return jsonify({
                 'mensagem': {
@@ -4735,8 +4735,8 @@ def historico(pagina):
     
                 WHERE 
                     (
-                        d.fk_usuario_doador = ?
-                        OR d.fk_usuario_ong = ?
+                        d.fk_usuario_doador = %s
+                        OR d.fk_usuario_ong = %s
                     )
                     AND {filtro_sql}
                     AND {doacao}
@@ -4760,8 +4760,8 @@ def historico(pagina):
 
                             WHERE 
                                 (
-                                    d.fk_usuario_doador = ?
-                                    OR d.fk_usuario_ong = ?
+                                    d.fk_usuario_doador = %s
+                                    OR d.fk_usuario_ong = %s
                                 )
                                 AND {filtro_sql}
                                 {filtro_data_sql}
@@ -4813,8 +4813,8 @@ def historico(pagina):
     
                 WHERE 
                     (
-                        d.fk_usuario_doador = ?
-                        OR d.fk_usuario_ong = ?
+                        d.fk_usuario_doador = %s
+                        OR d.fk_usuario_ong = %s
                     )
                     AND {filtro_sql}
                     AND {doacao}
@@ -4822,7 +4822,7 @@ def historico(pagina):
                     
     
                 ORDER BY d.data_hora {ordem}
-                ROWS ? TO ?
+                ROWS %s TO %s
             """, (
                 id_usuario,
                 id_usuario,
@@ -4855,14 +4855,14 @@ def historico(pagina):
 
                 WHERE 
                     (
-                        d.fk_usuario_doador = ?
-                        OR d.fk_usuario_ong = ?
+                        d.fk_usuario_doador = %s
+                        OR d.fk_usuario_ong = %s
                     )
                     AND {filtro_sql}
                     {filtro_data_sql}
                     
                     ORDER BY d.data_hora {ordem}
-                    ROWS ? TO ?
+                    ROWS %s TO %s
             """, (
                 id_usuario,
                 id_usuario,
@@ -4875,7 +4875,7 @@ def historico(pagina):
 
         resultados = cur.fetchall()
 
-        cur.execute('select extract(year from data_hora_registro) from usuario where id_usuario = ?', (id_usuario,))
+        cur.execute('select extract(year from data_hora_registro) from usuario where id_usuario = %s', (id_usuario,))
         data_hora_registro = cur.fetchone()[0]
         anoAtual = date.today().year
         diferencaAnos = int(anoAtual) - int(data_hora_registro) + 1
@@ -4965,7 +4965,7 @@ def estatisticas_admin():
         cur.execute("""
                     SELECT tipo_de_usuario
                     FROM usuario
-                    WHERE id_usuario = ?
+                    WHERE id_usuario = %s
                     """, (id_token,))
 
         resultado = cur.fetchone()
@@ -5015,7 +5015,7 @@ def estatisticas_admin():
                             AS DOUBLE PRECISION
                         )
                     FROM DOACOES
-                    WHERE DATA_HORA BETWEEN ? AND ?
+                    WHERE DATA_HORA BETWEEN %s AND %s
                     """, (data_inicio, data_fim))
 
         resultado_doacoes = cur.fetchone()
@@ -5036,7 +5036,7 @@ def estatisticas_admin():
                     SELECT CAST(COUNT(ID_USUARIO) AS INTEGER)
                     FROM USUARIO
                     WHERE TIPO_DE_USUARIO = 0
-                      AND DATA_HORA_REGISTRO BETWEEN ? AND ?
+                      AND DATA_HORA_REGISTRO BETWEEN %s AND %s
                     """, (data_inicio, data_fim))
 
         resultado_doadores = cur.fetchone()
@@ -5051,7 +5051,7 @@ def estatisticas_admin():
                     SELECT CAST(COUNT(ID_USUARIO) AS INTEGER)
                     FROM USUARIO
                     WHERE TIPO_DE_USUARIO = 1
-                      AND DATA_HORA_REGISTRO BETWEEN ? AND ?
+                      AND DATA_HORA_REGISTRO BETWEEN %s AND %s
                     """, (data_inicio, data_fim))
 
         resultado_ongs = cur.fetchone()
@@ -5076,7 +5076,7 @@ def estatisticas_admin():
                                AS NUMERIC(15, 2)
                            )                             AS VALOR_TOTAL
                     FROM DOACOES
-                    WHERE DATA_HORA BETWEEN ? AND ?
+                    WHERE DATA_HORA BETWEEN %s AND %s
                     GROUP BY EXTRACT(MONTH FROM DATA_HORA)
                     ORDER BY MES
                     """, (data_inicio_atual, data_fim_atual))
@@ -5097,7 +5097,7 @@ def estatisticas_admin():
                                AS NUMERIC(15, 2)
                            )                             AS VALOR_TOTAL
                     FROM DOACOES
-                    WHERE DATA_HORA BETWEEN ? AND ?
+                    WHERE DATA_HORA BETWEEN %s AND %s
                     GROUP BY EXTRACT(MONTH FROM DATA_HORA)
                     ORDER BY MES
                     """, (data_inicio_passado, data_fim_passado))
@@ -5254,7 +5254,7 @@ def grafico_ong():
         id_token = dados['id_usuario']
 
         cur.execute(
-            'SELECT TIPO_DE_USUARIO FROM USUARIO WHERE ID_USUARIO = ?',
+            'SELECT TIPO_DE_USUARIO FROM USUARIO WHERE ID_USUARIO = %s',
             (id_token,)
         )
 
@@ -5284,8 +5284,8 @@ def grafico_ong():
                             COALESCE(SUM(VALOR_DOADOR), 0) AS NUMERIC(15, 2)
                        ) AS VALOR_TOTAL
                 FROM DOACOES
-                WHERE EXTRACT(YEAR FROM DATA_HORA) = ?
-                  AND FK_USUARIO_ONG = ?
+                WHERE EXTRACT(YEAR FROM DATA_HORA) = %s
+                  AND FK_USUARIO_ONG = %s
                 GROUP BY EXTRACT(MONTH FROM DATA_HORA)
                 ORDER BY MES
                 """, (ano_passado, id_token))
@@ -5300,8 +5300,8 @@ def grafico_ong():
                     AS NUMERIC(15,2)
                 ) AS VALOR_TOTAL
             FROM DOACOES
-            WHERE EXTRACT(YEAR FROM DATA_HORA) = ?
-            AND FK_USUARIO_ONG = ?
+            WHERE EXTRACT(YEAR FROM DATA_HORA) = %s
+            AND FK_USUARIO_ONG = %s
             GROUP BY EXTRACT(MONTH FROM DATA_HORA)
             ORDER BY MES
         """, (ano_atual, id_token))
@@ -5316,8 +5316,8 @@ def grafico_ong():
                     AS NUMERIC(15,2)
                 ) AS TOTAL_VALOR_ANO
             FROM DOACOES
-            WHERE EXTRACT(YEAR FROM DATA_HORA) = ?
-            AND FK_USUARIO_ONG = ?
+            WHERE EXTRACT(YEAR FROM DATA_HORA) = %s
+            AND FK_USUARIO_ONG = %s
         """, (ano_atual, id_token))
 
         total_ano = cur.fetchone()
@@ -5467,8 +5467,8 @@ def grafico_doador():
                     AS NUMERIC(15, 2)
                 ) AS VALOR_TOTAL
             FROM DOACOES
-            WHERE EXTRACT(YEAR FROM DATA_HORA) = ?
-            AND FK_USUARIO_DOADOR = ?
+            WHERE EXTRACT(YEAR FROM DATA_HORA) = %s
+            AND FK_USUARIO_DOADOR = %s
             GROUP BY EXTRACT(MONTH FROM DATA_HORA)
             ORDER BY MES
         """, (ano, id_token))
@@ -5483,8 +5483,8 @@ def grafico_doador():
                     AS NUMERIC(15, 2)
                 ) AS TOTAL_VALOR_ANO
             FROM DOACOES
-            WHERE EXTRACT(YEAR FROM DATA_HORA) = ?
-            AND FK_USUARIO_DOADOR = ?
+            WHERE EXTRACT(YEAR FROM DATA_HORA) = %s
+            AND FK_USUARIO_DOADOR = %s
         """, (ano, id_token))
 
         total_ano = cur.fetchone()
@@ -5579,7 +5579,7 @@ def gerar_relatorio():
         cursor.execute("""
             SELECT tipo_de_usuario, nome, email
             FROM usuario
-            WHERE id_usuario = ?
+            WHERE id_usuario = %s
         """, (id_token,))
 
         usuario_logado = cursor.fetchone()
@@ -5623,7 +5623,7 @@ def gerar_relatorio():
                     }
                 }), 400
 
-            filtro_data_sql = "AND CAST(d.data_hora AS DATE) BETWEEN ? AND ?"
+            filtro_data_sql = "AND CAST(d.data_hora AS DATE) BETWEEN %s AND %s"
             params_data = [inicio_data.date(), final_data.date()]
 
 
@@ -5660,7 +5660,7 @@ def gerar_relatorio():
         cursor.execute("""
             SELECT tipo_de_usuario, nome, email
             FROM usuario
-            WHERE id_usuario = ?
+            WHERE id_usuario = %s
         """, (id_usuario,))
 
         usuario_relatorio = cursor.fetchone()
@@ -5680,11 +5680,11 @@ def gerar_relatorio():
 
         if tipo_usuario_relatorio == 0:
             titulo = "Histórico de Doações Feitas"
-            filtro_sql = "UPPER(ong.nome) LIKE UPPER(?)"
+            filtro_sql = "UPPER(ong.nome) LIKE UPPER(%s)"
 
         elif tipo_usuario_relatorio == 1:
             titulo = "Histórico de Doações Recebidas"
-            filtro_sql = f"UPPER(doador.nome) LIKE UPPER(?)"
+            filtro_sql = f"UPPER(doador.nome) LIKE UPPER(%s)"
 
         elif tipo_usuario_relatorio == 2:
             titulo = "Relatório Administrativo"
@@ -5810,8 +5810,8 @@ def gerar_relatorio():
 
                 WHERE 
                     (
-                        d.fk_usuario_doador = ?
-                        OR d.fk_usuario_ong = ?
+                        d.fk_usuario_doador = %s
+                        OR d.fk_usuario_ong = %s
                     )
                     AND {filtro_sql}
                     {filtro_data_sql}
@@ -5910,7 +5910,7 @@ def gerar_relatorio():
                         AS DOUBLE PRECISION
                     )
                 FROM DOACOES
-                WHERE DATA_HORA BETWEEN ? AND ?
+                WHERE DATA_HORA BETWEEN %s AND %s
             """, (data_inicio, data_fim))
 
             resultado_doacoes = cursor.fetchone()
@@ -5931,7 +5931,7 @@ def gerar_relatorio():
                 SELECT CAST(COUNT(ID_USUARIO) AS INTEGER)
                 FROM USUARIO
                 WHERE TIPO_DE_USUARIO = 0
-                  AND DATA_HORA_REGISTRO BETWEEN ? AND ?
+                  AND DATA_HORA_REGISTRO BETWEEN %s AND %s
             """, (data_inicio, data_fim))
 
             resultado_doadores = cursor.fetchone()
@@ -5946,7 +5946,7 @@ def gerar_relatorio():
                 SELECT CAST(COUNT(ID_USUARIO) AS INTEGER)
                 FROM USUARIO
                 WHERE TIPO_DE_USUARIO = 1
-                  AND DATA_HORA_REGISTRO BETWEEN ? AND ?
+                  AND DATA_HORA_REGISTRO BETWEEN %s AND %s
             """, (data_inicio, data_fim))
 
             resultado_ongs = cursor.fetchone()
@@ -5982,7 +5982,7 @@ def gerar_relatorio():
                         AS NUMERIC(15,2)
                     ) AS VALOR_TOTAL
                 FROM DOACOES
-                WHERE EXTRACT(YEAR FROM DATA_HORA) = ?
+                WHERE EXTRACT(YEAR FROM DATA_HORA) = %s
                 GROUP BY EXTRACT(MONTH FROM DATA_HORA)
                 ORDER BY MES
             """, (ano_atual,))
@@ -5998,7 +5998,7 @@ def gerar_relatorio():
                         AS NUMERIC(15,2)
                     ) AS VALOR_TOTAL
                 FROM DOACOES
-                WHERE EXTRACT(YEAR FROM DATA_HORA) = ?
+                WHERE EXTRACT(YEAR FROM DATA_HORA) = %s
                 GROUP BY EXTRACT(MONTH FROM DATA_HORA)
                 ORDER BY MES
             """, (ano_passado,))
